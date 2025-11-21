@@ -29,6 +29,9 @@ Route::get('/notifications', function () {
 Route::get('/messages', [App\Http\Controllers\ContactController::class, 'index'])->name('messages');
 Route::post('/contact', [App\Http\Controllers\ContactController::class, 'store'])->name('contact.store');
 
+Route::get('/subscription', [App\Http\Controllers\SubscriptionController::class, 'index'])->name('subscription');
+Route::post('/subscription', [App\Http\Controllers\SubscriptionController::class, 'store'])->middleware('auth')->name('subscription.store');
+
 Route::get('/offers', function () {
     $offers = Offer::active()->orderBy('sort_order')->orderBy('created_at', 'desc')->get();
     return view('offers', compact('offers'));
