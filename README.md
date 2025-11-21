@@ -1,59 +1,144 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# StudentMove – Smart Transport Solution for Dhaka City Students
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+StudentMove is a full-stack smart transportation platform designed for students in Dhaka City.  
+It enables real-time bus tracking, intelligent route suggestions, subscription-based transport services, admin monitoring, driver tracking, and automated notifications.
 
-## About Laravel
+This project is collaboratively built by **5 team members**, where each member develops a **dedicated full-stack module**.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🚀 Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 🔹 Authentication
+- Student registration & login  
+- Email + OTP verification  
+- Secure session tokens  
+- Password reset  
+- Profile management  
 
-## Learning Laravel
+### 🔹 Smart Routes & Real-Time Tracking
+- View all routes  
+- Google Maps integration  
+- Live bus GPS tracking (updates every 10 seconds)  
+- ETA predictions  
+- Route ranking & suggestions  
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 🔹 Subscription & Payment
+- Multiple subscription plans  
+- Payment gateway support  
+- Invoice generation  
+- Subscription history  
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 🔹 Notification System
+- Push + email notifications  
+- Delay alerts  
+- Route change alerts  
+- Notification preferences  
 
-## Laravel Sponsors
+### 🔹 Feedback System
+- Submit feedback  
+- Admin replies  
+- Feedback history  
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 🔹 Admin Dashboard
+- Manage buses, drivers, routes  
+- Analytics & reports  
+- User suspension system  
+- GPS override controls  
 
-### Premium Partners
+### 🔹 Driver App
+- Driver login  
+- GPS updates every 10 seconds  
+- Bus status updates  
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+# 🧩 Full Functional Requirements Distribution
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### ✔ FR-30 and FR-31 are removed
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 👨‍💻 **Md. Shadman Hasin — ID: 0242220005101462**  
+### Module: Authentication (FR-1 to FR-8)
+- FR-1: User Registration  
+- FR-2: Student ID + Email Validation  
+- FR-3: OTP / Email Verification  
+- FR-4: User Login  
+- FR-5: Forgot Password  
+- FR-6: Profile Update  
+- FR-7: Password Encryption  
+- FR-8: Secure Session Tokens  
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 👨‍💻 **Md. Shadman Tahsin — ID: 0242220005101461**  
+### Module: Routes & Real-Time Tracking (FR-9 to FR-17)
+- FR-9: View All Routes  
+- FR-10: Google Maps API Integration  
+- FR-11: Bus GPS Fetching (10s refresh)  
+- FR-12: Bus Location + ETA  
+- FR-13: Route Suggestion  
+- FR-14: Ranked Route Options  
+- FR-15: Delay Alerts  
+- FR-16: Next Bus Display  
+- FR-17: Save Favorite Routes  
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 👨‍💻 **Md. Julfikar Hasan — ID: 0242220005101495**  
+### Module: Subscription & Payment (FR-18 to FR-25)
+- FR-18: Subscription Plans  
+- FR-19: Plan Details  
+- FR-20: Payment Gateway  
+- FR-21: Invoice Generation  
+- FR-22: Payment Confirmation  
+- FR-23: Subscription Status Update  
+- FR-24: Subscription History  
+- FR-25: Transaction Storage  
+
+---
+
+## 👨‍💻 **Nahid Hasan — ID: 0242220005101460**  
+### Module: Notification & Feedback (FR-26 to FR-29, FR-32 to FR-35)
+- FR-26: Real-time Notifications  
+- FR-27: FCM + Email Notifications  
+- FR-28: Notification Preferences  
+- FR-29: Notification List  
+- FR-32: Submit Feedback  
+- FR-33: Feedback Email Confirmation  
+- FR-34: Admin Response  
+- FR-35: Feedback Archiving  
+
+---
+
+## 👨‍💻 **KM Najimuddin — ID: 0242220005101493**  
+### Module: Admin Dashboard & Driver App (FR-36 to FR-45)
+- FR-36: Admin Dashboard  
+- FR-37: CRUD for Bus/Driver/Route  
+- FR-38: GPS Override  
+- FR-39: Reports (Daily/Weekly/Monthly)  
+- FR-40: User Suspension  
+- FR-41: Admin Logs  
+- FR-42: Driver Login  
+- FR-43: Driver GPS Updates  
+- FR-44: Bus Status Update  
+- FR-45: Admin Status Override  
+
+---
+
+# 🏗️ Tech Stack
+
+### **Backend:** Laravel 10 (PHP 8+)  
+### **Frontend:** Blade, TailwindCSS, Vite  
+### **Database:** MySQL  
+### **APIs:** Google Maps, Firebase Cloud Messaging, Payment Gateway, GPS Driver App
+
+---
+
+# 🔧 Installation Guide
+
+### 1️⃣ Clone the Repository
+```bash
+git clone https://github.com/<your-repo>/StudentMove.git
+cd StudentMove
