@@ -1,18 +1,23 @@
-#!/usr/bin/env php
-<?php
+#!/bin/bash
+# Build script for Render.com deployment
 
-use Illuminate\Foundation\Application;
-use Symfony\Component\Console\Input\ArgvInput;
+echo "Starting Laravel build process..."
 
-define('LARAVEL_START', microtime(true));
+# Install dependencies
+composer install --no-dev --optimize-autoloader
 
-// Register the Composer autoloader...
-require __DIR__.'/vendor/autoload.php';
+# Generate application key
+php artisan key:generate
 
-// Bootstrap Laravel and handle the command...
-/** @var Application $app */
-$app = require_once __DIR__.'/bootstrap/app.php';
+# Run database migrations
+php artisan migrate --force
 
-$status = $app->handleCommand(new ArgvInput);
+# Create storage link
+php artisan storage:link
 
-exit($status);
+# Clear and cache config
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+echo "Build process completed successfully!"
