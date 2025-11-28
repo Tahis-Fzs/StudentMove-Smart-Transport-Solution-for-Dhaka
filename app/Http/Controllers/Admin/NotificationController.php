@@ -7,9 +7,19 @@ use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
+    /**
+     * User notification settings page
+     */
+    public function settings()
+    {
+        $user = Auth::user();
+        return view('notification_settings', compact('user'));
+    }
+
     /**
      * Display all notifications
      */
@@ -96,4 +106,3 @@ class NotificationController extends Controller
         return redirect()->route('admin.notifications.index')->with('success', 'Notification deleted successfully!');
     }
 }
-
