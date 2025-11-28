@@ -74,8 +74,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('offers', OfferController::class);
         
         // Notifications Management
-        Route::resource('notifications', NotificationController::class);
+        // exclude 'show' because NotificationController does not implement show()
+        Route::resource('notifications', NotificationController::class)->except(['show']);
     });
 });
 
 require __DIR__.'/auth.php';
+        return view('admin.notifications.edit', compact('notification'));
+  
