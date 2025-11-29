@@ -5,7 +5,11 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\OfferController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\BusController; // added for admin bus management
 use App\Http\Controllers\BusRouteController; // Tahsin
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\FeedbackController;
 use App\Models\Offer;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Route;
@@ -18,20 +22,17 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('/subscription', function () {
-    return view('subscription');
-})->name('subscription');
+// Use controller-based subscription routes (removed duplicate closure-based route)
+Route::get('/subscription', [SubscriptionController::class, 'index'])->name('subscription');
+Route::post('/subscription', [SubscriptionController::class, 'store'])->middleware('auth')->name('subscription.store');
 
 Route::get('/notifications', function () {
     $notifications = Notification::active()->orderBy('sort_order')->orderBy('created_at', 'desc')->get();
     return view('notifications', compact('notifications'));
 })->name('notifications');
 
-Route::get('/messages', [App\Http\Controllers\ContactController::class, 'index'])->name('messages');
-Route::post('/contact', [App\Http\Controllers\ContactController::class, 'store'])->name('contact.store');
-
-Route::get('/subscription', [App\Http\Controllers\SubscriptionController::class, 'index'])->name('subscription');
-Route::post('/subscription', [App\Http\Controllers\SubscriptionController::class, 'store'])->middleware('auth')->name('subscription.store');
+Route::get('/messages', [ContactController::class, 'index'])->name('messages');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
 Route::get('/offers', function () {
     $offers = Offer::active()->orderBy('sort_order')->orderBy('created_at', 'desc')->get();
@@ -42,8 +43,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::get('/feedback', [App\Http\Controllers\FeedbackController::class, 'index'])->name('feedback.index');
-    Route::post('/feedback', [App\Http\Controllers\FeedbackController::class, 'store'])->name('feedback.store');
+
+    Route::get('/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
+    Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
 
     // Tahsin — BusRouteController-based routes (require auth)
     Route::get('/next-bus-arrival', [BusRouteController::class, 'index'])->name('next-bus-arrival');
@@ -73,12 +75,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Offers Management
         Route::resource('offers', OfferController::class);
         
-        // Notifications Management
-        // exclude 'show' because NotificationController does not implement show()
+        // Notifications Management (exclude 'show' because NotificationController does not implement show())
         Route::resource('notifications', NotificationController::class)->except(['show']);
+
+        // Bus management routes: index, create, store, destroy
+        // These provide:
+        // GET    /admin/buses           -> admin.buses.index
+        // GET    /admin/buses/create    -> admin.buses.create
+        // POST   /admin/buses           -> admin.buses.store
+        // DELETE /admin/buses/{bus}     -> admin.buses.destroy
+        Route::resource('buses', BusController::class)->only(['index', 'create', 'store', 'destroy']);
     });
 });
 
 require __DIR__.'/auth.php';
-        return view('admin.notifications.edit', compact('notification'));
-  
