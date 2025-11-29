@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\OfferController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\BusRouteController; // Tahsin
 use App\Models\Offer;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Route;
@@ -37,20 +38,17 @@ Route::get('/offers', function () {
     return view('offers', compact('offers'));
 })->name('offers');
 
-Route::get('/next-bus-arrival', function () {
-    return view('next-bus-arrival');
-})->name('next-bus-arrival');
-
-Route::get('/route-suggestion', function () {
-    return view('route-suggestion');
-})->name('route-suggestion');
-
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/feedback', [App\Http\Controllers\FeedbackController::class, 'index'])->name('feedback.index');
     Route::post('/feedback', [App\Http\Controllers\FeedbackController::class, 'store'])->name('feedback.store');
+
+    // Tahsin — BusRouteController-based routes (require auth)
+    Route::get('/next-bus-arrival', [BusRouteController::class, 'index'])->name('next-bus-arrival');
+    Route::get('/route-suggestion', [BusRouteController::class, 'suggest'])->name('route-suggestion');
+    Route::post('/save-route', [BusRouteController::class, 'saveFavorite'])->name('route.save');
 });
 
 // Admin Panel Routes (Separate Authentication)
@@ -76,8 +74,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('offers', OfferController::class);
         
         // Notifications Management
-        Route::resource('notifications', NotificationController::class);
+        // exclude 'show' because NotificationController does not implement show()
+        Route::resource('notifications', NotificationController::class)->except(['show']);
     });
 });
 
 require __DIR__.'/auth.php';
+        return view('admin.notifications.edit', compact('notification'));
+  
