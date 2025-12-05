@@ -51,6 +51,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/next-bus-arrival', [BusRouteController::class, 'index'])->name('next-bus-arrival');
     Route::get('/route-suggestion', [BusRouteController::class, 'suggest'])->name('route-suggestion');
     Route::post('/save-route', [BusRouteController::class, 'saveFavorite'])->name('route.save');
+
+    // FR-11 & FR-12: Dynamic GPS APIs
+    Route::post('/api/bus/update-location', [BusRouteController::class, 'updateLocation'])->name('api.bus.update');
+    Route::get('/api/bus/get-location/{id}', [BusRouteController::class, 'getBusLocation'])->name('api.bus.get');
 });
 
 // Admin Panel Routes (Separate Authentication)

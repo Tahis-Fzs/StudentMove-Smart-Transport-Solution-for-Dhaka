@@ -17,10 +17,10 @@ class BusSchedule extends Model
         'bus_number',
         'price',
         'is_active',
-        // 👇 NEW FIELDS FOR FR-11, FR-12, FR-15
-        'current_lat',      // GPS Latitude
-        'current_lng',      // GPS Longitude
-        'delay_minutes',    // How late is the bus?
-        'status'            // 'on_time', 'delayed', 'stopped'
+        // 🚀 ADD THESE FOR DYNAMIC TRACKING
+        'current_lat',     // GPS Latitude (double/float)
+        'current_lng',     // GPS Longitude (double/float)
+        'heading',         // Direction the bus is facing (e.g., degrees or string)
+        // Optionally retain any other tracking/delay fields, if needed
     ];
 }
