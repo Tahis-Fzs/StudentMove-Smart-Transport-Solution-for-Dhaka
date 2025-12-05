@@ -23,12 +23,27 @@
         <div class="nba-schedule-card">
             <div class="nba-card-title">7.00 AM, 12 May<br><span>from: Rajlakshmi to DSC</span></div>
             
+            <!-- Toast Notification for Delay -->
             <div id="toast-notification" style="display:none; position:fixed; top:20px; right:20px; background:white; padding:15px; border-left: 5px solid red; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index:9999; border-radius:4px;">
                 <div style="font-weight:bold; color:red;"><i class="bi bi-exclamation-circle-fill"></i> DELAY ALERT</div>
                 <div id="toast-msg">Bus is late!</div>
             </div>
-
+            
+            <!-- Map & Arrival Card -->
             <div id="map" style="width: 100%; height: 450px; border-radius: 12px; margin-top: 15px;"></div>
+
+            <div id="eta-card" style="background: white; padding: 15px; border-radius: 10px; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="margin:0; color:#333; font-size: 1.1rem;">Next Bus: <span id="route-name">Uttara to DSC</span></h3>
+                    <div style="font-size: 0.9rem; margin-top: 5px;">
+                        Status: <span id="status-badge" style="background: #d4edda; color: #155724; padding: 2px 8px; border-radius: 4px; font-weight: bold;">On Time</span>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 0.8rem; color: #666;">Arriving in</div>
+                    <div id="eta-time" style="font-size: 1.5rem; font-weight: bold; color: #007bff;">10 mins</div>
+                </div>
+            </div>
 
             <div style="margin-top:10px; display:flex; gap:10px;">
                 <button onclick="startSimulation()" style="padding:10px; background:#28a745; color:white; border:none; border-radius:5px;">
@@ -110,23 +125,35 @@
             fetch(`/api/bus/get-location/${busId}`)
                 .then(res => res.json())
                 .then(data => {
-                    const newPos = { lat: data.lat, lng: data.lng };
-
                     // 1. Move Marker (Uber-style update)
+                    const newPos = { lat: data.lat, lng: data.lng };
                     busMarker.setPosition(newPos);
                     map.panTo(newPos);
 
-                    // 2. Check for Delay (Color Change)
-                    if (data.is_delayed) {
-                        busMarker.setIcon(iconDelay); // Change to RED Icon
+                    // 2. 🚀 UPDATE THE TIME AND STATUS ON THE ARRIVAL CARD
+                    document.getElementById('eta-time').innerText = data.eta_text;
 
-                        // 3. Trigger Notification (Only once per incident)
+                    const badge = document.getElementById('status-badge');
+                    if (data.is_delayed) {
+                        // Update Badge Text and Color to RED for delay
+                        badge.innerText = data.status_msg;
+                        badge.style.background = '#f8d7da';
+                        badge.style.color = '#721c24';
+                        document.getElementById('eta-time').style.color = '#dc3545'; // Timer turns Red
+
+                        // 3. Change marker icon and trigger notification ONCE
+                        busMarker.setIcon(iconDelay);
                         if (!notificationShown) {
                             showNotification(data.delay_msg);
                             notificationShown = true;
                         }
                     } else {
-                        busMarker.setIcon(iconNormal); // Reset to Normal
+                        // Reset to Green state
+                        badge.innerText = "On Time";
+                        badge.style.background = '#d4edda';
+                        badge.style.color = '#155724';
+                        document.getElementById('eta-time').style.color = '#007bff';
+                        busMarker.setIcon(iconNormal);
                         notificationShown = false;
                     }
                 });

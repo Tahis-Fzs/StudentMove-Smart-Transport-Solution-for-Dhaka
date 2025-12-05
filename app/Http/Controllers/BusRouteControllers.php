@@ -47,7 +47,7 @@ class BusRouteController extends Controller
         return response()->json(['status' => 'error'], 404);
     }
 
-    // 🚀 FR-12 & FR-15: Fetch Location AND Calculate Delay
+    // 🚀 FR-12 & FR-15: Fetch Location AND Calculate Delay AND Send ETA
     public function getBusLocation($id)
     {
         $bus = BusSchedule::find($id);
@@ -55,17 +55,29 @@ class BusRouteController extends Controller
         if (!$bus) {
             return response()->json(['error' => 'Bus not found'], 404);
         }
-        
-        // Calculate dynamic delay based on status
-        $isDelayed = $bus->status === 'delayed'; // You can toggle this in DB manually for demo
-        $delayMinutes = $isDelayed ? rand(5, 15) : 0; // Simulate 5-15 min delay
 
+        // 1. Get the Schedule (Usual Time)
+        // Let's assume the bus is "5km away", averages 30km/h
+        $distanceKm = 5.0; // Simulated distance
+        $speedKmh = 30.0;  // Average speed in km/h
+        $usualMinutes = ($distanceKm / $speedKmh) * 60; // 10 mins
+
+        // 2. Check Delay (Traffic)
+        $isDelayed = $bus->status === 'delayed';
+        $delayMinutes = $isDelayed ? 15 : 0; // If delayed, add 15 mins
+
+        // 3. Calculate Real Arrival Time
+        $totalMinutes = $usualMinutes + $delayMinutes;
+        
         return response()->json([
             'lat' => (float)$bus->current_lat,
             'lng' => (float)$bus->current_lng,
-            'route' => $bus->route_name,
             'is_delayed' => $isDelayed,
-            'delay_msg' => $isDelayed ? "Bus is delayed by {$delayMinutes} mins (Traffic)" : "On Time"
+            'delay_minutes' => $delayMinutes,
+            'usual_eta' => round($usualMinutes) . " mins",
+            'new_eta' => round($totalMinutes) . " mins",
+            'eta_text' => round($totalMinutes) . " mins",
+            'status_msg' => $isDelayed ? "Delayed by {$delayMinutes} min (Traffic)" : "On Time"
         ]);
     }
 
