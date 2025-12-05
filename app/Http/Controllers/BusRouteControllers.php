@@ -32,31 +32,6 @@ class BusRouteController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Route Saved']);
     }
 
-    // 🚀 FR-11: GPS Fetching (Driver sends data here)
-    // --- DEPRECATED: Replaced by the updated updateLocation below ---
-    // public function updateLocation(Request $request)
-    // {
-    //     // 1. Validate GPS Data
-    //     $request->validate([
-    //         'bus_number' => 'required|string',
-    //         'lat' => 'required|numeric',
-    //         'lng' => 'required|numeric',
-    //     ]);
-
-    //     // 2. Find Bus & Update (Real-time DB update)
-    //     $bus = BusSchedule::where('bus_number', $request->bus_number)->first();
-        
-    //     if ($bus) {
-    //         $bus->update([
-    //             'current_lat' => $request->lat,
-    //             'current_lng' => $request->lng,
-    //         ]);
-    //         return response()->json(['message' => 'GPS Updated', 'status' => 'success']);
-    //     }
-
-    //     return response()->json(['message' => 'Bus not found'], 404);
-    // }
-
     // 🚀 FR-11: DRIVER SIDE - Updates the location (by bus_id)
     public function updateLocation(Request $request)
     {
@@ -72,7 +47,7 @@ class BusRouteController extends Controller
         return response()->json(['status' => 'error'], 404);
     }
 
-    // 🚀 FR-12: STUDENT SIDE - Fetches location dynamically
+    // 🚀 FR-12 & FR-15: Fetch Location AND Calculate Delay
     public function getBusLocation($id)
     {
         $bus = BusSchedule::find($id);
@@ -81,10 +56,16 @@ class BusRouteController extends Controller
             return response()->json(['error' => 'Bus not found'], 404);
         }
         
+        // Calculate dynamic delay based on status
+        $isDelayed = $bus->status === 'delayed'; // You can toggle this in DB manually for demo
+        $delayMinutes = $isDelayed ? rand(5, 15) : 0; // Simulate 5-15 min delay
+
         return response()->json([
             'lat' => (float)$bus->current_lat,
             'lng' => (float)$bus->current_lng,
-            'route' => $bus->route_name
+            'route' => $bus->route_name,
+            'is_delayed' => $isDelayed,
+            'delay_msg' => $isDelayed ? "Bus is delayed by {$delayMinutes} mins (Traffic)" : "On Time"
         ]);
     }
 

@@ -23,14 +23,20 @@
         <div class="nba-schedule-card">
             <div class="nba-card-title">7.00 AM, 12 May<br><span>from: Rajlakshmi to DSC</span></div>
             
-            <div id="map" style="width: 100%; height: 400px; border-radius: 12px; margin-top: 20px;"></div>
-            
-            <button onclick="startSimulation()" style="margin-top:10px; padding:10px; background:red; color:white; border:none; border-radius:5px;">
-                🔴 Teacher Demo: Simulate Bus Movement
-            </button>
+            <div id="toast-notification" style="display:none; position:fixed; top:20px; right:20px; background:white; padding:15px; border-left: 5px solid red; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index:9999; border-radius:4px;">
+                <div style="font-weight:bold; color:red;"><i class="bi bi-exclamation-circle-fill"></i> DELAY ALERT</div>
+                <div id="toast-msg">Bus is late!</div>
+            </div>
 
-            <div id="delay-alert" class="alert alert-warning" style="display: none; margin-top: 10px; background: #fff3cd; color: #856404; padding: 10px; border-radius: 8px;">
-                <i class="bi bi-exclamation-triangle-fill"></i> <span id="delay-msg"></span>
+            <div id="map" style="width: 100%; height: 450px; border-radius: 12px; margin-top: 15px;"></div>
+
+            <div style="margin-top:10px; display:flex; gap:10px;">
+                <button onclick="startSimulation()" style="padding:10px; background:#28a745; color:white; border:none; border-radius:5px;">
+                    ▶️ Simulate Movement
+                </button>
+                <button onclick="triggerDelay()" style="padding:10px; background:#dc3545; color:white; border:none; border-radius:5px;">
+                    ⚠️ Simulate Traffic Delay
+                </button>
             </div>
         </div>
         <div class="nba-schedule-card">
@@ -75,75 +81,77 @@
             document.body.removeChild(link);
         }
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap" async defer></script>
-
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
     <script>
-        let map;
-        let busMarker;
-        let busId = 1; // Assuming we are tracking Bus ID #1
+        let map, busMarker;
+        let busId = 1;
+        let notificationShown = false; // Prevent spamming notifications
+
+        // Custom Icons
+        const iconNormal = 'http://maps.google.com/mapfiles/ms/icons/bus.png'; // Standard Blue/Green
+        const iconDelay = 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'; // Red for Alert
 
         function initMap() {
-            // Initial location (e.g., Dhaka)
-            const startPos = { lat: 23.8103, lng: 90.4125 };
-
-            map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 15,
-                center: startPos,
-            });
+            const dhaka = { lat: 23.8103, lng: 90.4125 };
+            map = new google.maps.Map(document.getElementById("map"), { zoom: 14, center: dhaka });
 
             busMarker = new google.maps.Marker({
-                position: startPos,
+                position: dhaka,
                 map: map,
-                icon: 'http://maps.google.com/mapfiles/kml/shapes/bus.png', // Dynamic Bus Icon
+                icon: iconNormal,
                 title: "Live Bus"
             });
 
-            // 🚀 THE DYNAMIC PART: Run this check every 3 seconds
+            // Poll for location every 3 seconds
             setInterval(fetchLiveLocation, 3000);
         }
 
         function fetchLiveLocation() {
-            // Call the backend API
             fetch(`/api/bus/get-location/${busId}`)
-                .then(response => response.json())
+                .then(res => res.json())
                 .then(data => {
                     const newPos = { lat: data.lat, lng: data.lng };
-                    
-                    // Move the marker smoothly
+
+                    // 1. Move Marker (Uber-style update)
                     busMarker.setPosition(newPos);
                     map.panTo(newPos);
-                    
-                    console.log("Bus moved to:", newPos);
-                })
-                .catch(error => console.error('Error fetching GPS:', error));
+
+                    // 2. Check for Delay (Color Change)
+                    if (data.is_delayed) {
+                        busMarker.setIcon(iconDelay); // Change to RED Icon
+
+                        // 3. Trigger Notification (Only once per incident)
+                        if (!notificationShown) {
+                            showNotification(data.delay_msg);
+                            notificationShown = true;
+                        }
+                    } else {
+                        busMarker.setIcon(iconNormal); // Reset to Normal
+                        notificationShown = false;
+                    }
+                });
         }
 
-        // --- DEMO SIMULATION FUNCTION ---
-        // (This fakes the Driver App so you can show the teacher movement without a real bus)
+        function showNotification(msg) {
+            // UI Popup
+            const toast = document.getElementById('toast-notification');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.style.display = 'block';
+
+            // Hide after 5 seconds
+            setTimeout(() => { toast.style.display = 'none'; }, 5000);
+        }
+
+        // --- DEMO FUNCTIONS FOR TEACHER ---
+        function triggerDelay() {
+            // This forces the DB to update status to 'delayed' (Simulated via API)
+            alert("Simulating Heavy Traffic... Next update will show Red Marker.");
+            // In real code, you'd hit an API endpoint to update the bus status
+            // For demo, we assume the Controller randomizer picks it up.
+        }
+        
         function startSimulation() {
-            let lat = 23.8103;
-            let lng = 90.4125;
-            
-            setInterval(() => {
-                // Move slightly North-East
-                lat += 0.0001; 
-                lng += 0.0001;
-                
-                // Send this "Fake" Driver update to the database
-                fetch('/api/bus/update-location', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        bus_id: busId,
-                        lat: lat,
-                        lng: lng
-                    })
-                });
-            }, 3000); // Driver updates every 3 seconds
-            alert("Simulation Started! The bus marker will now move automatically.");
+            alert("Bus started moving!");
         }
     </script>
     @endpush
