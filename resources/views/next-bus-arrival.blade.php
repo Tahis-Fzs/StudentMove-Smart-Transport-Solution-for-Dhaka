@@ -22,7 +22,11 @@
     <div class="nba-schedules">
         <div class="nba-schedule-card">
             <div class="nba-card-title">7.00 AM, 12 May<br><span>from: Rajlakshmi to DSC</span></div>
-            <img class="nba-map-img" src="{{ asset('images/rout image.png') }}" alt="map">
+            <div id="map" style="width: 100%; height: 250px; border-radius: 12px; margin-top: 15px;"></div>
+
+            <div id="delay-alert" class="alert alert-warning" style="display: none; margin-top: 10px; background: #fff3cd; color: #856404; padding: 10px; border-radius: 8px;">
+                <i class="bi bi-exclamation-triangle-fill"></i> <span id="delay-msg"></span>
+            </div>
         </div>
         <div class="nba-schedule-card">
             <div class="nba-card-title">8.30 AM, 12 May<br><span>from: Rajlakshmi</span></div>
@@ -65,6 +69,34 @@
             link.click();
             document.body.removeChild(link);
         }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+    <script>
+        function initMap() {
+            // Default location (e.g., Dhaka)
+            const dhaka = { lat: 23.8103, lng: 90.4125 };
+            
+            // Create Map
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 14,
+                center: dhaka,
+            });
+
+            // Add Bus Marker
+            new google.maps.Marker({
+                position: dhaka,
+                map: map,
+                icon: '{{ asset("images/bus-icon.png") }}', // Custom bus icon
+                title: "Live Bus Location"
+            });
+        }
+
+        // Simulate checking for delays (FR-15)
+        // In real app, this would poll the 'checkDelays' API we made
+        setTimeout(() => {
+            document.getElementById('delay-alert').style.display = 'block';
+            document.getElementById('delay-msg').innerText = "Route Delay: Heavy traffic detected on Airport Road (15 min delay).";
+        }, 3000);
     </script>
     @endpush
 </x-app-layout>
