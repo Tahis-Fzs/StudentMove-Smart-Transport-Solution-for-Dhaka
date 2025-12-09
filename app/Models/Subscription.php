@@ -22,6 +22,16 @@ class Subscription extends Model
         'ends_at',
     ];
 
+    protected static function booted()
+    {
+        // Auto-update status when subscription expires (FR-23)
+        static::saving(function ($subscription) {
+            if ($subscription->ends_at && $subscription->ends_at->isPast() && $subscription->status === 'completed') {
+                $subscription->status = 'expired';
+            }
+        });
+    }
+
     protected $casts = [
         'amount' => 'decimal:2',
         'starts_at' => 'datetime',
@@ -57,5 +67,10 @@ class Subscription extends Model
             'yearly' => 12,
             default => 0,
         };
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
     }
 }

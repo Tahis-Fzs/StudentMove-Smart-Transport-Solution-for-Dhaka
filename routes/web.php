@@ -25,6 +25,8 @@ Route::get('/dashboard', function () {
 // Use controller-based subscription routes (removed duplicate closure-based route)
 Route::get('/subscription', [SubscriptionController::class, 'index'])->name('subscription');
 Route::post('/subscription', [SubscriptionController::class, 'store'])->middleware('auth')->name('subscription.store');
+Route::get('/subscription/history', [SubscriptionController::class, 'history'])->middleware('auth')->name('subscription.history');
+Route::get('/subscription/invoice/{invoice}/download', [SubscriptionController::class, 'downloadInvoice'])->middleware('auth')->name('subscription.invoice.download');
 
 Route::get('/notifications', function () {
     $notifications = Notification::active()->orderBy('sort_order')->orderBy('created_at', 'desc')->get();

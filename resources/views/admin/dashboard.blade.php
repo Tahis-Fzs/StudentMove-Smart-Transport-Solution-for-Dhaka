@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - StudentMove</title>
@@ -11,7 +13,9 @@
         .sidebar a:hover, .sidebar a.active { background: #495057; color: white; }
         .stat-card { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; }
         .stat-card:hover { transform: translateY(-5px); }
-    </style></head><body>
+    </style>
+</head>
+<body>
     <div class="d-flex">
         <div class="sidebar p-3" style="width: 250px;">
             <h4 class="mb-4 text-center">Admin Panel</h4>
@@ -19,7 +23,7 @@
             <a href="{{ route('admin.users') }}"><i class="bi bi-people"></i> Users</a>
             <a href="{{ route('admin.offers.index') }}"><i class="bi bi-tag"></i> Offers</a>
             <a href="{{ route('admin.notifications.index') }}"><i class="bi bi-bell"></i> Notifications</a>
-            <a href="{{ route('feedback.admin') }}"><i class="bi bi-chat-left-text"></i> Feedback</a>
+            <a href="{{ route('admin.buses.index') }}"><i class="bi bi-bus-front"></i> Buses</a>
             
             <form method="POST" action="{{ route('admin.logout') }}" class="mt-5">
                 @csrf
@@ -50,8 +54,8 @@
                 <div class="col-md-3">
                     <div class="card stat-card bg-warning text-dark">
                         <div class="card-body">
-                            <h5>Feedback</h5>
-                            <h2>{{ \App\Models\Feedback::where('status', 'pending')->count() }}</h2>
+                            <h5>Total Offers</h5>
+                            <h2>{{ $totalOffers }}</h2>
                         </div>
                     </div>
                 </div>
@@ -93,4 +97,7 @@
                 </div>
             </div>
         </div>
-    </div></body></html>
+    </div>
+</body>
+</html>
+

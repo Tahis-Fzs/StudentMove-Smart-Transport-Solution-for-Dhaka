@@ -101,3 +101,4 @@ class BusRouteController extends Controller
         return response()->json(['alert' => false]);
     }
 }
+
