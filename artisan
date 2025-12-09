@@ -1,23 +1,53 @@
-#!/bin/bash
-# Build script for Render.com deployment
+#!/usr/bin/env php
+<?php
 
-echo "Starting Laravel build process..."
+define('LARAVEL_START', microtime(true));
 
-# Install dependencies
-composer install --no-dev --optimize-autoloader
+/*
+|--------------------------------------------------------------------------
+| Register The Auto Loader
+|--------------------------------------------------------------------------
+|
+| Composer provides a convenient, automatically generated class loader
+| for our application. We just need to utilize it! We'll require it
+| into the script here so that we do not have to worry about the
+| loading of any our classes "manually". Feels great to relax.
+|
+*/
 
-# Generate application key
-php artisan key:generate
+require __DIR__.'/vendor/autoload.php';
 
-# Run database migrations
-php artisan migrate --force
+$app = require_once __DIR__.'/bootstrap/app.php';
 
-# Create storage link
-php artisan storage:link
+/*
+|--------------------------------------------------------------------------
+| Run The Artisan Application
+|--------------------------------------------------------------------------
+|
+| When we run the console application, the current CLI command will be
+| executed in this console and the response sent back to a terminal
+| or another output device for the developers. Here goes nothing!
+|
+*/
 
-# Clear and cache config
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 
-echo "Build process completed successfully!"
+$status = $kernel->handle(
+    $input = new Symfony\Component\Console\Input\ArgvInput,
+    new Symfony\Component\Console\Output\ConsoleOutput
+);
+
+/*
+|--------------------------------------------------------------------------
+| Shutdown The Application
+|--------------------------------------------------------------------------
+|
+| Once Artisan has finished running, we will fire off the shutdown events
+| so that any final work may be done by the application before we shut
+| down the process. This is the last thing to happen to the request.
+|
+*/
+
+$kernel->terminate($input, $status);
+
+exit($status);

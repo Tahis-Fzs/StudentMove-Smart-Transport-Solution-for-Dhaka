@@ -1,94 +1,82 @@
-@extends('admin.layout')
+<x-app-layout>
+    <div style="padding: 30px; max-width: 1200px; margin: 0 auto;">
+        <h2><i class="bi bi-people-fill"></i> User Management</h2>
 
-@section('title', 'User Management')
-
-@section('content')
-    <div class="admin-container">
-        <div class="admin-header">
-            <h1><i class="bi bi-people"></i> User Management</h1>
-            <p>Manage all registered users</p>
-        </div>
+        <form method="GET" action="{{ route('admin.users.search') }}" style="margin: 20px 0; display: flex; gap: 10px;">
+            <input type="text" name="q" placeholder="Search by name, email or ID..." style="padding: 10px; border: 1px solid #ddd; width: 300px;" value="{{ $query ?? '' }}">
+            <button type="submit" style="padding: 10px 20px; background: #007bff; color: white; border: none;">Search</button>
+        </form>
 
         @if(session('success'))
-        <div class="alert alert-success">
-            <i class="bi bi-check-circle"></i> {{ session('success') }}
-        </div>
+            <div style="background: #d4edda; padding: 10px; margin-bottom: 20px; color: #155724;">
+                {{ session('success') }}
+            </div>
+        @endif
+        @if(session('error'))
+            <div style="background: #f8d7da; padding: 10px; margin-bottom: 20px; color: #721c24;">
+                {{ session('error') }}
+            </div>
         @endif
 
-        <!-- Search and Actions -->
-        <div class="admin-toolbar">
-            <form method="GET" action="{{ route('admin.users.search') }}" class="search-form">
-                <input type="text" name="q" placeholder="Search by name, email, phone..." value="{{ $query ?? '' }}" class="search-input">
-                <button type="submit" class="search-btn"><i class="bi bi-search"></i></button>
-            </form>
-            <a href="{{ route('admin.dashboard') }}" class="btn-back">
-                <i class="bi bi-arrow-left"></i> Back to Dashboard
-            </a>
-        </div>
-
-        <!-- Users Table -->
-        <div class="admin-section">
-            <div class="section-header">
-                <h2>All Users ({{ $users->total() }})</h2>
-            </div>
-            <div class="users-table">
-                @if($users->count() > 0)
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>University</th>
-                            <th>Student ID</th>
-                            <th>Created</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($users as $user)
-                        <tr>
-                            <td>{{ $user->id }}</td>
-                            <td><strong>{{ $user->name }}</strong></td>
-                            <td>{{ $user->email }}</td>
-                            <td>{{ $user->phone ?? 'N/A' }}</td>
-                            <td>{{ $user->university ?? 'N/A' }}</td>
-                            <td>{{ $user->student_id ?? 'N/A' }}</td>
-                            <td>{{ $user->created_at->format('M d, Y') }}</td>
-                            <td>
-                                <div class="action-buttons-inline">
-                                    <a href="{{ route('admin.users.show', $user) }}" class="btn-sm btn-view" title="View">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="{{ route('admin.users.edit', $user) }}" class="btn-sm btn-edit" title="Edit">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline-form" onsubmit="return confirm('Are you sure you want to delete this user?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn-sm btn-delete" title="Delete">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-                
-                <!-- Pagination -->
-                <div class="pagination-wrapper">
-                    {{ $users->links() }}
-                </div>
-                @else
-                <div class="no-data">
-                    <i class="bi bi-inbox"></i>
-                    <p>No users found.</p>
-                </div>
-                @endif
-            </div>
+        <table style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <thead style="background: #343a40; color: white;">
+                <tr>
+                    <th style="padding: 15px;">Name</th>
+                    <th style="padding: 15px;">Email</th>
+                    <th style="padding: 15px;">Role</th>
+                    <th style="padding: 15px;">Status</th>
+                    <th style="padding: 15px;">Subscription</th>
+                    <th style="padding: 15px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($users as $user)
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 15px;">{{ $user->name }}</td>
+                    <td style="padding: 15px;">{{ $user->email }}</td>
+                    <td style="padding: 15px;">{{ $user->role ?? 'Student' }}</td>
+                    <td style="padding: 15px;">
+                        @if($user->is_banned)
+                            <span style="background: #dc3545; color: white; padding: 2px 8px; border-radius: 4px;">Banned</span>
+                        @else
+                            <span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px;">Active</span>
+                        @endif
+                    </td>
+                    <td style="padding: 15px;">
+                        @php $sub = \App\Models\Subscription::where('user_id', $user->id)->where('status', 'active')->first(); @endphp
+                        @if($sub)
+                            <span style="color: green;">{{ $sub->plan_name }}</span>
+                            <form method="POST" action="{{ route('admin.users.cancel_sub', $user->id) }}" style="display:inline;">
+                                @csrf
+                                <button type="submit" style="font-size: 0.8rem; color: red; border: none; background: none; text-decoration: underline; cursor: pointer;">(Cancel)</button>
+                            </form>
+                        @else
+                            <span style="color: #999;">None</span>
+                        @endif
+                    </td>
+                    <td style="padding: 15px;">
+                        <form method="POST" action="{{ route('admin.users.ban', $user->id) }}" style="display:inline;">
+                            @csrf
+                            <button type="submit" style="padding: 5px 10px; background: {{ $user->is_banned ? '#28a745' : '#dc3545' }}; color: white; border: none; border-radius: 3px; cursor: pointer;">
+                                {{ $user->is_banned ? 'Unban' : 'Ban' }}
+                            </button>
+                        </form>
+                        
+                        <a href="{{ route('admin.users.edit', $user->id) }}" style="margin-left: 5px; color: #007bff;"><i class="bi bi-pencil"></i></a>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 30px; color: #888;">
+                        <i class="bi bi-inbox"></i> No users found.
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+        
+        <div style="margin-top: 20px;">
+            {{ $users->links() }}
         </div>
     </div>
-@endsection
+</x-app-layout>
