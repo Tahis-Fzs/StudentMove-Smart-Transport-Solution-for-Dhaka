@@ -123,6 +123,58 @@ class AdminController extends Controller
 
         return view('admin.users', compact('users', 'query'));
     }
+
+    // 🚀 FR-40: Ban/Unban User
+    public function toggleBan($id): RedirectResponse
+    {
+        $user = User::findOrFail($id);
+
+        // Toggle the status
+        // Note: Make sure your 'users' table has an 'is_banned' column, 
+        // or create a migration for it. For now, we assume it exists.
+        $user->is_banned = !$user->is_banned;
+        $user->save();
+
+        $status = $user->is_banned ? 'Banned' : 'Activated';
+        return back()->with('success', "User has been $status successfully.");
+    }
+
+    // 🚀 FR-40: Cancel User Subscription
+    public function cancelSubscription($userId): RedirectResponse
+    {
+        // Find active subscription for this user
+        $subscription = \App\Models\Subscription::where('user_id', $userId)
+                                              ->where('status', 'active')
+                                              ->first();
+
+        if ($subscription) {
+            $subscription->update(['status' => 'cancelled']);
+            return back()->with('success', 'User subscription cancelled immediately.');
+        }
+
+        return back()->with('error', 'No active subscription found for this user.');
+    }
+
+    // 🚀 FR-41: View Activity Logs
+    public function logs(): View
+    {
+        // Get latest 50 logs with admin info
+        $logs = \App\Models\ActivityLog::with('admin')
+                    ->orderBy('created_at', 'desc')
+                    ->take(50)
+                    ->get();
+
+        return view('admin.logs', compact('logs'));
+    }
+
+    // ⚡ HELPER: Add this function to easily save logs from other controllers
+    // Usage: AdminController::log('User Banned', 'Banned user ID 5');
+    public static function log($action, $description = null)
+    {
+        \App\Models\ActivityLog::create([
+            'admin_id' => auth()->id(),
+            'action' => $action,
+            'description' => $description
+        ]);
+    }
 }
-
-

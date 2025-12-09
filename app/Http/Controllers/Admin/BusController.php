@@ -42,4 +42,30 @@ class BusController extends Controller{
         BusSchedule::find($id)->delete();
         return back()->with('success', 'Bus Route Deleted!');
     }
+
+    // Show form to edit the GPS coordinates of a bus
+    public function editGps($id)
+    {
+        $bus = BusSchedule::findOrFail($id);
+        return view('admin.buses.gps', compact('bus'));
+    }
+
+    // 🚀 FR-38: Update GPS Manually
+    public function updateGps(Request $request, $id)
+    {
+        $request->validate([
+            'lat' => 'required|numeric',
+            'lng' => 'required|numeric',
+        ]);
+
+        $bus = BusSchedule::findOrFail($id);
+        
+        $bus->update([
+            'current_lat' => $request->lat,
+            'current_lng' => $request->lng,
+            'status' => 'manual_override' // Mark status so users know
+        ]);
+
+        return redirect()->route('admin.buses.index')->with('success', 'Bus Location Manually Overridden!');
+    }
 }

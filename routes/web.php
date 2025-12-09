@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\OfferController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\BusController; // added for admin bus management
+use App\Http\Controllers\Admin\ReportController; // added for admin report management
 use App\Http\Controllers\BusRouteController; // Tahsin
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\SubscriptionController;
@@ -57,6 +58,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/bus/get-location/{id}', [BusRouteController::class, 'getBusLocation'])->name('api.bus.get');
 });
 
+// FR-42: Driver Auth (public driver routes)
+Route::get('/driver/login', [App\Http\Controllers\Driver\DriverAuthController::class, 'showLogin'])->name('driver.login');
+Route::post('/driver/login', [App\Http\Controllers\Driver\DriverAuthController::class, 'login'])->name('driver.login.post');
+Route::post('/driver/logout', [App\Http\Controllers\Driver\DriverAuthController::class, 'logout'])->name('driver.logout');
+
+// FR-43 & FR-44: Driver Dashboard & Logic
+Route::get('/driver/dashboard', [App\Http\Controllers\Driver\DriverController::class, 'dashboard'])->name('driver.dashboard');
+Route::post('/driver/status', [App\Http\Controllers\Driver\DriverController::class, 'updateStatus'])->name('driver.status');
+Route::post('/driver/gps', [App\Http\Controllers\Driver\DriverController::class, 'updateLocation'])->name('driver.gps');
+
 // Admin Panel Routes (Separate Authentication)
 Route::prefix('admin')->name('admin.')->group(function () {
     // Admin Login Routes (Public)
@@ -75,20 +86,29 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/users/{user}/edit', [AdminController::class, 'edit'])->name('users.edit');
         Route::put('/users/{user}', [AdminController::class, 'update'])->name('users.update');
         Route::delete('/users/{user}', [AdminController::class, 'destroy'])->name('users.destroy');
+
+        // FR-40: User Suspension & Sub Control
+        Route::post('users/{id}/ban', [AdminController::class, 'toggleBan'])->name('admin.users.ban');
+        Route::post('users/{id}/cancel-sub', [AdminController::class, 'cancelSubscription'])->name('admin.users.cancel_sub');
         
         // Offers Management
         Route::resource('offers', OfferController::class);
-        
+
         // Notifications Management (exclude 'show' because NotificationController does not implement show())
         Route::resource('notifications', NotificationController::class)->except(['show']);
 
         // Bus management routes: index, create, store, destroy
-        // These provide:
-        // GET    /admin/buses           -> admin.buses.index
-        // GET    /admin/buses/create    -> admin.buses.create
-        // POST   /admin/buses           -> admin.buses.store
-        // DELETE /admin/buses/{bus}     -> admin.buses.destroy
         Route::resource('buses', BusController::class)->only(['index', 'create', 'store', 'destroy']);
+
+        // Manual GPS edit/override routes for buses (FR-38)
+        Route::get('buses/{id}/gps', [BusController::class, 'editGps'])->name('buses.gps');
+        Route::post('buses/{id}/gps', [BusController::class, 'updateGps'])->name('buses.gps.update');
+
+        // FR-39: Admin Reports
+        Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+
+        // FR-41: Activity Logs (renamed to logs, avoid reserved log filename)
+        Route::get('logs', [AdminController::class, 'logs'])->name('logs');
     });
 });
 
