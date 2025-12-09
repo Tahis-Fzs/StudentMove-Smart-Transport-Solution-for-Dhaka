@@ -110,17 +110,17 @@
             const dotsRoot = document.getElementById('promoDots');
             let index = 0; let timer;
             function renderDots(){
-                dotsRoot.innerHTML = slides.map((_,i)=><button class="dot${i===index?' active':''}" data-i="${i}"></button>).join('');
+                dotsRoot.innerHTML = slides.map((_,i)=>`<button class="dot${i===index?' active':''}" data-i="${i}"></button>`).join('');
                 dotsRoot.querySelectorAll('.dot').forEach(btn=>btn.addEventListener('click',()=>{ index=+btn.dataset.i; move(); reset(); }));
             }
-            function move(){ track.style.transform = translateX(-${index*100}%); renderDots(); }
+            function move(){ track.style.transform = `translateX(-${index*100}%)`; renderDots(); }
             function next(){ index = (index+1)%slides.length; move(); }
             function reset(){ clearInterval(timer); timer = setInterval(next, 4000); }
             renderDots(); move(); reset();
         })();
 
         function showRoute(route) {
-            alert(Route Details: ${route}\n\nDistance: 12.5 km\nDuration: 35 minutes\nFare: ৳25\n\nBus Schedule:\n- Every 15 minutes\n- Last bus: 10:00 PM);
+            alert(`Route Details: ${route}\n\nDistance: 12.5 km\nDuration: 35 minutes\nFare: ৳25\n\nBus Schedule:\n- Every 15 minutes\n- Last bus: 10:00 PM`);
         }
 
         function showFeedback() {
@@ -129,3 +129,4 @@
     </script>
     @endpush
 </x-app-layout>
+

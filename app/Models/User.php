@@ -21,6 +21,19 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'first_name',
+        'last_name',
+        'phone',
+        'university',
+        'student_id',
+        'date_of_birth',
+        'department',
+        'year_of_study',
+        'current_address',
+        'home_address',
+        'preferred_language',
+        'profile_image',
+        'is_admin',
     ];
 
     /**
@@ -58,5 +71,10 @@ class User extends Authenticatable
             ->where('status', 'completed')
             ->where('ends_at', '>', now())
             ->latest();
+    }
+
+    public function feedbacks()
+    {
+        return $this->hasMany(Feedback::class);
     }
 }
