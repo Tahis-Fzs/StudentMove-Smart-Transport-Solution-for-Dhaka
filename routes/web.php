@@ -4,7 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\OfferController;
-use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\NotificationController;//Nahid
 use App\Http\Controllers\Admin\BusController; // added for admin bus management
 use App\Http\Controllers\Admin\ReportController; // added for admin report management
 use App\Http\Controllers\BusRouteController; // Tahsin
@@ -12,7 +12,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\FeedbackController;
 use App\Models\Offer;
-use App\Models\Notification;
+use App\Models\Notification;//Nahid
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
