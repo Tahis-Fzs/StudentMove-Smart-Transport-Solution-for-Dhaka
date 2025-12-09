@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 class FeedbackController extends Controller
 {
     /**
-     * Display feedback form
+     * Display feedback form (user's feedback)
      */
     public function index(): View
     {
@@ -40,5 +40,38 @@ class FeedbackController extends Controller
 
         return redirect()->route('feedback.index')->with('success', 'Feedback submitted successfully!');
     }
-}
 
+    /**
+     * 🚀 FR-34: Admin View All Feedback
+     */
+    public function adminIndex(): View
+    {
+        // Fetch all feedback, newest first, and eager-load the user relation
+        $feedbacks = Feedback::with('user')->orderBy('created_at', 'desc')->get();
+        return view('feedback.admin_list', compact('feedbacks'));
+    }
+
+    /**
+     * 🚀 FR-34: Admin Reply Logic
+     */
+    public function reply(Request $request, $id): RedirectResponse
+    {
+        $request->validate([
+            'admin_response' => 'required|string|max:1000',
+        ]);
+
+        $feedback = Feedback::findOrFail($id);
+        
+        // Update Database with the reply
+        $feedback->update([
+            'admin_response' => $request->admin_response,
+            'status' => 'replied',
+            // 'is_archived' => true // Optional: Auto-archive after reply
+        ]);
+
+        // Optional: Send Email to User (implement Mailable as needed)
+        // \Mail::to($feedback->user->email)->send(new FeedbackReplyEmail($request->admin_response));
+
+        return back()->with('success', 'Reply sent successfully!');
+    }
+}
