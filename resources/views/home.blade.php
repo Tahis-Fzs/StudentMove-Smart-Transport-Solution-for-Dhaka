@@ -13,12 +13,18 @@
                         Go to Dashboard
                     </a>
                 @else
-                    <div class="flex gap-4 justify-center">
+                    <div class="flex gap-4 justify-center flex-wrap">
                         <a href="{{ route('login') }}" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
                             Login
                         </a>
                         <a href="{{ route('register') }}" class="inline-block bg-gray-200 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-300 transition">
                             Register
+                        </a>
+                        <a href="{{ route('driver.login') }}" class="inline-block bg-yellow-500 text-white px-6 py-3 rounded-lg hover:bg-yellow-600 transition">
+                            🚌 Driver Login
+                        </a>
+                        <a href="{{ route('admin.login') }}" class="inline-block bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition">
+                            ⚙️ Admin Login
                         </a>
                     </div>
                 @endauth

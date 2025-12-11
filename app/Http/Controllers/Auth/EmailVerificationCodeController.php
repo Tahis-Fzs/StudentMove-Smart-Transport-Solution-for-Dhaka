@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Helpers\EmailHelper;
 use App\Http\Controllers\Controller;
 use App\Models\EmailVerificationCode;
 use App\Models\User;
@@ -66,6 +67,20 @@ class EmailVerificationCodeController extends Controller
         if ($user->hasVerifiedEmail()) {
             $dbg(['h' => 'EC2a', 'loc' => 'already-verified', 'msg' => 'email already verified']);
             return redirect()->intended(RouteServiceProvider::HOME);
+        }
+
+        // AUTOMATIC EMAIL CONFIGURATION: Ensure email is ready before sending
+        $emailStatus = EmailHelper::ensureEmailConfigured();
+        $dbg(['h' => 'EC2b', 'loc' => 'email-check', 'msg' => 'email configuration check', 'data' => $emailStatus]);
+        
+        if (!$emailStatus['ready']) {
+            $errorMsg = '❌ ' . $emailStatus['message'];
+            if ($emailStatus['type'] === 'mailpit') {
+                $errorMsg .= '<br><br>Please install Mailpit: <code>brew install axllent/mailpit/mailpit</code><br>Then start it: <code>mailpit</code><br><br>View emails at: <a href="http://127.0.0.1:8025" target="_blank">http://127.0.0.1:8025</a>';
+            } else if ($emailStatus['type'] === 'gmail' || $emailStatus['type'] === 'smtp') {
+                $errorMsg .= '<br><br>For Gmail:<br><code>MAIL_MAILER=smtp</code><br><code>MAIL_HOST=smtp.gmail.com</code><br><code>MAIL_USERNAME=your-email@gmail.com</code><br><code>MAIL_PASSWORD=your-app-password</code><br><br>Get Gmail App Password: <a href="https://myaccount.google.com/apppasswords" target="_blank">https://myaccount.google.com/apppasswords</a>';
+            }
+            return redirect()->back()->with('error', $errorMsg);
         }
 
         // Invalidate old codes for this user

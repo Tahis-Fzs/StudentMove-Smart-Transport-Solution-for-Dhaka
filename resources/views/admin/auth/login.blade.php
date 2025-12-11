@@ -57,6 +57,10 @@
             font-size: 0.95rem;
         }
 
+        @error('email') .form-group input {
+            border-color: #dc3545;
+        } @enderror
+
         .admin-login-body {
             padding: 40px 30px;
         }
@@ -199,7 +203,7 @@
             </div>
             @endif
 
-            <form method="POST" action="{{ route('admin.login') }}">
+            <form method="POST" action="{{ route('admin.login.post') }}">
                 @csrf
 
                 <div class="form-group">

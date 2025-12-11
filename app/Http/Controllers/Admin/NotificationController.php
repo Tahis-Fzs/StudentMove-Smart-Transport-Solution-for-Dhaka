@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
+use App\Models\Offer;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -25,7 +26,7 @@ class NotificationController extends Controller
      */
     public function index(): View
     {
-        $notifications = Notification::latest()->paginate(15);
+        $notifications = Notification::with('offer')->latest()->paginate(15);
         return view('admin.notifications.index', compact('notifications'));
     }
 
@@ -34,7 +35,8 @@ class NotificationController extends Controller
      */
     public function create(): View
     {
-        return view('admin.notifications.create');
+        $offers = Offer::orderBy('title')->get();
+        return view('admin.notifications.create', compact('offers'));
     }
 
     /**
@@ -49,6 +51,7 @@ class NotificationController extends Controller
             'type' => ['nullable', 'string', 'in:info,success,warning,error'],
             'is_active' => ['boolean'],
             'sort_order' => ['nullable', 'integer'],
+            'offer_id' => ['nullable', 'exists:offers,id'],
         ]);
 
         Notification::create([
@@ -58,6 +61,7 @@ class NotificationController extends Controller
             'type' => $request->type ?? 'info',
             'is_active' => $request->has('is_active'),
             'sort_order' => $request->sort_order ?? 0,
+            'offer_id' => $request->offer_id,
         ]);
 
         return redirect()->route('admin.notifications.index')->with('success', 'Notification created successfully!');
@@ -68,7 +72,8 @@ class NotificationController extends Controller
      */
     public function edit(Notification $notification): View
     {
-        return view('admin.notifications.edit', compact('notification'));
+        $offers = Offer::orderBy('title')->get();
+        return view('admin.notifications.edit', compact('notification', 'offers'));
     }
 
     /**
@@ -83,6 +88,7 @@ class NotificationController extends Controller
             'type' => ['nullable', 'string', 'in:info,success,warning,error'],
             'is_active' => ['boolean'],
             'sort_order' => ['nullable', 'integer'],
+            'offer_id' => ['nullable', 'exists:offers,id'],
         ]);
 
         $notification->update([
@@ -92,6 +98,7 @@ class NotificationController extends Controller
             'type' => $request->type ?? 'info',
             'is_active' => $request->has('is_active'),
             'sort_order' => $request->sort_order ?? 0,
+            'offer_id' => $request->offer_id,
         ]);
 
         return redirect()->route('admin.notifications.index')->with('success', 'Notification updated successfully!');

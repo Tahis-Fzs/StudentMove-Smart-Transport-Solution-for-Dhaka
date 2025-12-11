@@ -21,18 +21,29 @@
                     <a href="{{ route('next-bus-arrival') }}" class="nav-link {{ request()->routeIs('next-bus-arrival') ? 'active' : '' }}">Live Location</a>
                     <a href="{{ route('route-suggestion') }}" class="nav-link {{ request()->routeIs('route-suggestion') ? 'active' : '' }}">Personalized Route</a>
                     @auth
+                        <a href="{{ route('notifications') }}" class="nav-link {{ request()->routeIs('notifications') ? 'active' : '' }}" style="position: relative;">
+                            <i class="bi bi-bell" style="margin-right: 4px;"></i> Notifications
+                            @php
+                                $notificationCount = \App\Models\Notification::active()->count();
+                            @endphp
+                            @if($notificationCount > 0)
+                                <span style="position: absolute; top: -8px; right: -8px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">{{ $notificationCount }}</span>
+                            @endif
+                        </a>
                         <a href="{{ route('profile.edit') }}" class="nav-link {{ request()->routeIs('profile.edit') ? 'active' : '' }}">Profile</a>
                         <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a>
                     @endauth
                 </div>
                 <div class="nav-cta">
                     @auth
-                        <form method="POST" action="{{ route('logout') }}">
+                        <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                             @csrf
                             <button type="submit" class="nav-button">Logout</button>
                         </form>
                     @else
                         <a href="{{ route('login') }}" class="nav-button ghost">Sign in</a>
+                        <a href="{{ route('driver.login') }}" class="nav-button ghost" style="margin-left: 8px; font-size: 0.875rem;">🚌 Driver</a>
+                        <a href="{{ route('admin.login') }}" class="nav-button ghost" style="margin-left: 8px; font-size: 0.875rem;">⚙️ Admin</a>
                     @endauth
                 </div>
             </div>
@@ -67,7 +78,7 @@
             </div>
         @endif
 
-        <main>
+        <main style="width: 100%; overflow-x: auto;">
             {{ $slot }}
         </main>
     </div>

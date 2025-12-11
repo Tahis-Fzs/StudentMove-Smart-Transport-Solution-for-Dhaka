@@ -29,6 +29,7 @@
                         <tr>
                             <th>ID</th>
                             <th>Message</th>
+                            <th>Offer</th>
                             <th>Type</th>
                             <th>Status</th>
                             <th>Created</th>
@@ -40,6 +41,21 @@
                         <tr>
                             <td>{{ $notification->id }}</td>
                             <td><strong>{{ Str::limit($notification->message, 60) }}</strong></td>
+                            <td>
+                                @if($notification->offer)
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <i class="bi bi-gift-fill" style="color: #3b82f6;"></i>
+                                        <span style="font-weight: 500;">{{ Str::limit($notification->offer->title, 30) }}</span>
+                                        @if($notification->offer->discount_percentage > 0)
+                                        <span style="background: #10b981; color: white; padding: 2px 6px; border-radius: 8px; font-size: 0.75rem; font-weight: 600;">
+                                            {{ $notification->offer->discount_percentage }}%
+                                        </span>
+                                        @endif
+                                    </div>
+                                @else
+                                    <span style="color: #9ca3af;">—</span>
+                                @endif
+                            </td>
                             <td>
                                 <span class="badge badge-{{ $notification->type }}">
                                     {{ ucfirst($notification->type) }}

@@ -15,14 +15,9 @@ class AdminAuth
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check()) {
+        if (!session('admin_logged_in')) {
             return redirect()->route('admin.login');
         }
-
-        // Optional: Check if user is admin (if you have an is_admin field)
-        // if (!auth()->user()->is_admin) {
-        //     abort(403, 'Unauthorized access');
-        // }
 
         return $next($request);
     }

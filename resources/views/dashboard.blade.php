@@ -20,6 +20,54 @@
                 </div>
             </div>
         </section>
+
+        <!-- Active Notifications Section -->
+        @php
+            $activeNotifications = \App\Models\Notification::with('offer')->active()->orderBy('sort_order')->orderBy('created_at', 'desc')->take(3)->get();
+        @endphp
+        @if($activeNotifications->count() > 0)
+        <section style="margin: 24px auto; max-width: 1200px; padding: 0 20px;">
+            <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 16px; color: #1f2937;">
+                <i class="bi bi-bell-fill" style="color: #ef4444; margin-right: 8px;"></i> Latest Notifications
+            </h2>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                @foreach($activeNotifications as $notification)
+                <div style="background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%); border-left: 4px solid {{ $notification->icon_color === 'blue' ? '#3b82f6' : ($notification->icon_color === 'green' ? '#10b981' : ($notification->icon_color === 'red' ? '#ef4444' : '#f59e0b')) }}; padding: 16px 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 16px; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, {{ $notification->icon_color === 'blue' ? '#3b82f6' : ($notification->icon_color === 'green' ? '#10b981' : ($notification->icon_color === 'red' ? '#ef4444' : '#f59e0b')) }}, {{ $notification->icon_color === 'blue' ? '#2563eb' : ($notification->icon_color === 'green' ? '#059669' : ($notification->icon_color === 'red' ? '#dc2626' : '#d97706')) }}); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; flex-shrink: 0;">
+                        <i class="bi {{ $notification->icon ?? 'bi-bell' }}"></i>
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 1rem; font-weight: 500; color: #1f2937; word-wrap: break-word; margin-bottom: 4px;">{{ $notification->message }}</div>
+                        
+                        @if($notification->offer)
+                        <div style="margin-top: 8px; padding: 10px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%); border-radius: 8px; border-left: 3px solid #3b82f6;">
+                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap;">
+                                <i class="bi bi-gift-fill" style="color: #3b82f6; font-size: 0.95rem;"></i>
+                                <strong style="color: #1f2937; font-size: 0.9rem;">{{ $notification->offer->title }}</strong>
+                                @if($notification->offer->discount_percentage > 0)
+                                <span style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 3px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">
+                                    {{ $notification->offer->discount_percentage }}% OFF
+                                </span>
+                                @endif
+                            </div>
+                            @if($notification->offer->description)
+                            <p style="color: #4b5563; font-size: 0.85rem; margin: 4px 0 0 0; line-height: 1.4;">{{ Str::limit($notification->offer->description, 80) }}</p>
+                            @endif
+                        </div>
+                        @endif
+                        
+                        <small style="color: #6b7280; font-size: 0.875rem; margin-top: 6px; display: block;">{{ $notification->created_at->diffForHumans() }}</small>
+                    </div>
+                </div>
+                @endforeach
+                @if(\App\Models\Notification::active()->count() > 3)
+                <a href="{{ route('notifications') }}" style="text-align: center; padding: 12px; color: #3b82f6; font-weight: 500; text-decoration: none; border-radius: 8px; transition: background 0.2s;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'">
+                    View All Notifications <i class="bi bi-arrow-right" style="margin-left: 4px;"></i>
+                </a>
+                @endif
+            </div>
+        </section>
+        @endif
         
         <!-- Promo Banner Carousel (single large card with dots) -->
         <section class="promo-carousel-section">

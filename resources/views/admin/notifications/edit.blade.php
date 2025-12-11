@@ -62,6 +62,19 @@
                         <input type="number" name="sort_order" value="{{ old('sort_order', $notification->sort_order) }}" min="0">
                     </div>
 
+                    <div class="form-group full-width">
+                        <label>Link to Offer (Optional)</label>
+                        <select name="offer_id">
+                            <option value="">-- No Offer Link --</option>
+                            @foreach($offers as $offer)
+                                <option value="{{ $offer->id }}" {{ old('offer_id', $notification->offer_id) == $offer->id ? 'selected' : '' }}>
+                                    {{ $offer->title }} @if($offer->discount_percentage > 0) - {{ $offer->discount_percentage }}% OFF @endif
+                                </option>
+                            @endforeach
+                        </select>
+                        <small>If selected, offer details will be displayed with the notification</small>
+                    </div>
+
                     <div class="form-group">
                         <label>
                             <input type="checkbox" name="is_active" value="1" {{ old('is_active', $notification->is_active) ? 'checked' : '' }}>

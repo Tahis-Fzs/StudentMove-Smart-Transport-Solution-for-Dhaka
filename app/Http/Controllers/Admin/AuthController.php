@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 
@@ -19,34 +20,32 @@ class AuthController extends Controller
     }
 
     /**
-     * Handle admin login
+     * Handle admin login - Universal password only
      */
     public function login(Request $request): RedirectResponse
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
+        $request->validate([
             'password' => ['required'],
         ]);
 
-        // Check if user is admin (you may want to add an 'is_admin' field to users table)
-        $user = \App\Models\User::where('email', $credentials['email'])->first();
+        // Get admin password from .env - fail securely if not set
+        $adminPassword = env('ADMIN_PASSWORD');
         
-        if (!$user) {
+        if (empty($adminPassword)) {
+            Log::error('ADMIN_PASSWORD environment variable is not set. Admin authentication is disabled.');
             return back()->withErrors([
-                'email' => 'The provided credentials do not match our records.',
-            ])->onlyInput('email');
+                'password' => 'Admin authentication is not configured. Please contact the system administrator.',
+            ]);
         }
 
-        // For now, we'll check if email contains 'admin' or you can add an is_admin field
-        // In production, you should have a proper admin check
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
+        if ($request->password === $adminPassword) {
+            Session::put('admin_logged_in', true);
             return redirect()->intended(route('admin.dashboard'));
         }
 
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
+            'password' => 'Invalid admin password.',
+        ]);
     }
 
     /**
@@ -54,7 +53,7 @@ class AuthController extends Controller
      */
     public function logout(Request $request): RedirectResponse
     {
-        Auth::logout();
+        Session::forget('admin_logged_in');
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect()->route('admin.login');

@@ -11,13 +11,13 @@ class BusController extends Controller{
     public function index()
     {
         $buses = BusSchedule::orderBy('created_at', 'desc')->get();
-        return view('admin.buses.index', compact('buses'));
+        return view('admin.bus.index', compact('buses'));
     }
 
     // Show form to create new bus
     public function create()
     {
-        return view('admin.buses.create');
+        return view('admin.bus.create');
     }
 
     // Store new bus
@@ -55,7 +55,7 @@ class BusController extends Controller{
     public function editGps($id)
     {
         $bus = BusSchedule::findOrFail($id);
-        return view('admin.buses.gps', compact('bus'));
+        return view('admin.bus.gps', compact('bus'));
     }
 
     // 🚀 FR-38: Update GPS Manually

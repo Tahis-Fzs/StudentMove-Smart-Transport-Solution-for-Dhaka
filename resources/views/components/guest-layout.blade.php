@@ -21,6 +21,8 @@
             <div class="nav-cta">
                 <a href="{{ route('login') }}" class="nav-button">Sign in</a>
                 <a href="{{ route('register') }}" class="nav-button ghost">Register</a>
+                <a href="{{ route('driver.login') }}" class="nav-button ghost" style="margin-left: 8px; font-size: 0.875rem;">🚌 Driver</a>
+                <a href="{{ route('admin.login') }}" class="nav-button ghost" style="margin-left: 8px; font-size: 0.875rem;">⚙️ Admin</a>
             </div>
         </div>
     </nav>

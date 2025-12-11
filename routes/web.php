@@ -32,9 +32,9 @@ Route::get('/subscription/history', [SubscriptionController::class, 'history'])-
 Route::get('/subscription/invoice/{invoice}/download', [SubscriptionController::class, 'downloadInvoice'])->middleware('auth')->name('subscription.invoice.download');
 
 Route::get('/notifications', function () {
-    $notifications = Notification::active()->orderBy('sort_order')->orderBy('created_at', 'desc')->get();
+    $notifications = Notification::with('offer')->active()->orderBy('sort_order')->orderBy('created_at', 'desc')->get();
     return view('notifications', compact('notifications'));
-})->name('notifications');
+})->middleware(['auth'])->name('notifications');
 
 Route::get('/messages', [ContactController::class, 'index'])->name('messages');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
@@ -94,8 +94,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('/users/{user}', [AdminController::class, 'destroy'])->name('users.destroy');
 
         // FR-40: User Suspension & Sub Control
-        Route::post('users/{id}/ban', [AdminController::class, 'toggleBan'])->name('admin.users.ban');
-        Route::post('users/{id}/cancel-sub', [AdminController::class, 'cancelSubscription'])->name('admin.users.cancel_sub');
+        Route::post('users/{id}/ban', [AdminController::class, 'toggleBan'])->name('users.ban');
+        Route::post('users/{id}/cancel-sub', [AdminController::class, 'cancelSubscription'])->name('users.cancel_sub');
         
         // Offers Management
         Route::resource('offers', OfferController::class);
