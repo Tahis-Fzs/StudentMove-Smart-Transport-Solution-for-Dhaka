@@ -1,0 +1,60 @@
+/* Minimal Leaflet CSS to style map panes and markers without CDN */
+.leaflet-container {
+  position: relative;
+  outline: none;
+  overflow: hidden;
+}
+.leaflet-pane,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.leaflet-pane {
+  z-index: 400;
+}
+.leaflet-tile-pane {
+  z-index: 200;
+}
+.leaflet-overlay-pane {
+  z-index: 400;
+}
+.leaflet-shadow-pane {
+  z-index: 500;
+}
+.leaflet-marker-pane {
+  z-index: 600;
+}
+.leaflet-tooltip-pane {
+  z-index: 650;
+}
+.leaflet-popup-pane {
+  z-index: 700;
+}
+.leaflet-map-pane canvas,
+.leaflet-map-pane svg,
+.leaflet-zoom-box {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.leaflet-container a {
+  color: #0078a8;
+}
+.leaflet-control {
+  position: relative;
+  z-index: 800;
+  pointer-events: visiblePainted;
+}
+.leaflet-marker-icon {
+  display: block;
+}
+.leaflet-pane img {
+  user-select: none;
+}
+.leaflet-container {
+  -webkit-tap-highlight-color: transparent;
+}
+

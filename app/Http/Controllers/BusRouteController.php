@@ -56,28 +56,82 @@ class BusRouteController extends Controller
             return response()->json(['error' => 'Bus not found'], 404);
         }
 
-        // 1. Get the Schedule (Usual Time)
-        // Let's assume the bus is "5km away", averages 30km/h
-        $distanceKm = 5.0; // Simulated distance
-        $speedKmh = 30.0;  // Average speed in km/h
-        $usualMinutes = ($distanceKm / $speedKmh) * 60; // 10 mins
-
-        // 2. Check Delay (Traffic)
-        $isDelayed = $bus->status === 'delayed';
-        $delayMinutes = $isDelayed ? 15 : 0; // If delayed, add 15 mins
-
-        // 3. Calculate Real Arrival Time
-        $totalMinutes = $usualMinutes + $delayMinutes;
+        // 1. Calculate expected arrival time based on schedule
+        $departureTime = \Carbon\Carbon::parse($bus->departure_time);
+        $now = \Carbon\Carbon::now();
+        
+        // Expected arrival time (assuming 30 minutes travel time from departure)
+        $expectedArrivalTime = $departureTime->copy()->addMinutes(30);
+        
+        // 2. Calculate current ETA based on distance and speed
+        // Simulate distance calculation (in real app, use actual GPS distance)
+        $distanceKm = 5.0; // Simulated distance remaining
+        $normalSpeedKmh = 30.0;  // Normal speed in km/h
+        $currentSpeedKmh = $normalSpeedKmh; // Current speed (could be reduced due to traffic)
+        
+        // Check if bus status indicates delay (traffic, accident, etc.)
+        if ($bus->status === 'delayed') {
+            $currentSpeedKmh = max(10.0, $normalSpeedKmh * 0.5); // Reduce speed by 50% when delayed
+        }
+        
+        $currentEtaMinutes = ($distanceKm / $currentSpeedKmh) * 60;
+        $expectedEtaMinutes = ($distanceKm / $normalSpeedKmh) * 60; // Expected ETA at normal speed
+        
+        // 3. DYNAMIC DELAY CALCULATION: Compare expected vs actual arrival
+        $actualArrivalTime = $now->copy()->addMinutes($currentEtaMinutes);
+        $delayMinutes = max(0, $actualArrivalTime->diffInMinutes($expectedArrivalTime));
+        
+        // Also check if current speed is significantly slower than expected
+        if ($currentSpeedKmh < $normalSpeedKmh * 0.7) {
+            $speedBasedDelay = round(($expectedEtaMinutes - $currentEtaMinutes));
+            $delayMinutes = max($delayMinutes, $speedBasedDelay);
+        }
+        
+        // 4. Determine if bus is delayed (threshold: 3+ minutes)
+        $isDelayed = $delayMinutes >= 3;
+        
+        // 5. Update bus status in database if delay detected
+        if ($isDelayed && $bus->status !== 'delayed') {
+            $bus->update([
+                'status' => 'delayed',
+                'delay_minutes' => round($delayMinutes)
+            ]);
+        } elseif (!$isDelayed && $bus->status === 'delayed') {
+            $bus->update([
+                'status' => 'on_time',
+                'delay_minutes' => 0
+            ]);
+        } else {
+            $bus->update(['delay_minutes' => round($delayMinutes)]);
+        }
+        
+        // 6. Calculate total ETA (expected + delay)
+        $totalMinutes = round($currentEtaMinutes);
+        
+        // 7. Generate delay message
+        $delayMsg = null;
+        if ($isDelayed) {
+            $reason = $bus->status === 'delayed' ? 'traffic congestion' : 'slower than expected speed';
+            $delayMsg = "Bus is delayed by {$delayMinutes} minutes due to {$reason}. Expected arrival: " . 
+                       $expectedArrivalTime->format('h:i A') . ", Actual arrival: " . 
+                       $actualArrivalTime->format('h:i A');
+        }
         
         return response()->json([
             'lat' => (float)$bus->current_lat,
             'lng' => (float)$bus->current_lng,
             'is_delayed' => $isDelayed,
-            'delay_minutes' => $delayMinutes,
-            'usual_eta' => round($usualMinutes) . " mins",
-            'new_eta' => round($totalMinutes) . " mins",
+            'delay_minutes' => round($delayMinutes),
+            'expected_eta' => round($expectedEtaMinutes) . " mins",
+            'current_eta' => round($currentEtaMinutes) . " mins",
             'eta_text' => round($totalMinutes) . " mins",
-            'status_msg' => $isDelayed ? "Delayed by {$delayMinutes} min (Traffic)" : "On Time"
+            'status' => $isDelayed ? 'delayed' : 'on_time',
+            'status_msg' => $isDelayed ? "Delayed by " . round($delayMinutes) . " min" : "On Time",
+            'delay_msg' => $delayMsg,
+            'expected_arrival_time' => $expectedArrivalTime->toIso8601String(),
+            'actual_arrival_time' => $actualArrivalTime->toIso8601String(),
+            'current_speed' => round($currentSpeedKmh, 1),
+            'normal_speed' => round($normalSpeedKmh, 1)
         ]);
     }
 

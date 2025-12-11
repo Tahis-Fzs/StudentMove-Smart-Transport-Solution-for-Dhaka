@@ -15,6 +15,7 @@ use App\Http\Controllers\UserNotificationController; // <-- Add this line!
 use App\Models\Offer;
 use App\Models\Notification; //Nahid
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
 Route::get('/', function () {
     return auth()->check() ? redirect()->route('dashboard') : view('home');
@@ -54,16 +55,14 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
     Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
-
-    // Tahsin — BusRouteController-based routes (require auth)
-    Route::get('/next-bus-arrival', [BusRouteController::class, 'index'])->name('next-bus-arrival');
-    Route::get('/route-suggestion', [BusRouteController::class, 'suggest'])->name('route-suggestion');
-    Route::post('/save-route', [BusRouteController::class, 'saveFavorite'])->name('route.save');
-
-    // FR-11 & FR-12: Dynamic GPS APIs
-    Route::post('/api/bus/update-location', [BusRouteController::class, 'updateLocation'])->name('api.bus.update');
-    Route::get('/api/bus/get-location/{id}', [BusRouteController::class, 'getBusLocation'])->name('api.bus.get');
 });
+
+// Public bus routes and APIs (no auth required for map)
+Route::get('/next-bus-arrival', [BusRouteController::class, 'index'])->name('next-bus-arrival');
+Route::get('/route-suggestion', [BusRouteController::class, 'suggest'])->name('route-suggestion');
+Route::post('/save-route', [BusRouteController::class, 'saveFavorite'])->name('route.save');
+Route::post('/api/bus/update-location', [BusRouteController::class, 'updateLocation'])->name('api.bus.update');
+Route::get('/api/bus/get-location/{id}', [BusRouteController::class, 'getBusLocation'])->name('api.bus.get');
 
 // FR-42: Driver Auth (public driver routes)
 Route::get('/driver/login', [App\Http\Controllers\Driver\DriverAuthController::class, 'showLogin'])->name('driver.login');
@@ -120,3 +119,45 @@ Route::prefix('admin')->name('admin.')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// #region agent log
+// Test email endpoint (for debugging)
+Route::get('/test-email', function () {
+    try {
+        $user = \App\Models\User::latest()->first();
+        if (!$user) {
+            return response()->json(['error' => 'No users found'], 404);
+        }
+        
+        $user->sendEmailVerificationNotification();
+        
+        // Check Mailpit
+        $mailpitCheck = @file_get_contents('http://127.0.0.1:8025/api/v1/messages');
+        $mailpitData = $mailpitCheck ? json_decode($mailpitCheck, true) : null;
+        
+        return response()->json([
+            'status' => 'Email sent',
+            'user_email' => $user->email,
+            'mailpit_total' => $mailpitData['total'] ?? 0,
+            'mail_config' => [
+                'host' => config('mail.mailers.smtp.host'),
+                'port' => config('mail.mailers.smtp.port'),
+                'username' => config('mail.mailers.smtp.username'),
+                'has_password' => !empty(config('mail.mailers.smtp.password'))
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+})->middleware('auth');
+
+Route::post('/__dbg', function (Request $request) {
+    $payload = $request->all();
+    $payload['timestamp'] = $payload['timestamp'] ?? round(microtime(true) * 1000);
+    $line = json_encode($payload);
+    if ($line !== false) {
+        @file_put_contents(base_path('.cursor/debug.log'), $line . PHP_EOL, FILE_APPEND | LOCK_EX);
+    }
+    return response()->json(['ok' => true]);
+});
+// #endregion

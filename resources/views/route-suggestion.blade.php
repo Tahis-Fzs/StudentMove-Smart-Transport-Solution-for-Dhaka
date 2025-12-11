@@ -1,6 +1,6 @@
 <x-app-layout>
     @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/route-suggestion.css') }}">
+    <link rel="stylesheet" href="/css/route-suggestion.css">
     @endpush
 
     <div class="route-suggestion-container">

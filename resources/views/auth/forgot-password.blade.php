@@ -17,7 +17,7 @@
         <!-- Session Status -->
         @if (session('status'))
             <div class="success-message">
-                <i class="bi bi-check-circle"></i> {{ session('status') }}
+                <i class="bi bi-check-circle"></i> <span>{!! session('status') !!}</span>
             </div>
         @endif
 
@@ -27,7 +27,7 @@
             <div class="form-group">
                 <input type="email" name="email" class="form-input" placeholder="Email Address" value="{{ old('email') }}" required autofocus>
                 @error('email')
-                    <div class="error-message">{{ $message }}</div>
+                    <div class="error-message">{!! $message !!}</div>
                 @enderror
             </div>
 
@@ -54,9 +54,44 @@
             margin-bottom: 20px;
             border: 1px solid #c3e6cb;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 10px;
             font-weight: 500;
+        }
+        
+        .success-message span {
+            flex: 1;
+            line-height: 1.6;
+        }
+        
+        .success-message code {
+            background: rgba(0,0,0,0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .success-message a {
+            color: #007bff;
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            line-height: 1.6;
+        }
+        
+        .error-message code {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .error-message a {
+            color: #fff;
+            text-decoration: underline;
         }
 
         .success-message i {

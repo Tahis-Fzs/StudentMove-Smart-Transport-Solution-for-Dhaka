@@ -1,3 +1,11 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\BusSchedule;
+use Illuminate\Http\Request;
+
 class BusController extends Controller{
     // List all buses
     public function index()

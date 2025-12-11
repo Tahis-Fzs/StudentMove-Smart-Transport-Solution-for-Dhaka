@@ -1,6 +1,6 @@
 <x-guest-layout>
     @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/signup.css') }}">
+    <link rel="stylesheet" href="/css/signup.css">
     @endpush
 
     <div class="signup-container">
@@ -35,7 +35,7 @@
             <div class="form-group">
                 <input type="email" name="email" class="form-input" placeholder="Email Address" value="{{ old('email') }}" required>
                 @error('email')
-                    <div class="error-message">{{ $message }}</div>
+                    <div class="error-message">{!! $message !!}</div>
                 @enderror
             </div>
 

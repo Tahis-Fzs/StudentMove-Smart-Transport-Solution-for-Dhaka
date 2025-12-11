@@ -4,33 +4,49 @@ namespace App\Http\Controllers;
 
 use App\Models\Feedback;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class FeedbackController extends Controller
 {
-    /**
-     * Display feedback form (user's feedback)
-     */
+    /** Display feedback form (user's feedback) */
     public function index(): View
     {
         $feedbacks = Auth::user()->feedbacks()->latest()->get();
         return view('feedback.index', compact('feedbacks'));
     }
 
-    /**
-     * Store feedback
-     */
+    /** Store feedback */
     public function store(Request $request): RedirectResponse
     {
+        // #region agent log
+        @file_put_contents(
+            base_path('.cursor/debug.log'),
+            json_encode([
+                'sessionId' => 'debug-session',
+                'runId' => 'feedback',
+                'hypothesisId' => 'H1',
+                'location' => 'FeedbackController@store',
+                'message' => 'entry',
+                'data' => [
+                    'user_id' => Auth::id(),
+                    'subject_len' => strlen((string) $request->subject),
+                    'message_len' => strlen((string) $request->message),
+                ],
+                'timestamp' => round(microtime(true) * 1000),
+            ]) . PHP_EOL,
+            FILE_APPEND | LOCK_EX
+        );
+        // #endregion
+
         $request->validate([
             'subject' => ['required', 'string', 'max:255'],
             'message' => ['required', 'string', 'max:2000'],
             'rating' => ['nullable', 'integer', 'min:1', 'max:5'],
         ]);
 
-        Feedback::create([
+        $fb = Feedback::create([
             'user_id' => Auth::id(),
             'subject' => $request->subject,
             'message' => $request->message,
@@ -38,22 +54,37 @@ class FeedbackController extends Controller
             'status' => 'pending',
         ]);
 
+        // #region agent log
+        @file_put_contents(
+            base_path('.cursor/debug.log'),
+            json_encode([
+                'sessionId' => 'debug-session',
+                'runId' => 'feedback',
+                'hypothesisId' => 'H2',
+                'location' => 'FeedbackController@store',
+                'message' => 'created',
+                'data' => [
+                    'id' => $fb->id,
+                    'user_id' => $fb->user_id,
+                    'status' => $fb->status,
+                ],
+                'timestamp' => round(microtime(true) * 1000),
+            ]) . PHP_EOL,
+            FILE_APPEND | LOCK_EX
+        );
+        // #endregion
+
         return redirect()->route('feedback.index')->with('success', 'Feedback submitted successfully!');
     }
 
-    /**
-     * 🚀 FR-34: Admin View All Feedback
-     */
+    /** Admin view all feedback */
     public function adminIndex(): View
     {
-        // Fetch all feedback, newest first, and eager-load the user relation
         $feedbacks = Feedback::with('user')->orderBy('created_at', 'desc')->get();
         return view('feedback.admin_list', compact('feedbacks'));
     }
 
-    /**
-     * 🚀 FR-34: Admin Reply Logic
-     */
+    /** Admin reply to feedback */
     public function reply(Request $request, $id): RedirectResponse
     {
         $request->validate([
@@ -61,16 +92,10 @@ class FeedbackController extends Controller
         ]);
 
         $feedback = Feedback::findOrFail($id);
-        
-        // Update Database with the reply
         $feedback->update([
             'admin_response' => $request->admin_response,
             'status' => 'replied',
-            // 'is_archived' => true // Optional: Auto-archive after reply
         ]);
-
-        // Optional: Send Email to User (implement Mailable as needed)
-        // \Mail::to($feedback->user->email)->send(new FeedbackReplyEmail($request->admin_response));
 
         return back()->with('success', 'Reply sent successfully!');
     }

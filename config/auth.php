@@ -95,7 +95,7 @@ return [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
             'expire' => 60,
-            'throttle' => 60,
+            'throttle' => env('PASSWORD_RESET_THROTTLE', 30), // 30 seconds in development, can be overridden via .env
         ],
     ],
 

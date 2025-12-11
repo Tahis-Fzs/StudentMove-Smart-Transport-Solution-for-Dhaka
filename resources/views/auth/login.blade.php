@@ -1,6 +1,6 @@
 <x-guest-layout>
     @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/signin.css') }}">
+    <link rel="stylesheet" href="/css/signin.css">
     @endpush
 
     <div class="signin-container">
