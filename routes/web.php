@@ -74,10 +74,12 @@ Route::get('/driver/login', [App\Http\Controllers\Driver\DriverAuthController::c
 Route::post('/driver/login', [App\Http\Controllers\Driver\DriverAuthController::class, 'login'])->name('driver.login.post');
 Route::post('/driver/logout', [App\Http\Controllers\Driver\DriverAuthController::class, 'logout'])->name('driver.logout');
 
-// FR-43 & FR-44: Driver Dashboard & Logic
-Route::get('/driver/dashboard', [App\Http\Controllers\Driver\DriverController::class, 'dashboard'])->name('driver.dashboard');
-Route::post('/driver/status', [App\Http\Controllers\Driver\DriverController::class, 'updateStatus'])->name('driver.status');
-Route::post('/driver/gps', [App\Http\Controllers\Driver\DriverController::class, 'updateLocation'])->name('driver.gps');
+// FR-43 & FR-44: Driver Dashboard & Logic (Protected)
+Route::middleware('driver.auth')->group(function () {
+    Route::get('/driver/dashboard', [App\Http\Controllers\Driver\DriverController::class, 'dashboard'])->name('driver.dashboard');
+    Route::post('/driver/status', [App\Http\Controllers\Driver\DriverController::class, 'updateStatus'])->name('driver.status');
+    Route::post('/driver/gps', [App\Http\Controllers\Driver\DriverController::class, 'updateLocation'])->name('driver.gps');
+});
 
 // Admin Panel Routes (Separate Authentication)
 Route::prefix('admin')->name('admin.')->group(function () {

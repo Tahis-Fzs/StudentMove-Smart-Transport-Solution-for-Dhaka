@@ -1,4 +1,8 @@
-<x-app-layout>
+@extends('admin.layout')
+
+@section('title', 'Bus Fleet Management')
+
+@section('content')
     <style>
         .bus-fleet-page {
             width: 100% !important;
@@ -203,4 +207,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+@endsection

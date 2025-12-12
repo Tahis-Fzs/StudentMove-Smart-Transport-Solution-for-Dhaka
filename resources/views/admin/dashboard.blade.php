@@ -1,40 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - StudentMove</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+@extends('admin.layout')
+
+@section('title', 'Dashboard')
+
+@section('content')
     <style>
-        body { background-color: #f8f9fa; }
-        .sidebar { min-height: 100vh; background: #343a40; color: white; }
-        .sidebar a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 10px 15px; display: block; }
-        .sidebar a:hover, .sidebar a.active { background: #495057; color: white; }
         .stat-card { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; }
         .stat-card:hover { transform: translateY(-5px); }
     </style>
-</head>
-<body>
-    <div class="d-flex">
-        <div class="sidebar p-3" style="width: 250px;">
-            <h4 class="mb-4 text-center">Admin Panel</h4>
-            <a href="{{ route('admin.dashboard') }}" class="active"><i class="bi bi-speedometer2"></i> Dashboard</a>
-            <a href="{{ route('admin.users') }}"><i class="bi bi-people"></i> Users</a>
-            <a href="{{ route('admin.offers.index') }}"><i class="bi bi-tag"></i> Offers</a>
-            <a href="{{ route('admin.notifications.index') }}"><i class="bi bi-bell"></i> Notifications</a>
-            <a href="{{ route('admin.buses.index') }}"><i class="bi bi-bus-front"></i> Buses</a>
-            
-            <form method="POST" action="{{ route('admin.logout') }}" class="mt-5">
-                @csrf
-                <button type="submit" class="btn btn-danger w-100"><i class="bi bi-box-arrow-right"></i> Logout</button>
-            </form>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1><i class="bi bi-speedometer2"></i> Dashboard Overview</h1>
         </div>
 
-        <div class="flex-grow-1 p-4">
-            <h2 class="mb-4">Dashboard Overview</h2>
-
-            <div class="row g-4 mb-4">
+        <div class="row g-4 mb-4">
                 <div class="col-md-3">
                     <div class="card stat-card bg-primary text-white">
                         <div class="card-body">
@@ -96,8 +74,6 @@
                     </table>
                 </div>
             </div>
-        </div>
     </div>
-</body>
-</html>
+@endsection
 

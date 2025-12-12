@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Admin Login - StudentMove</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -27,9 +30,36 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
+            overflow: visible;
             max-width: 450px;
             width: 100%;
+        }
+        
+        .admin-top-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 20px 20px 0 0;
+            margin: -20px -20px 20px -20px;
+        }
+        
+        .admin-top-nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .admin-top-nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+        
+        .admin-top-nav a:hover {
+            background: rgba(255,255,255,0.2);
         }
 
         .admin-login-header {
@@ -182,6 +212,23 @@
 </head>
 <body>
     <div class="admin-login-container">
+        <!-- Top Navigation Bar -->
+        <nav class="admin-top-nav">
+            <div class="admin-top-nav-content">
+                <a href="{{ route('home') }}">
+                    <i class="bi bi-arrow-left"></i> Back to StudentMove
+                </a>
+                <div style="display: flex; gap: 10px;">
+                    <a href="{{ route('home') }}">
+                        <i class="bi bi-house"></i> Home
+                    </a>
+                    <a href="{{ route('driver.login') }}">
+                        <i class="bi bi-bus-front"></i> Driver
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
         <div class="admin-login-header">
             <i class="bi bi-shield-lock"></i>
             <h1>Admin Panel</h1>
@@ -260,6 +307,19 @@
                 toggleIcon.classList.remove('bi-eye-slash');
                 toggleIcon.classList.add('bi-eye');
             }
+        }
+        
+        // Prevent back button access after logout
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                // Page was loaded from cache (back button)
+                window.location.reload();
+            }
+        });
+        
+        // Clear form on page load if coming from back button
+        if (performance.navigation.type === 2) {
+            document.getElementById('password').value = '';
         }
     </script>
 </body>

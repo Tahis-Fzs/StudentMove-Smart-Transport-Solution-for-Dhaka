@@ -16,6 +16,18 @@ class AuthController extends Controller
      */
     public function showLoginForm(): View
     {
+        // If already logged in, redirect to dashboard
+        if (session('admin_logged_in')) {
+            return redirect()->route('admin.dashboard');
+        }
+        
+        // Debug: Check if session is working
+        Log::info('Admin login form shown', [
+            'session_id' => session()->getId(),
+            'admin_logged_in' => session('admin_logged_in'),
+            'all_session' => session()->all()
+        ]);
+        
         return view('admin.auth.login');
     }
 
@@ -31,6 +43,13 @@ class AuthController extends Controller
         // Get admin password from .env - fail securely if not set
         $adminPassword = env('ADMIN_PASSWORD');
         
+        Log::info('Admin login attempt', [
+            'provided_password' => $request->password,
+            'expected_password' => $adminPassword,
+            'match' => $request->password === $adminPassword,
+            'session_id' => session()->getId()
+        ]);
+        
         if (empty($adminPassword)) {
             Log::error('ADMIN_PASSWORD environment variable is not set. Admin authentication is disabled.');
             return back()->withErrors([
@@ -39,10 +58,26 @@ class AuthController extends Controller
         }
 
         if ($request->password === $adminPassword) {
-            Session::put('admin_logged_in', true);
-            return redirect()->intended(route('admin.dashboard'));
+            // Regenerate session ID for security
+            $request->session()->regenerate();
+            
+            // Set admin logged in flag
+            $request->session()->put('admin_logged_in', true);
+            
+            // Force save session
+            $request->session()->save();
+            
+            Log::info('Admin login successful', [
+                'session_id' => $request->session()->getId(),
+                'admin_logged_in' => $request->session()->get('admin_logged_in'),
+                'session_data' => $request->session()->all()
+            ]);
+            
+            // Direct redirect to dashboard
+            return redirect()->route('admin.dashboard')->with('success', 'Login successful!');
         }
 
+        Log::warning('Admin login failed - password mismatch');
         return back()->withErrors([
             'password' => 'Invalid admin password.',
         ]);
@@ -53,10 +88,23 @@ class AuthController extends Controller
      */
     public function logout(Request $request): RedirectResponse
     {
-        Session::forget('admin_logged_in');
+        // Clear all session data
+        $request->session()->forget('admin_logged_in');
+        $request->session()->flush();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('admin.login');
+        
+        Log::info('Admin logout successful', [
+            'session_id' => $request->session()->getId()
+        ]);
+        
+        // Redirect with no-cache headers
+        return redirect()->route('admin.login')
+            ->withHeaders([
+                'Cache-Control' => 'no-cache, no-store, must-revalidate, max-age=0',
+                'Pragma' => 'no-cache',
+                'Expires' => '0'
+            ]);
     }
 }
 

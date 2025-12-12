@@ -1,4 +1,8 @@
-<x-app-layout>
+@extends('admin.layout')
+
+@section('title', 'User Management')
+
+@section('content')
     <style>
         .admin-users-page {
             width: 100% !important;
@@ -255,4 +259,4 @@
             {{ $users->links() }}
         </div>
     </div>
-</x-app-layout>
+@endsection

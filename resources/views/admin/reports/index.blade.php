@@ -1,4 +1,8 @@
-<x-app-layout>
+@extends('admin.layout')
+
+@section('title', 'System Reports')
+
+@section('content')
     <style>
         .reports-page {
             width: 100% !important;
@@ -184,4 +188,4 @@
             <i class="bi bi-printer-fill"></i> Print Report
         </button>
     </div>
-</x-app-layout>
+@endsection

@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class AdminAuth
+class DriverAuth
 {
     /**
      * Handle an incoming request.
@@ -15,17 +15,12 @@ class AdminAuth
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $adminLoggedIn = $request->session()->get('admin_logged_in');
+        $driverLoggedIn = $request->session()->get('driver_logged_in');
         
-        if (!$adminLoggedIn) {
-            \Log::warning('AdminAuth: Access denied', [
-                'session_id' => $request->session()->getId(),
-                'all_session' => $request->session()->all()
-            ]);
-            
+        if (!$driverLoggedIn) {
             // Redirect with no-cache headers to prevent back button access
-            return redirect()->route('admin.login')
-                ->with('error', 'Please login to access admin panel.')
+            return redirect()->route('driver.login')
+                ->with('error', 'Please login to access driver dashboard.')
                 ->withHeaders([
                     'Cache-Control' => 'no-cache, no-store, must-revalidate, max-age=0',
                     'Pragma' => 'no-cache',
@@ -33,7 +28,7 @@ class AdminAuth
                 ]);
         }
 
-        // Add no-cache headers to admin pages to prevent browser caching
+        // Add no-cache headers to driver pages to prevent browser caching
         $response = $next($request);
         
         return $response->withHeaders([
@@ -43,4 +38,3 @@ class AdminAuth
         ]);
     }
 }
-
