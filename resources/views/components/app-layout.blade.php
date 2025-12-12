@@ -17,9 +17,17 @@
                 <a href="{{ route('home') }}" class="nav-logo">StudentMove</a>
                 <div class="nav-links">
                     <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
-                    <a href="{{ route('subscription') }}" class="nav-link {{ request()->routeIs('subscription') ? 'active' : '' }}">Subscription</a>
+                    @auth
+                        @if(!request()->routeIs('home'))
+                            <a href="{{ route('subscription') }}" class="nav-link {{ request()->routeIs('subscription') ? 'active' : '' }}">Subscription</a>
+                        @endif
+                    @endauth
                     <a href="{{ route('next-bus-arrival') }}" class="nav-link {{ request()->routeIs('next-bus-arrival') ? 'active' : '' }}">Live Location</a>
-                    <a href="{{ route('route-suggestion') }}" class="nav-link {{ request()->routeIs('route-suggestion') ? 'active' : '' }}">Personalized Route</a>
+                    @auth
+                        @if(!request()->routeIs('home'))
+                            <a href="{{ route('route-suggestion') }}" class="nav-link {{ request()->routeIs('route-suggestion') ? 'active' : '' }}">Personalized Route</a>
+                        @endif
+                    @endauth
                     @auth
                         <a href="{{ route('notifications') }}" class="nav-link {{ request()->routeIs('notifications') ? 'active' : '' }}" style="position: relative;">
                             <i class="bi bi-bell" style="margin-right: 4px;"></i> Notifications

@@ -14,9 +14,7 @@
             <a href="{{ route('home') }}" class="nav-logo">StudentMove</a>
             <div class="nav-links">
                 <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
-                <a href="{{ route('subscription') }}" class="nav-link {{ request()->routeIs('subscription') ? 'active' : '' }}">Subscription</a>
                 <a href="{{ route('next-bus-arrival') }}" class="nav-link {{ request()->routeIs('next-bus-arrival') ? 'active' : '' }}">Live Location</a>
-                <a href="{{ route('route-suggestion') }}" class="nav-link {{ request()->routeIs('route-suggestion') ? 'active' : '' }}">Personalized Route</a>
             </div>
             <div class="nav-cta">
                 <a href="{{ route('login') }}" class="nav-button">Sign in</a>
