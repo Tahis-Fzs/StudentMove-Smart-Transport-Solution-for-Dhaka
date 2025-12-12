@@ -14,6 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::create('invoices', function (Blueprint $table) {
+            if (Schema::getConnection()->getDriverName() === 'mysql') {
+                $table->engine = 'InnoDB';
+            }
             $table->id();
             $table->foreignId('subscription_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');

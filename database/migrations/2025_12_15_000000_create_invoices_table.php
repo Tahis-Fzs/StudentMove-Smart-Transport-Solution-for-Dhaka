@@ -13,21 +13,21 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('subscriptions', function (Blueprint $table) {
-            if (Schema::getConnection()->getDriverName() === 'mysql') {
-                $table->engine = 'InnoDB';
-            }
+        Schema::create('invoices', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
             $table->id();
+            $table->foreignId('subscription_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->enum('plan_type', ['monthly', '6months', 'yearly']);
+            $table->string('invoice_number')->unique();
             $table->decimal('amount', 10, 2);
-            $table->enum('payment_method', ['card', 'mobile_banking']);
+            $table->string('plan_type');
+            $table->string('payment_method');
             $table->string('payment_provider')->nullable();
             $table->string('transaction_id')->nullable();
-            $table->string('card_last_four')->nullable();
-            $table->enum('status', ['pending', 'completed', 'failed', 'cancelled'])->default('pending');
-            $table->dateTime('starts_at');
-            $table->dateTime('ends_at');
+            $table->enum('status', ['paid', 'pending', 'failed'])->default('paid');
+            $table->dateTime('issued_at');
+            $table->dateTime('due_at')->nullable();
+            $table->text('invoice_pdf_path')->nullable();
             $table->timestamps();
         });
     }
@@ -39,6 +39,7 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('subscriptions');
+        Schema::dropIfExists('invoices');
     }
 };
+
