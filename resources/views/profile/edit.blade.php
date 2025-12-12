@@ -22,12 +22,15 @@
             
             <!-- Profile Picture Section -->
             <div class="avatar-upload">
-                <img src="{{ Auth::user()->profile_image ? asset('storage/' . Auth::user()->profile_image) : 'https://randomuser.me/api/portraits/men/32.jpg' }}" 
+                <img src="{{ Auth::user()->profile_image ? asset('storage/' . Auth::user()->profile_image) . '?v=' . time() : 'https://randomuser.me/api/portraits/men/32.jpg' }}" 
                      alt="Profile Picture" class="profile-avatar" id="profile-avatar">
                 <button type="button" class="upload-btn" onclick="document.getElementById('avatar-input').click()">
                     <i class="bi bi-camera"></i> Change Photo
                 </button>
-                <input type="file" id="avatar-input" name="profile_image" accept="image/*" style="display: none;" onchange="previewImage(this)">
+                <input type="file" id="avatar-input" name="profile_image" accept="image/jpeg,image/png,image/jpg,image/gif" style="display: none;" onchange="previewImage(this)">
+                @error('profile_image')
+                    <div class="error-message" style="margin-top: 8px;">{{ $message }}</div>
+                @enderror
             </div>
 
             <!-- Personal Information -->
@@ -191,11 +194,22 @@
     <script>
         function previewImage(input) {
             if (input.files && input.files[0]) {
+                const file = input.files[0];
+
+                // Check file type
+                const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+                if (!validTypes.includes(file.type)) {
+                    alert('Please select a valid image file (JPEG, PNG, or GIF).');
+                    input.value = ''; // Clear the input
+                    return;
+                }
+                
+                // Preview the image
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     document.getElementById('profile-avatar').src = e.target.result;
                 };
-                reader.readAsDataURL(input.files[0]);
+                reader.readAsDataURL(file);
             }
         }
 
@@ -205,6 +219,11 @@
             let isValid = true;
             
             requiredFields.forEach(field => {
+                // Skip file inputs in validation check
+                if (field.type === 'file') {
+                    return;
+                }
+                
                 if (!field.value.trim()) {
                     isValid = false;
                     field.style.borderColor = '#dc3545';
@@ -216,7 +235,18 @@
             if (!isValid) {
                 e.preventDefault();
                 alert('Please fill in all required fields.');
+                return false;
             }
+            
+            // Show loading state
+            const submitButton = this.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
+            }
+            
+            // Allow form to submit normally (including file upload)
+            return true;
         });
     </script>
     @endpush

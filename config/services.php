@@ -39,4 +39,11 @@ return [
         'maps_api_key' => env('GOOGLE_MAPS_API_KEY'),
     ],
 
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+        // Default to OpenRouter (OpenAI-compatible). Set your OpenRouter key in .env
+        'base_url' => env('OPENAI_BASE_URL', 'https://openrouter.ai/api/v1'),
+        'default_model' => env('OPENAI_MODEL', 'meta-llama/llama-3.1-8b-instruct:free'),
+    ],
+
 ];

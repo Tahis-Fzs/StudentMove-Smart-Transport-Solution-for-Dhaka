@@ -107,6 +107,23 @@
             </a>
         </div>
 
+        <!-- AI Helper -->
+        <section class="dashboard-card" style="margin: 24px auto; max-width: 1200px; padding: 20px; background: #0b1324; color: #e5e7eb;">
+            <h2 style="display:flex; align-items:center; gap:8px; font-size:1.2rem; margin-bottom:12px;">
+                <i class="bi bi-stars" style="color:#10b981;"></i>
+                Ask AI (beta)
+            </h2>
+            <form id="ai-form" onsubmit="return sendAi(event);" style="display:flex; gap:10px; flex-wrap:wrap;">
+                <input type="text" id="ai-prompt" name="prompt" placeholder="Ask about routes, schedules, or anything..." required
+                    style="flex:1; min-width:240px; padding:12px; border-radius:10px; border:1px solid #1f2937; background:#111827; color:#e5e7eb;">
+                <button type="submit" style="padding:12px 16px; border:none; border-radius:10px; background:#10b981; color:#0b1324; font-weight:600; cursor:pointer;">
+                    Send
+                </button>
+            </form>
+            <div id="ai-status" style="margin-top:10px; font-size:0.9rem; color:#9ca3af; display:none;">Thinking...</div>
+            <div id="ai-output" style="margin-top:12px; padding:12px; border-radius:10px; background:#111827; border:1px solid #1f2937; color:#e5e7eb; display:none;"></div>
+        </section>
+
         <!-- Cards Grid -->
         <main>
             <div class="dashboard-section">
@@ -173,6 +190,53 @@
 
         function showFeedback() {
             alert('Feedback Submitted:\n\nRating: ⭐⭐⭐⭐⭐\nService: Excellent\nComments: "Very helpful app, accurate timing!"\n\nThank you for your feedback!');
+        }
+
+        async function sendAi(event) {
+            event.preventDefault();
+            const promptInput = document.getElementById('ai-prompt');
+            const statusEl = document.getElementById('ai-status');
+            const outputEl = document.getElementById('ai-output');
+
+            if (!promptInput.value.trim()) {
+                return false;
+            }
+
+            statusEl.style.display = 'block';
+            statusEl.textContent = 'Thinking...';
+            outputEl.style.display = 'none';
+            outputEl.textContent = '';
+
+            try {
+                const res = await fetch('{{ route('ai.generate') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        prompt: promptInput.value,
+                        model: 'gpt-4.1-mini',
+                        max_tokens: 200,
+                        temperature: 0.7
+                    })
+                });
+
+                const data = await res.json();
+                if (!res.ok || data.error) {
+                    throw new Error(data.error || 'Request failed');
+                }
+
+                outputEl.textContent = data.output || 'No response.';
+                outputEl.style.display = 'block';
+            } catch (err) {
+                outputEl.textContent = `Error: ${err.message || 'unable to get a response.'}`;
+                outputEl.style.display = 'block';
+            } finally {
+                statusEl.style.display = 'none';
+            }
+
+            return false;
         }
     </script>
     @endpush

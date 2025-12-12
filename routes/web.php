@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ReportController; // added for admin report manag
 use App\Http\Controllers\BusRouteController; // Tahsin
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\AiController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\UserNotificationController; // <-- Add this line!
 use App\Models\Offer;
@@ -52,6 +53,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::post('/ai/generate', [AiController::class, 'generate'])
+        ->middleware('throttle:30,1')
+        ->name('ai.generate');
 
     Route::get('/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
     Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
