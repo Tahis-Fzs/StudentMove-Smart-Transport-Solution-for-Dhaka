@@ -15,6 +15,20 @@ touch database/database.sqlite
 chown -R www-data:www-data database storage bootstrap/cache || true
 chmod -R ug+rwx database storage bootstrap/cache || true
 
+# Keep .env APP_KEY in sync with Render's injected APP_KEY (Docker build key differs otherwise).
+if [ -n "${APP_KEY:-}" ]; then
+  if grep -q '^APP_KEY=' .env 2>/dev/null; then
+    sed -i "s|^APP_KEY=.*|APP_KEY=${APP_KEY}|" .env
+  else
+    echo "APP_KEY=${APP_KEY}" >> .env
+  fi
+elif ! grep -qE '^APP_KEY=base64:' .env 2>/dev/null; then
+  echo "Generating APP_KEY (Render env var not set)..."
+  php artisan key:generate --force || true
+fi
+
+# Drop stale bootstrap caches (signed route closures break when APP_KEY changes).
+rm -f bootstrap/cache/config.php bootstrap/cache/routes*.php bootstrap/cache/services.php 2>/dev/null || true
 php artisan config:clear || true
 php artisan route:clear || true
 php artisan view:clear || true
