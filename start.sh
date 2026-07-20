@@ -13,7 +13,7 @@ fi
 mkdir -p database storage/framework/{cache,sessions,views} storage/logs bootstrap/cache
 touch database/database.sqlite
 chown -R www-data:www-data database storage bootstrap/cache || true
-chmod -R ug+rwx database storage bootstrap/cache || true
+chmod -R 777 database storage bootstrap/cache || true
 
 # Keep .env APP_KEY aligned with Render (or generate one if still missing).
 php -r '

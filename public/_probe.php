@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 header('Content-Type: text/plain; charset=UTF-8');
 
+// Surface real exceptions from this diagnostic endpoint only.
+putenv('APP_DEBUG=true');
+$_ENV['APP_DEBUG'] = 'true';
+$_SERVER['APP_DEBUG'] = 'true';
+
 try {
     require __DIR__ . '/../vendor/autoload.php';
     $app = require __DIR__ . '/../bootstrap/app.php';
