@@ -1,155 +1,204 @@
-# StudentMove – Smart Transport Solution for Dhaka City Students
+<p align="center">
+  <strong>StudentMove</strong> · Laravel · Leaflet · PWA · SSLCommerz · Firebase
+</p>
 
-StudentMove is a full-stack smart transportation platform designed for students in Dhaka City.  
-It enables real-time bus tracking, intelligent route suggestions, subscription-based transport services, admin monitoring, driver tracking, and automated notifications.
-
-This project is collaboratively built by **5 team members**, where each member develops a **dedicated full-stack module**.
-
----
-
-## 🚀 Features
-
-### 🔹 Authentication
-- Student registration & login  
-- Email + OTP verification  
-- Secure session tokens  
-- Password reset  
-- Profile management  
-
-### 🔹 Smart Routes & Real-Time Tracking
-- View all routes  
-- Google Maps integration  
-- Live bus GPS tracking (updates every 10 seconds)  
-- ETA predictions  
-- Route ranking & suggestions  
-
-### 🔹 Subscription & Payment
-- Multiple subscription plans  
-- Payment gateway support  
-- Invoice generation  
-- Subscription history  
-
-### 🔹 Notification System
-- Push + email notifications  
-- Delay alerts  
-- Route change alerts  
-- Notification preferences  
-
-### 🔹 Feedback System
-- Submit feedback  
-- Admin replies  
-- Feedback history  
-
-### 🔹 Admin Dashboard
-- Manage buses, drivers, routes  
-- Analytics & reports  
-- User suspension system  
-- GPS override controls  
-
-### 🔹 Driver App
-- Driver login  
-- GPS updates every 10 seconds  
-- Bus status updates  
+<p align="center">
+  <a href="https://studentmove-app.onrender.com"><strong>Live Demo</strong></a>
+  ·
+  <a href="#quick-start">Quick Start</a>
+  ·
+  <a href="#features">Features</a>
+  ·
+  <a href="#architecture">Architecture</a>
+  ·
+  <a href="#tech-stack">Tech Stack</a>
+  ·
+  <a href="#team">Team</a>
+</p>
 
 ---
 
-# 🧩 Full Functional Requirements Distribution
+# StudentMove
 
-### ✔ FR-30 and FR-31 are removed
+**Smart transport for Dhaka students — live buses, route suggestions, passes, and driver GPS in one web app.**
 
----
+Built for **Daffodil International University** · Software Engineering project · 5-module full-stack team
 
-## 👨‍💻 **Md. Shadman Hasin — ID: 0242220005101462**  
-### Module: Authentication (FR-1 to FR-8)
-- FR-1: User Registration  
-- FR-2: Student ID + Email Validation  
-- FR-3: OTP / Email Verification  
-- FR-4: User Login  
-- FR-5: Forgot Password  
-- FR-6: Profile Update  
-- FR-7: Password Encryption  
-- FR-8: Secure Session Tokens  
+| | |
+|---|---|
+| **Live app** | [https://studentmove-app.onrender.com](https://studentmove-app.onrender.com) |
+| **Stack** | Laravel 9 · Blade · Tailwind · MySQL/SQLite · Leaflet |
+| **Payments** | SSLCommerz (bKash · Nagad · cards) |
 
 ---
 
-## 👨‍💻 **Md. Shadman Tahsin — ID: 0242220005101461**  
-### Module: Routes & Real-Time Tracking (FR-9 to FR-17)
-- FR-9: View All Routes  
-- FR-10: Google Maps API Integration  
-- FR-11: Bus GPS Fetching (10s refresh)  
-- FR-12: Bus Location + ETA  
-- FR-13: Route Suggestion  
-- FR-14: Ranked Route Options  
-- FR-15: Delay Alerts  
-- FR-16: Next Bus Display  
-- FR-17: Save Favorite Routes  
+## Why this exists
+
+Dhaka commutes are unpredictable — crowded buses, shifting ETAs, and no single place to track campus routes, book a seat, or pay for a pass.
+
+**StudentMove** brings that into one student-first platform: a live map with driver GPS, AI route help, subscription checkout, admin tools, and a driver panel that feeds real-time location to riders.
+
+| **For students** | Book rides, track buses, buy passes, chat with AI or support |
+| **For drivers** | Log in, ping GPS, update bus status from the phone |
+| **For admins** | Manage routes, announcements, feedback, and manual GPS override |
 
 ---
 
-## 👨‍💻 **Md. Julfikar Hasan — ID: 0242220005101495**  
-### Module: Subscription & Payment (FR-18 to FR-25)
-- FR-18: Subscription Plans  
-- FR-19: Plan Details  
-- FR-20: Payment Gateway  
-- FR-21: Invoice Generation  
-- FR-22: Payment Confirmation  
-- FR-23: Subscription Status Update  
-- FR-24: Subscription History  
-- FR-25: Transaction Storage  
+## Quick start
 
----
+### 1. Requirements
 
-## 👨‍💻 **Nahid Hasan — ID: 0242220005101460**  
-### Module: Notification & Feedback (FR-26 to FR-29, FR-32 to FR-35)
-- FR-26: Real-time Notifications  
-- FR-27: FCM + Email Notifications  
-- FR-28: Notification Preferences  
-- FR-29: Notification List  
-- FR-32: Submit Feedback  
-- FR-33: Feedback Email Confirmation  
-- FR-34: Admin Response  
-- FR-35: Feedback Archiving  
+- PHP 8.0+
+- Composer
+- Node.js 18+ & npm
+- MySQL (local) or SQLite (Docker / Render)
 
----
+### 2. Clone & install
 
-## 👨‍💻 **KM Najimuddin — ID: 0242220005101493**  
-### Module: Admin Dashboard & Driver App (FR-36 to FR-45)
-- FR-36: Admin Dashboard  
-- FR-37: CRUD for Bus/Driver/Route  
-- FR-38: GPS Override  
-- FR-39: Reports (Daily/Weekly/Monthly)  
-- FR-40: User Suspension  
-- FR-41: Admin Logs  
-- FR-42: Driver Login  
-- FR-43: Driver GPS Updates  
-- FR-44: Bus Status Update  
-- FR-45: Admin Status Override  
-
----
-
-# 🏗️ Tech Stack
-
-### **Backend:** Laravel 10 (PHP 8+)  
-### **Frontend:** Blade, TailwindCSS, Vite  
-### **Database:** MySQL  
-### **APIs:** Google Maps, Firebase Cloud Messaging, Payment Gateway, GPS Driver App
-
----
-
-# 🔧 Installation Guide
-
-### 1️⃣ Clone the Repository
 ```bash
-git clone https://github.com/<your-repo>/StudentMove.git
-cd StudentMove
+git clone https://github.com/Tahis-Fzs/StudentMove-Smart-Transport-Solution-for-Dhaka.git
+cd StudentMove-Smart-Transport-Solution-for-Dhaka
 
+cp .env.example .env
+composer install
+npm install && npm run build
+php artisan key:generate
+php artisan migrate --seed
+php artisan serve
+```
+
+Open **http://127.0.0.1:8000**
+
+### 3. Optional: SSLCommerz sandbox
+
+```bash
+# .env — defaults in .env.example (testbox / qwerty)
+php artisan sslcommerz:check --probe
+```
+
+Then visit `/subscription` and checkout via the sandbox gateway.
+
+### 4. Try the live demo
+
+**[https://studentmove-app.onrender.com](https://studentmove-app.onrender.com)** — hosted on Render (free tier may cold-start ~30s).
+
+---
+
+## Features
+
+| Student app | Admin & driver |
+|---|---|
+| Live bus map (Leaflet + SSE stream) | Bus / route CRUD with run days & university tags |
+| Next-bus cards, day tabs, delay toasts | GPS manual override + live stream publish |
+| Route suggestions & saved favorites | Targeted announcements → user inbox |
+| Ride booking with seat counts | Feedback manager (reply · archive) |
+| Weekly / monthly / single passes | Support chat inbox |
+| SSLCommerz checkout + PDF invoices | Reports, user management, activity logs |
+| AI assistant + support chat (persisted) | Driver login & GPS dashboard |
+| PWA — installable, offline shell | Delay alerts to booked riders |
+
+### Main routes
+
+```
+/                     Landing
+/dashboard            Student home
+/next-bus-arrival     Live map + schedules
+/route-suggestion     Smart route finder
+/bookings             Trip booking
+/subscription         Pass checkout (SSLCommerz)
+/chat                 AI + support chat
+/feedback             Submit & view replies
+/driver/login         Driver GPS panel
+/admin/login          Admin dashboard
+```
+
+---
+
+## Architecture
+
+```mermaid
+flowchart LR
+  A[Student Browser / PWA] --> B[Laravel Web]
+  C[Driver Phone GPS] --> B
+  B --> D[(MySQL / SQLite)]
+  B --> E[Leaflet Live Map]
+  B --> F[SSE BusLiveStream]
+  C --> F
+  B --> G[SSLCommerz]
+  G --> B
+  B --> H[Inbox · Email · PDF]
+  I[Admin Panel] --> B
+```
+
+### Real-time GPS flow
+
+1. Driver (or admin) updates lat/lng → saved on `bus_schedules`
+2. `BusLiveStream` publishes snapshot to cache
+3. Map clients subscribe via **Server-Sent Events** (`/api/bus/stream/{id}`)
+4. ETA / delay logic polls `/api/bus/get-location/{id}` as fallback
+
+---
+
+## Tech stack
+
+| Layer | Tools |
+|---|---|
+| **Backend** | Laravel 9, PHP 8+, Sanctum |
+| **Frontend** | Blade, Tailwind CSS, Vite, Leaflet 1.9 |
+| **Database** | MySQL (dev) · SQLite (Render Docker) |
+| **Auth** | Laravel Breeze + Firebase social login |
+| **Payments** | SSLCommerz hosted checkout |
+| **PDF** | DomPDF (invoices) |
+| **AI** | OpenRouter-compatible API (optional) |
+| **Deploy** | Docker · [Render](https://render.com) (`render.yaml`) |
+
+---
+
+## Functional requirements map
+
+| Module | Owner | FR range |
+|---|---|---|
+| Authentication | Md. Shadman Hasin | FR-1 – FR-8 |
+| Routes & live tracking | Md. Shadman Tahsin | FR-9 – FR-17 |
+| Subscription & payment | Md. Julfikar Hasan | FR-18 – FR-25 |
+| Notifications & feedback | Nahid Hasan | FR-26 – FR-29, FR-32 – FR-35 |
+| Admin & driver app | KM Najimuddin | FR-36 – FR-45 |
+
+> FR-30 and FR-31 are removed from scope.
+
+See [README_IMPLEMENTATION.md](README_IMPLEMENTATION.md) for subscription / payment implementation notes.
+
+---
+
+## Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| Map tiles missing | Hard-refresh; check `/css/leaflet-bundle.css` loads |
+| SSLCommerz not redirecting | Run `php artisan sslcommerz:check --probe`; set store creds in `.env` |
+| Live stream idle | SSE opens a long connection — normal; driver must ping GPS |
+| Render cold start | Wait ~30s on free tier, then reload |
+| Migrations fail | `php artisan migrate:fresh --seed` on a clean DB |
+
+---
 
 ## Team
 
-StudentMove — Smart Transport Solution · **Daffodil International University**
+**Daffodil International University** · Software Engineering
 
 | Member | ID |
-|--------|-----|
+|---|---|
 | Md. Shadman Hasin | 0242220005101462 |
 | Md. Shadman Tahsin | 0242220005101461 |
+| Md. Julfikar Hasan | 0242220005101495 |
+| Nahid Hasan | 0242220005101460 |
+| KM Najimuddin | 0242220005101493 |
 
+---
+
+## License
+
+Educational project for **Software Engineering / Smart Transport** coursework.  
+Use it, extend it, deploy it — just cite the team if you fork it publicly.
+
+<p align="center"><sub>Built for students who move Dhaka — not against traffic.</sub></p>
