@@ -5,7 +5,11 @@ import {
     FacebookAuthProvider,
     GithubAuthProvider,
     signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
 } from 'firebase/auth';
+
+const INTENT_KEY = 'studentmove_firebase_intent';
 
 function cfg() {
     return window.__FIREBASE__ || null;
@@ -62,6 +66,12 @@ function setStatus(message, isError = false) {
     el.classList.toggle('auth-alert--ok', !isError && !!message);
 }
 
+function isPopupBlocked(err) {
+    const code = err?.code || '';
+    const msg = String(err?.message || '');
+    return code === 'auth/popup-blocked' || code === 'auth/popup-closed-by-user' || /popup/i.test(msg);
+}
+
 async function syncWithLaravel(idToken, intent) {
     const res = await fetch(cfg().syncUrl, {
         method: 'POST',
@@ -89,6 +99,13 @@ async function syncWithLaravel(idToken, intent) {
     return data;
 }
 
+async function finishSignIn(user, intent) {
+    const idToken = await user.getIdToken();
+    const data = await syncWithLaravel(idToken, intent);
+    setStatus('Synced to StudentMove. Redirecting…');
+    window.location.href = data.redirect || '/dashboard';
+}
+
 async function socialSignIn(providerName, intent) {
     const buttons = document.querySelectorAll('[data-firebase-provider]');
     buttons.forEach((b) => {
@@ -98,11 +115,21 @@ async function socialSignIn(providerName, intent) {
 
     try {
         const auth = getFirebaseAuth();
-        const result = await signInWithPopup(auth, providerFor(providerName));
-        const idToken = await result.user.getIdToken();
-        const data = await syncWithLaravel(idToken, intent);
-        setStatus('Synced to StudentMove. Redirecting…');
-        window.location.href = data.redirect || '/dashboard';
+        const provider = providerFor(providerName);
+
+        try {
+            const result = await signInWithPopup(auth, provider);
+            await finishSignIn(result.user, intent);
+            return;
+        } catch (popupErr) {
+            if (!isPopupBlocked(popupErr)) {
+                throw popupErr;
+            }
+            // Safari / tunnel / blockers often block popups — fall back to full-page redirect.
+            sessionStorage.setItem(INTENT_KEY, intent);
+            setStatus('Opening Google sign-in…');
+            await signInWithRedirect(auth, provider);
+        }
     } catch (err) {
         console.error(err);
         setStatus(err?.message || 'Sign-in failed.', true);
@@ -112,12 +139,30 @@ async function socialSignIn(providerName, intent) {
     }
 }
 
+async function handleRedirectReturn(intent) {
+    try {
+        const auth = getFirebaseAuth();
+        const result = await getRedirectResult(auth);
+        if (!result?.user) return;
+
+        const savedIntent = sessionStorage.getItem(INTENT_KEY) || intent;
+        sessionStorage.removeItem(INTENT_KEY);
+        setStatus('Finishing sign-in…');
+        await finishSignIn(result.user, savedIntent);
+    } catch (err) {
+        console.error(err);
+        setStatus(err?.message || 'Sign-in failed.', true);
+    }
+}
+
 function mount() {
     const root = document.querySelector('[data-firebase-auth]');
     if (!root) return;
 
     const intent = root.getAttribute('data-intent') || 'login';
     const allowed = enabledProviders();
+
+    handleRedirectReturn(intent);
 
     root.querySelectorAll('[data-firebase-provider]').forEach((btn) => {
         const provider = btn.getAttribute('data-firebase-provider');
