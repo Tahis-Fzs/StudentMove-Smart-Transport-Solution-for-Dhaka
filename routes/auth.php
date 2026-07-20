@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\FirebaseAuthController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailSetupController;
@@ -24,12 +25,17 @@ Route::middleware('guest')->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])
                 ->name('register');
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    Route::post('register', [RegisteredUserController::class, 'store'])
+                ->middleware('throttle:8,1');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
                 ->name('login');
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
+
+    Route::post('auth/firebase', [FirebaseAuthController::class, 'sync'])
+                ->middleware('throttle:20,1')
+                ->name('auth.firebase');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
                 ->name('password.request');

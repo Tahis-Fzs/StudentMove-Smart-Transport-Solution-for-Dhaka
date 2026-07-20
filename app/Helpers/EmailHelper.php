@@ -40,7 +40,20 @@ class EmailHelper
             'has_username' => !empty($mailUsername),
             'has_password' => !empty($mailPassword)
         ]]);
-        
+
+        // Log / array drivers need no SMTP — emails are written to laravel.log or held in memory (tests).
+        if (in_array($mailDriver, ['log', 'array'], true)) {
+            $dbg(['h' => 'EH0', 'loc' => 'local-mail-driver', 'msg' => 'using log/array mailer', 'data' => ['mail_driver' => $mailDriver]]);
+
+            return [
+                'ready' => true,
+                'type' => $mailDriver,
+                'message' => $mailDriver === 'log'
+                    ? 'Mail driver is log (see storage/logs/laravel.log for messages).'
+                    : 'Mail driver is array (in-memory; for testing).',
+            ];
+        }
+
             // If using Mailpit, ensure it's running
         if ($isMailpit && empty($mailUsername) && empty($mailPassword)) {
             $dbg(['h' => 'EH2', 'loc' => 'mailpit-mode', 'msg' => 'using Mailpit mode']);

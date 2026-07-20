@@ -1,57 +1,60 @@
 <x-guest-layout>
     @push('styles')
-    <link rel="stylesheet" href="/css/signin.css">
+        @vite(['resources/css/auth.css'])
     @endpush
 
-    <div class="signin-container">
-        <div class="signin-header">
-            <h1 class="signin-title"><i class="bi bi-person-circle"></i> Welcome Back</h1>
-            <p class="signin-subtitle">Sign in to your StudentMove account</p>
-        </div>
-
-        <!-- Demo Information -->
-        <div class="demo-info">
-            <i class="bi bi-info-circle"></i> <strong>Sign in to your account</strong>
-        </div>
-
-        <form class="signin-form" method="POST" action="{{ route('login') }}">
-            @csrf
-            
-            <div class="form-group">
-                <input type="email" name="email" class="form-input" placeholder="Email Address" value="{{ old('email') }}" required autofocus>
-                @error('email')
-                    <div class="error-message">{{ $message }}</div>
-                @enderror
+    <div class="auth-shell">
+        <aside class="auth-aside" aria-hidden="true">
+            <img class="auth-aside__img" src="https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=1600&q=80" alt="">
+            <div class="auth-aside__shade"></div>
+            <div class="auth-aside__copy">
+                <p class="auth-aside__brand">StudentMove</p>
+                <p class="auth-aside__text">Sign in to live routes, ETAs, and your student plan.</p>
             </div>
-            
-            <div class="form-group">
-                <input type="password" name="password" class="form-input" placeholder="Password" required>
-                @error('password')
-                    <div class="error-message">{{ $message }}</div>
-                @enderror
+        </aside>
+
+        <section class="auth-panel sm-reveal">
+            <p class="auth-kicker">Sign in</p>
+            <h1 class="auth-title">Welcome back</h1>
+            <p class="auth-sub">Use the email you registered with. Sessions are rate-limited against brute force.</p>
+
+            @if (session('status'))
+                <div class="auth-alert auth-alert--ok">{{ session('status') }}</div>
+            @endif
+
+            <form class="auth-form" method="POST" action="{{ route('login') }}" novalidate>
+                @csrf
+
+                <div class="auth-field">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" name="email" value="{{ old('email') }}" autocomplete="username" required autofocus>
+                    @error('email')<div class="auth-error">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="auth-field">
+                    <label for="password">Password</label>
+                    <input id="password" type="password" name="password" autocomplete="current-password" required>
+                    @error('password')<div class="auth-error">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="auth-options">
+                    <label class="auth-check" style="margin:0;">
+                        <input type="checkbox" name="remember" {{ old('remember') ? 'checked' : '' }}>
+                        <span>Remember me</span>
+                    </label>
+                    @if (Route::has('password.request'))
+                        <a class="auth-link" href="{{ route('password.request') }}">Forgot password?</a>
+                    @endif
+                </div>
+
+                <button type="submit" class="auth-submit">Sign in</button>
+            </form>
+
+            @include('partials.firebase-auth', ['intent' => 'login'])
+
+            <div class="auth-foot">
+                New here? <a class="auth-link" href="{{ route('register') }}">Create an account</a>
             </div>
-
-            <div class="form-options">
-                <label class="checkbox-group">
-                    <input type="checkbox" name="remember" {{ old('remember') ? 'checked' : '' }}>
-                    <span style="font-size: 0.9rem; color: #6c757d;">Remember me</span>
-                </label>
-                @if (Route::has('password.request'))
-                    <a href="{{ route('password.request') }}" class="forgot-link">Forgot Password?</a>
-                @endif
-            </div>
-
-            <button type="submit" class="signin-btn">
-                <i class="bi bi-box-arrow-in-right"></i> Sign In
-            </button>
-        </form>
-
-        <div class="divider">
-            <span>or</span>
-        </div>
-
-        <div class="signup-link">
-            Don't have an account? <a href="{{ route('register') }}">Create Account</a>
-        </div>
+        </section>
     </div>
 </x-guest-layout>

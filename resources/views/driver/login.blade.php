@@ -1,132 +1,86 @@
-HTML
-<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>Driver Login</title>
+    <title>Driver Login · StudentMove</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    @vite(['resources/css/premium.css', 'resources/js/app.js'])
     <style>
-        .top-nav {
-            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
-            color: #000;
-            padding: 15px 30px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+        .driver-shell { min-height: 100vh; }
+        .driver-card {
+            width: 100%;
+            max-width: 420px;
+            background: rgba(255,255,255,0.94);
+            border: 1px solid rgba(18,22,28,0.08);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            box-shadow: 0 18px 50px rgba(18,22,28,0.1);
         }
-        .top-nav-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
+        .driver-card h1 {
+            font-family: Syne, sans-serif;
+            font-size: 1.75rem;
+            letter-spacing: -0.03em;
+            margin: 0 0 0.35rem;
         }
-        .top-nav-brand {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #000;
-            text-decoration: none;
+        .driver-card .lede { color: #5b6572; margin-bottom: 1.5rem; }
+        .driver-submit {
+            width: 100%;
+            background: #e0952c;
+            color: #12161c;
+            border: none;
+            font-weight: 600;
+            padding: 0.85rem;
+            border-radius: 0.5rem;
         }
-        .top-nav-link {
-            color: #000;
-            text-decoration: none;
-            padding: 8px 15px;
-            border-radius: 6px;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-        .top-nav-link:hover {
-            background: rgba(0,0,0,0.1);
-            color: #000;
-        }
+        .driver-submit:hover { background: #ebb04a; }
     </style>
 </head>
-<body class="bg-dark" style="min-height: 100vh;">
-    <!-- Top Navigation Bar -->
-    <nav class="top-nav">
-        <div class="top-nav-content">
-            <a href="{{ route('home') }}" class="top-nav-brand">
-                <i class="bi bi-bus-front"></i> StudentMove
-            </a>
-            <div>
-                <a href="{{ route('home') }}" class="top-nav-link">
-                    <i class="bi bi-house"></i> Home
-                </a>
-                <a href="{{ route('admin.login') }}" class="top-nav-link">
-                    <i class="bi bi-gear"></i> Admin
-                </a>
+<body class="page-bg">
+    <nav class="site-nav">
+        <div class="nav-inner">
+            <a href="{{ route('home') }}" class="nav-logo">StudentMove</a>
+            <div class="nav-cta">
+                <a href="{{ route('home') }}" class="nav-button ghost">Home</a>
+                <a href="{{ route('admin.login') }}" class="nav-button ghost">Admin</a>
             </div>
         </div>
     </nav>
-    
-    <div class="d-flex align-items-center justify-content-center" style="min-height: calc(100vh - 70px); padding: 20px;">
-    <div class="card p-4" style="width: 100%; max-width: 350px;">
-        <h3 class="text-center mb-3">🚌 Driver App</h3>
-        
-        @if(session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
-        @endif
 
-        @php
-            $buses = \App\Models\BusSchedule::all();
-        @endphp
-        @if($buses->count() === 0)
-            <div class="alert alert-warning">
-                <strong>⚠️ No Buses Available</strong><br>
-                Please create buses from the <a href="{{ route('admin.login') }}" target="_blank">Admin Panel</a> first.
-            </div>
-        @endif
+    <main class="driver-shell d-flex align-items-center justify-content-center" style="padding: 2rem 1rem;">
+        <div class="driver-card sm-reveal">
+            <h1>Driver access</h1>
+            <p class="lede">Select your bus and start the shift.</p>
 
-        <form method="POST" action="{{ route('driver.login.post') }}">
-            @csrf
-            
-            <div class="mb-3">
-                <label class="form-label">Select Your Bus</label>
-                <select name="bus_id" class="form-select" required>
-                    <option value="">-- Select a Bus --</option>
-                    @php
-                        $buses = \App\Models\BusSchedule::all();
-                    @endphp
-                    @if($buses->count() > 0)
+            @if(session('error'))
+                <div class="sm-flash sm-flash--err" style="margin-bottom:1rem;">{{ session('error') }}</div>
+            @endif
+
+            @php $buses = \App\Models\BusSchedule::all(); @endphp
+            @if($buses->count() === 0)
+                <div class="sm-flash sm-flash--err" style="margin-bottom:1rem;">
+                    No buses yet. Create them in the <a href="{{ route('admin.login') }}">admin panel</a> first.
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('driver.login.post') }}">
+                @csrf
+                <div class="mb-3">
+                    <label class="form-label">Bus</label>
+                    <select name="bus_id" class="form-select" required>
+                        <option value="">Select a bus</option>
                         @foreach($buses as $bus)
-                            <option value="{{ $bus->id }}">{{ $bus->bus_number ?? 'Bus #' . $bus->id }} - {{ $bus->route_name ?? 'Route ' . $bus->id }}</option>
+                            <option value="{{ $bus->id }}">{{ $bus->bus_number ?? 'Bus #'.$bus->id }} — {{ $bus->route_name ?? 'Route' }}</option>
                         @endforeach
-                    @else
-                        <option value="" disabled>No buses available. Please add buses from admin panel.</option>
-                    @endif
-                </select>
-                @if($buses->count() === 0)
-                    <small class="text-danger">No buses found in database. Please create buses from the admin panel first.</small>
-                @endif
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Driver PIN</label>
-                <input type="password" name="password" class="form-control" placeholder="Enter PIN (driver123)" required>
-            </div>
-
-            <button type="submit" class="btn btn-warning w-100">Start Shift</button>
-        </form>
-    </div>
-    </div>
-    
-    <script>
-        // Prevent back button access after logout
-        window.addEventListener('pageshow', function(event) {
-            if (event.persisted) {
-                // Page was loaded from cache (back button)
-                window.location.reload();
-            }
-        });
-        
-        // Clear form on page load if coming from back button
-        if (performance.navigation.type === 2) {
-            document.querySelector('input[name="password"]').value = '';
-            document.querySelector('select[name="bus_id"]').value = '';
-        }
-    </script>
-</body></html>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Driver PIN</label>
+                    <input type="password" name="password" class="form-control" placeholder="PIN" required>
+                </div>
+                <button type="submit" class="driver-submit">Start shift</button>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

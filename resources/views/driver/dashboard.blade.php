@@ -1,78 +1,100 @@
-HTML
-<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>Driver App - Active</title>
+    <title>Driver · {{ $bus->bus_number }} · StudentMove</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    @vite(['resources/css/premium.css', 'resources/js/app.js'])
     <style>
-        body { background-color: #212529; color: white; padding-bottom: 50px; }
-        .app-header { background: #ffc107; color: black; padding: 15px; border-radius: 0 0 20px 20px; margin-bottom: 20px; }
-        .status-btn { width: 100%; padding: 15px; margin-bottom: 10px; border: none; border-radius: 10px; font-weight: bold; }
-        .gps-indicator { font-size: 0.8rem; color: #00ff00; text-align: center; margin-top: 20px; }
+        body.driver-live {
+            background: #12161c !important;
+            color: #f3f5f7;
+            min-height: 100vh;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+        .app-header {
+            background: #e0952c;
+            color: #12161c;
+            padding: 1.25rem 1rem 1.5rem;
+            border-radius: 0 0 1.25rem 1.25rem;
+            margin-bottom: 1.25rem;
+            text-align: center;
+        }
+        .app-header h3 {
+            font-family: Syne, sans-serif;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin: 0;
+        }
+        .status-btn {
+            width: 100%;
+            padding: 0.95rem;
+            margin-bottom: 0.65rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+        }
+        .gps-indicator {
+            font-size: 0.85rem;
+            color: #14a39c;
+            text-align: center;
+            margin-top: 1.5rem;
+        }
         .blink { animation: blinker 1.5s linear infinite; }
-        @keyframes blinker { 50% { opacity: 0; } }
-    </style></head><body>
-
-    <div class="app-header text-center">
-        <h3>🚌 Bus {{ $bus->bus_number }}</h3>
-        <p class="mb-0">{{ $bus->route_name }}</p>
+        @keyframes blinker { 50% { opacity: 0.35; } }
+        .status-panel {
+            background: #1e2630;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            text-align: center;
+            margin-bottom: 1.25rem;
+        }
+    </style>
+</head>
+<body class="driver-live">
+    <div class="app-header sm-reveal">
+        <h3>Bus {{ $bus->bus_number }}</h3>
+        <p class="mb-0" style="opacity:0.8;">{{ $bus->route_name }}</p>
     </div>
 
-    <div class="container" style="max-width: 400px;">
-        
-        <div class="card bg-dark border-secondary mb-4">
-            <div class="card-body text-center text-white">
-                <h5 class="text-muted">Current Status</h5>
-                <h2 class="text-uppercase" style="color: {{ $bus->status == 'delayed' ? 'red' : '#00ff00' }}">
-                    {{ $bus->status }}
-                </h2>
-            </div>
+    <div class="container sm-reveal" style="max-width: 400px;">
+        <div class="status-panel">
+            <div style="color:#9aa3ad;font-size:0.85rem;margin-bottom:0.35rem;">Current status</div>
+            <h2 class="text-uppercase mb-0" style="font-family:Syne,sans-serif;color: {{ $bus->status == 'delayed' ? '#c45c4a' : '#14a39c' }};">
+                {{ $bus->status }}
+            </h2>
         </div>
 
-        <h6 class="text-muted ms-1">Update Status</h6>
-        
+        <h6 style="color:#9aa3ad;">Update status</h6>
         <form method="POST" action="{{ route('driver.status') }}">
             @csrf
-            <button name="status" value="on_time" class="status-btn btn-success">
-                <i class="bi bi-check-circle-fill"></i> Mark On Time
-            </button>
-            <button name="status" value="delayed" class="status-btn btn-danger">
-                <i class="bi bi-exclamation-triangle-fill"></i> Report Traffic / Delay
-            </button>
-            <button name="status" value="stopped" class="status-btn btn-secondary">
-                <i class="bi bi-stop-circle-fill"></i> Bus Stopped
-            </button>
+            <button name="status" value="on_time" class="status-btn btn-success">Mark on time</button>
+            <button name="status" value="delayed" class="status-btn btn-danger">Report delay</button>
+            <button name="status" value="stopped" class="status-btn btn-secondary">Bus stopped</button>
         </form>
 
         <div class="gps-indicator">
-            <i class="bi bi-broadcast blink"></i> GPS Transmitting...<br>
+            <i class="bi bi-broadcast blink"></i> GPS transmitting<br>
             <span id="coords">Lat: -- | Lng: --</span>
         </div>
 
         <form method="POST" action="{{ route('driver.logout') }}" class="mt-4">
             @csrf
-            <button class="btn btn-outline-light w-100">End Shift (Logout)</button>
+            <button class="btn w-100" style="border:1px solid rgba(255,255,255,0.25);color:#f3f5f7;">End shift</button>
         </form>
     </div>
 
     <script>
-        // Simulate GPS movement starting from Dhaka
         let lat = 23.8103;
         let lng = 90.4125;
 
         function sendGpsPing() {
-            // 1. Simulate movement (add tiny random value)
-            lat += (Math.random() - 0.5) * 0.001; 
+            lat += (Math.random() - 0.5) * 0.001;
             lng += (Math.random() - 0.5) * 0.001;
-
-            // 2. Update UI
             document.getElementById('coords').innerText = `Lat: ${lat.toFixed(4)} | Lng: ${lng.toFixed(4)}`;
-
-            // 3. Send to Server (AJAX)
             fetch("{{ route('driver.gps') }}", {
                 method: "POST",
                 headers: {
@@ -80,20 +102,13 @@ HTML
                     "X-CSRF-TOKEN": "{{ csrf_token() }}"
                 },
                 body: JSON.stringify({ lat: lat, lng: lng })
-            })
-            .then(res => res.json())
-            .then(data => console.log('GPS Sent:', data.message))
-            .catch(err => console.error('GPS Error:', err));
+            }).catch(() => {});
         }
 
-        // Run every 5 seconds
         setInterval(sendGpsPing, 5000);
-        
-        // Prevent back button access after logout
         window.addEventListener('pageshow', function(event) {
-            if (event.persisted) {
-                // Page was loaded from cache (back button)
-                window.location.reload();
-            }
+            if (event.persisted) window.location.reload();
         });
-    </script></body></html>
+    </script>
+</body>
+</html>

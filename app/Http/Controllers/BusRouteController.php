@@ -40,7 +40,8 @@ class BusRouteController extends Controller
         if ($bus) {
             $bus->update([
                 'current_lat' => $request->lat,
-                'current_lng' => $request->lng
+                'current_lng' => $request->lng,
+                'location_updated_at' => now(),
             ]);
             return response()->json(['status' => 'success']);
         }

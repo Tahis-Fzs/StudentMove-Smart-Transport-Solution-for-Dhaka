@@ -40,6 +40,7 @@ class DriverController extends Controller
         $bus->update([
             'current_lat' => $request->lat,
             'current_lng' => $request->lng,
+            'location_updated_at' => now(),
         ]);
 
         return response()->json(['success' => true]);

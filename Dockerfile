@@ -22,26 +22,26 @@ RUN docker-php-ext-install pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Node for Vite asset build
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 # Set working directory
 WORKDIR /var/www/html
 
 # Copy application files
 COPY . /var/www/html
 
-# Ensure CSS and JS files are accessible
-RUN chmod -R 755 /var/www/html/public/css
-RUN chmod -R 755 /var/www/html/public/js
-RUN chmod -R 755 /var/www/html/public/images
-RUN chmod -R 755 /var/www/html/public/pdf
+# Ensure public asset directories exist
+RUN mkdir -p /var/www/html/public/css /var/www/html/public/js /var/www/html/public/images /var/www/html/public/pdf \
+    && chmod -R 755 /var/www/html/public
 
-# Create public directories if they don't exist
-RUN mkdir -p /var/www/html/public/css
-RUN mkdir -p /var/www/html/public/js
-RUN mkdir -p /var/www/html/public/images
-RUN mkdir -p /var/www/html/public/pdf
-
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Install PHP + Node dependencies and build frontend
+RUN composer install --no-dev --optimize-autoloader \
+    && npm ci \
+    && npm run build \
+    && rm -rf node_modules
 
 # Database will be created by MySQL service
 
@@ -61,8 +61,11 @@ ENV APP_DEBUG=false
 ENV DB_CONNECTION=sqlite
 ENV DB_DATABASE=/var/www/html/database/database.sqlite
 
+# Ensure SQLite file exists for key:generate during build
+RUN touch /var/www/html/database/database.sqlite && chmod 664 /var/www/html/database/database.sqlite
+
 # Generate application key
-RUN php artisan key:generate
+RUN php artisan key:generate --force
 
 # Skip migrations during build - will run at runtime
 # RUN php artisan migrate --force

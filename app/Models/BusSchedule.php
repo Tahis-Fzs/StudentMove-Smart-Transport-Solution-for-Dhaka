@@ -18,11 +18,16 @@ class BusSchedule extends Model
         'price',
         'is_active',
         // 🚀 ADD THESE FOR DYNAMIC TRACKING
-        'current_lat',     // GPS Latitude (double/float)
-        'current_lng',     // GPS Longitude (double/float)
-        'heading',         // Direction the bus is facing (e.g., degrees or string)
-        'status',          // Bus status (e.g., 'on_time', 'delayed', etc.)
-        'delay_minutes',   // Delay in minutes
-        // Optionally retain any other tracking/delay fields, if needed
+        'current_lat',
+        'current_lng',
+        'location_updated_at',
+        'heading',
+        'status',
+        'delay_minutes',
+    ];
+
+    protected $casts = [
+        'location_updated_at' => 'datetime',
+        'is_active' => 'boolean',
     ];
 }

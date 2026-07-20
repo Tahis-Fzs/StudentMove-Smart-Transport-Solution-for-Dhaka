@@ -1,100 +1,99 @@
 <x-guest-layout>
     @push('styles')
-    <link rel="stylesheet" href="/css/signup.css">
+        @vite(['resources/css/auth.css'])
     @endpush
 
-    <div class="signup-container">
-        <div class="signup-header">
-            <h1 class="signup-title"><i class="bi bi-person-plus"></i> Create Account</h1>
-            <p class="signup-subtitle">Join StudentMove and start your journey today!</p>
-        </div>
+    <div class="auth-shell">
+        <aside class="auth-aside" aria-hidden="true">
+            <img class="auth-aside__img" src="https://images.unsplash.com/photo-1544620341-1adc1baa5c40?auto=format&fit=crop&w=1600&q=80" alt="">
+            <div class="auth-aside__shade"></div>
+            <div class="auth-aside__copy">
+                <p class="auth-aside__brand">StudentMove</p>
+                <p class="auth-aside__text">One student. One ID. One verified email. Built for the commute that runs Dhaka.</p>
+            </div>
+        </aside>
 
-        <!-- Demo Information -->
-        <div class="demo-info">
-            <i class="bi bi-info-circle"></i> <strong>Create your StudentMove account</strong>
-        </div>
+        <section class="auth-panel auth-panel--wide sm-reveal">
+            <p class="auth-kicker">Create account</p>
+            <h1 class="auth-title">Join StudentMove</h1>
+            <p class="auth-sub">We verify your email domain, block duplicates, and require a unique student ID.</p>
 
-        <form class="signup-form" method="POST" action="{{ route('register') }}">
-            @csrf
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <input type="text" name="first_name" class="form-input" placeholder="First Name" value="{{ old('first_name') }}" required autofocus>
-                    @error('first_name')
-                        <div class="error-message">{{ $message }}</div>
-                    @enderror
+            @if ($errors->any())
+                <div class="auth-alert auth-alert--err">
+                    Fix the highlighted fields. Duplicate email, phone, or student ID accounts are not allowed.
                 </div>
-                <div class="form-group">
-                    <input type="text" name="last_name" class="form-input" placeholder="Last Name" value="{{ old('last_name') }}" required>
-                    @error('last_name')
-                        <div class="error-message">{{ $message }}</div>
-                    @enderror
+            @endif
+
+            <form class="auth-form" method="POST" action="{{ route('register') }}" novalidate>
+                @csrf
+
+                <div class="auth-row">
+                    <div class="auth-field">
+                        <label for="first_name">First name</label>
+                        <input id="first_name" type="text" name="first_name" value="{{ old('first_name') }}" autocomplete="given-name" required>
+                        @error('first_name')<div class="auth-error">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="auth-field">
+                        <label for="last_name">Last name</label>
+                        <input id="last_name" type="text" name="last_name" value="{{ old('last_name') }}" autocomplete="family-name" required>
+                        @error('last_name')<div class="auth-error">{{ $message }}</div>@enderror
+                    </div>
                 </div>
-            </div>
 
-            <div class="form-group">
-                <input type="email" name="email" class="form-input" placeholder="Email Address" value="{{ old('email') }}" required>
-                @error('email')
-                    <div class="error-message">{!! $message !!}</div>
-                @enderror
-            </div>
-
-            <div class="form-group">
-                <input type="tel" name="phone" class="form-input" placeholder="Mobile Number" value="{{ old('phone') }}" required>
-                @error('phone')
-                    <div class="error-message">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="form-group">
-                <input type="text" name="university" class="form-input" placeholder="University" value="{{ old('university') }}" required>
-                @error('university')
-                    <div class="error-message">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="form-group">
-                <input type="text" name="student_id" class="form-input" placeholder="Student ID" value="{{ old('student_id') }}" required>
-                @error('student_id')
-                    <div class="error-message">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="form-group">
-                <input type="password" name="password" class="form-input" placeholder="Password" required>
-                @error('password')
-                    <div class="error-message">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="form-group">
-                <input type="password" name="password_confirmation" class="form-input" placeholder="Confirm Password" required>
-                @error('password_confirmation')
-                    <div class="error-message">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="terms-group">
-                <input type="checkbox" name="terms" {{ old('terms') ? 'checked' : '' }} required>
-                <div class="terms-text">
-                    I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. I also agree to receive notifications about my bus routes and updates.
+                <div class="auth-field">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" name="email" value="{{ old('email') }}" autocomplete="email" required>
+                    <p class="auth-hint">Must be a real domain (MX check). Disposable addresses are blocked.</p>
+                    @error('email')<div class="auth-error">{!! $message !!}</div>@enderror
                 </div>
-                @error('terms')
-                    <div class="error-message">{{ $message }}</div>
-                @enderror
+
+                <div class="auth-field">
+                    <label for="phone">Mobile (Bangladesh)</label>
+                    <input id="phone" type="tel" name="phone" value="{{ old('phone') }}" placeholder="017XXXXXXXX" autocomplete="tel" required>
+                    <p class="auth-hint">One phone number per account.</p>
+                    @error('phone')<div class="auth-error">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="auth-row">
+                    <div class="auth-field">
+                        <label for="university">University</label>
+                        <input id="university" type="text" name="university" value="{{ old('university') }}" required>
+                        @error('university')<div class="auth-error">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="auth-field">
+                        <label for="student_id">Student ID</label>
+                        <input id="student_id" type="text" name="student_id" value="{{ old('student_id') }}" required>
+                        <p class="auth-hint">Unique — cannot be reused.</p>
+                        @error('student_id')<div class="auth-error">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+
+                <div class="auth-field">
+                    <label for="password">Password</label>
+                    <input id="password" type="password" name="password" autocomplete="new-password" required>
+                    <p class="auth-hint">Min 8 characters, mixed case + a number.</p>
+                    @error('password')<div class="auth-error">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="auth-field">
+                    <label for="password_confirmation">Confirm password</label>
+                    <input id="password_confirmation" type="password" name="password_confirmation" autocomplete="new-password" required>
+                </div>
+
+                <label class="auth-check">
+                    <input type="checkbox" name="terms" value="1" {{ old('terms') ? 'checked' : '' }} required>
+                    <span>I agree to the Terms of Service and Privacy Policy, and to receive route notifications.</span>
+                </label>
+                @error('terms')<div class="auth-error">{{ $message }}</div>@enderror
+
+                <button type="submit" class="auth-submit">Create verified account</button>
+            </form>
+
+            @include('partials.firebase-auth', ['intent' => 'register'])
+
+            <div class="auth-foot">
+                Already registered? <a class="auth-link" href="{{ route('login') }}">Sign in</a>
             </div>
-
-            <button type="submit" class="signup-btn">
-                <i class="bi bi-person-plus"></i> Create Account
-            </button>
-        </form>
-
-        <div class="divider">
-            <span>or</span>
-        </div>
-
-        <div class="signin-link">
-            Already have an account? <a href="{{ route('login') }}">Sign In</a>
-        </div>
+        </section>
     </div>
 </x-guest-layout>

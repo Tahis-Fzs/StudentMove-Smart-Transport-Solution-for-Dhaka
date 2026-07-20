@@ -9,6 +9,7 @@
     <title>Admin Login - StudentMove</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    @vite(['resources/css/premium.css', 'resources/js/app.js'])
     <style>
         * {
             margin: 0;
@@ -17,8 +18,10 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'IBM Plex Sans', sans-serif;
+            background:
+                radial-gradient(ellipse 70% 45% at 100% -10%, rgba(20, 163, 156, 0.18), transparent 50%),
+                linear-gradient(160deg, #12161c 0%, #1e2630 55%, #0b6e6a 140%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -28,18 +31,18 @@
 
         .admin-login-container {
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border-radius: 16px;
+            box-shadow: 0 22px 60px rgba(0,0,0,0.28);
             overflow: visible;
             max-width: 450px;
             width: 100%;
         }
         
         .admin-top-nav {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #12161c;
             color: white;
             padding: 15px 20px;
-            border-radius: 20px 20px 0 0;
+            border-radius: 16px 16px 0 0;
             margin: -20px -20px 20px -20px;
         }
         
@@ -63,7 +66,7 @@
         }
 
         .admin-login-header {
-            background: linear-gradient(135deg, #007BFF, #28A745);
+            background: linear-gradient(135deg, #0b6e6a, #1e2630);
             color: white;
             padding: 40px 30px;
             text-align: center;
@@ -147,7 +150,7 @@
         .btn-login {
             width: 100%;
             padding: 15px;
-            background: linear-gradient(135deg, #007BFF, #0056b3);
+            background: linear-gradient(135deg, #e0952c, #c97818);
             color: white;
             border: none;
             border-radius: 10px;

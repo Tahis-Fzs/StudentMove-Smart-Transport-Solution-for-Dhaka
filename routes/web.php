@@ -46,8 +46,10 @@ Route::get('/offers', function () {
 })->name('offers');
 
 // FR-28: Notification Settings
-Route::get('/notifications/settings', [UserNotificationController::class, 'settings'])->name('notifications.settings');
-Route::post('/notifications/settings', [UserNotificationController::class, 'updateSettings'])->name('notifications.update');
+Route::middleware('auth')->group(function () {
+    Route::get('/notifications/settings', [UserNotificationController::class, 'settings'])->name('notifications.settings');
+    Route::post('/notifications/settings', [UserNotificationController::class, 'updateSettings'])->name('notifications.update');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

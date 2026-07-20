@@ -3,8 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'Laravel') }}</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <title>{{ config('app.name', 'StudentMove') }}</title>
+    @vite(['resources/css/app.css', 'resources/css/premium.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
 <body class="font-sans antialiased page-bg">
@@ -14,4 +14,3 @@
     @stack('scripts')
 </body>
 </html>
-

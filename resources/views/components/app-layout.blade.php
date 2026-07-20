@@ -1,4 +1,4 @@
-@props(['title' => config('app.name', 'Laravel')])
+@props(['title' => 'StudentMove'])
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -6,8 +6,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title }}</title>
-    <link rel="stylesheet" href="/css/base.css">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    @vite(['resources/css/app.css', 'resources/css/premium.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
 <body class="font-sans antialiased page-bg">
@@ -17,72 +17,47 @@
                 <a href="{{ route('home') }}" class="nav-logo">StudentMove</a>
                 <div class="nav-links">
                     <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
+                    <a href="{{ route('next-bus-arrival') }}" class="nav-link {{ request()->routeIs('next-bus-arrival') ? 'active' : '' }}">Live map</a>
                     @auth
-                        @if(!request()->routeIs('home'))
-                            <a href="{{ route('subscription') }}" class="nav-link {{ request()->routeIs('subscription') ? 'active' : '' }}">Subscription</a>
-                        @endif
-                    @endauth
-                    <a href="{{ route('next-bus-arrival') }}" class="nav-link {{ request()->routeIs('next-bus-arrival') ? 'active' : '' }}">Live Location</a>
-                    @auth
-                        @if(!request()->routeIs('home'))
-                            <a href="{{ route('route-suggestion') }}" class="nav-link {{ request()->routeIs('route-suggestion') ? 'active' : '' }}">Personalized Route</a>
-                        @endif
-                    @endauth
-                    @auth
-                        <a href="{{ route('notifications') }}" class="nav-link {{ request()->routeIs('notifications') ? 'active' : '' }}" style="position: relative;">
-                            <i class="bi bi-bell" style="margin-right: 4px;"></i> Notifications
-                            @php
-                                $notificationCount = \App\Models\Notification::active()->count();
-                            @endphp
-                            @if($notificationCount > 0)
-                                <span style="position: absolute; top: -8px; right: -8px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">{{ $notificationCount }}</span>
-                            @endif
-                        </a>
-                        <a href="{{ route('profile.edit') }}" class="nav-link {{ request()->routeIs('profile.edit') ? 'active' : '' }}">Profile</a>
+                        <a href="{{ route('route-suggestion') }}" class="nav-link {{ request()->routeIs('route-suggestion') ? 'active' : '' }}">Routes</a>
+                        <a href="{{ route('subscription') }}" class="nav-link {{ request()->routeIs('subscription*') ? 'active' : '' }}">Plans</a>
+                        <a href="{{ route('notifications') }}" class="nav-link {{ request()->routeIs('notifications') ? 'active' : '' }}">Alerts</a>
+                        <a href="{{ route('feedback.index') }}" class="nav-link {{ request()->routeIs('feedback.*') ? 'active' : '' }}">Feedback</a>
+                        <a href="{{ route('profile.edit') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">Profile</a>
                         <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a>
                     @endauth
                 </div>
                 <div class="nav-cta">
                     @auth
-                        <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+                        <form method="POST" action="{{ route('logout') }}" style="display: inline; margin: 0;">
                             @csrf
-                            <button type="submit" class="nav-button">Logout</button>
+                            <button type="submit" class="nav-button">Log out</button>
                         </form>
                     @else
-                        <a href="{{ route('login') }}" class="nav-button ghost">Sign in</a>
-                        <a href="{{ route('driver.login') }}" class="nav-button ghost" style="margin-left: 8px; font-size: 0.875rem;">🚌 Driver</a>
-                        <a href="{{ route('admin.login') }}" class="nav-button ghost" style="margin-left: 8px; font-size: 0.875rem;">⚙️ Admin</a>
+                        <a href="{{ route('login') }}" class="nav-button">Sign in</a>
+                        <a href="{{ route('register') }}" class="nav-button ghost">Register</a>
+                        <a href="{{ route('driver.login') }}" class="nav-button ghost">Driver</a>
+                        <a href="{{ route('admin.login') }}" class="nav-button ghost">Admin</a>
                     @endauth
                 </div>
             </div>
         </nav>
 
         @if (isset($header))
-            <header class="bg-white shadow">
-                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    {{ $header }}
-                </div>
+            <header style="max-width:1280px;margin:1rem auto 0;padding:0 1.25rem;">
+                {{ $header }}
             </header>
         @endif
 
         @if(session('success'))
-            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 16px 20px; margin: 16px auto; max-width: 1200px; border-radius: 12px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); display: flex; align-items: center; gap: 12px;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-                <div style="flex: 1;">{!! session('success') !!}</div>
+            <div class="sm-flash sm-flash--ok" style="max-width:1280px;padding-left:1.25rem;padding-right:1.25rem;">
+                <div style="flex:1;">{!! session('success') !!}</div>
             </div>
         @endif
 
         @if(session('error'))
-            <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 16px 20px; margin: 16px auto; max-width: 1200px; border-radius: 12px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); display: flex; align-items: center; gap: 12px;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-                <div style="flex: 1;">{!! session('error') !!}</div>
+            <div class="sm-flash sm-flash--err" style="max-width:1280px;padding-left:1.25rem;padding-right:1.25rem;">
+                <div style="flex:1;">{!! session('error') !!}</div>
             </div>
         @endif
 
@@ -93,4 +68,3 @@
     @stack('scripts')
 </body>
 </html>
-

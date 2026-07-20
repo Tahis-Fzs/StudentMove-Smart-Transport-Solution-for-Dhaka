@@ -6,11 +6,12 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -34,6 +35,12 @@ class User extends Authenticatable implements MustVerifyEmail
         'preferred_language',
         'profile_image',
         'is_admin',
+        'bus_delay_notifications',
+        'route_change_alerts',
+        'promotional_offers',
+        'firebase_uid',
+        'auth_provider',
+        'avatar_url',
     ];
 
     /**
@@ -56,6 +63,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'bus_delay_notifications' => 'boolean',
+            'route_change_alerts' => 'boolean',
+            'promotional_offers' => 'boolean',
         ];
     }
 

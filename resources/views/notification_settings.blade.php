@@ -1,54 +1,37 @@
-<?php
+<x-app-layout>
+    @push('styles')
+    <link rel="stylesheet" href="{{ asset('css/notification.css') }}">
+    @endpush
 
-namespace App\Http\Controllers;
+    <div class="dashboard-container">
+        <section class="notification-section">
+            <h2 class="section-title"><i class="bi bi-sliders"></i> Notification preferences</h2>
+            <p style="color: #6b7280; margin-bottom: 1.5rem;">Choose which alerts you want to receive.</p>
 
-use App\Models\Notification;
-use Illuminate\View\View;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Notifications\SystemAlert;
+            @if (session('success'))
+                <div class="alert alert-success" style="background: #d4edda; color: #155724; padding: 12px 16px; border-radius: 8px; margin-bottom: 1rem;">
+                    {{ session('success') }}
+                </div>
+            @endif
 
-class UserNotificationController extends Controller
-{
-    /**
-     * Display all active notifications for users
-     */
-    public function index(): View
-    {
-        $notifications = Auth::user()->notifications;
-        return view('notifications', compact('notifications'));
-    }
-
-    /**
-     * Store a notification and send via Email & Push (FR-26 & FR-27)
-     */
-    public function store(Request $request)
-    {
-        $user = Auth::user();
-        $message = $request->input('message', 'This is a test notification.');
-        $user->notify(new SystemAlert($message, 'system'));
-        return back()->with('success', 'Notification sent to Email & App!');
-    }
-
-    // 🚀 FR-28: Show Settings Page
-    public function settings()
-    {
-        $user = Auth::user();
-        return view('notification_settings', compact('user'));
-    }
-
-    // 🚀 FR-28: Update Preferences Logic
-    public function updateSettings(Request $request)
-    {
-        $user = Auth::user();
-
-        // Update the checkboxes in the database
-        $user->update([
-            'bus_delay_notifications'   => $request->has('bus_delay_notifications'),
-            'route_change_alerts'       => $request->has('route_change_alerts'),
-            'promotional_offers'        => $request->has('promotional_offers'),
-        ]);
-
-        return back()->with('success', 'Preferences saved successfully!');
-    }
-}
+            <form method="POST" action="{{ route('notifications.update') }}" class="notification-list" style="max-width: 520px;">
+                @csrf
+                <label class="notification-card blue" style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 16px;">
+                    <input type="checkbox" name="bus_delay_notifications" value="1" @checked(old('bus_delay_notifications', $user->bus_delay_notifications ?? false))>
+                    <span>Bus delay notifications</span>
+                </label>
+                <label class="notification-card green" style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 16px; margin-top: 12px;">
+                    <input type="checkbox" name="route_change_alerts" value="1" @checked(old('route_change_alerts', $user->route_change_alerts ?? false))>
+                    <span>Route change alerts</span>
+                </label>
+                <label class="notification-card blue" style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 16px; margin-top: 12px;">
+                    <input type="checkbox" name="promotional_offers" value="1" @checked(old('promotional_offers', $user->promotional_offers ?? false))>
+                    <span>Promotional offers</span>
+                </label>
+                <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem; padding: 10px 20px; border-radius: 8px; border: none; background: #2563eb; color: white; font-weight: 600; cursor: pointer;">
+                    Save preferences
+                </button>
+            </form>
+        </section>
+    </div>
+</x-app-layout>

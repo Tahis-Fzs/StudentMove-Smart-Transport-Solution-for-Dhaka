@@ -6,7 +6,12 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
+                'resources/css/premium.css',
+                'resources/css/landing.css',
+                'resources/css/auth.css',
                 'resources/js/app.js',
+                'resources/js/landing.js',
+                'resources/js/firebase-auth.js',
             ],
             refresh: true,
         }),
