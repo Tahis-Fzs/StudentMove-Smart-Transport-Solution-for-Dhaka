@@ -5,7 +5,7 @@
 
     <div class="auth-shell">
         <aside class="auth-aside" aria-hidden="true">
-            <img class="auth-aside__img" src="https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=1600&q=80" alt="">
+            <img class="auth-aside__img" src="{{ asset('images/hero-bus.jpg') }}" alt="" onerror="this.remove()">
             <div class="auth-aside__shade"></div>
             <div class="auth-aside__copy">
                 <p class="auth-aside__brand">StudentMove</p>

@@ -111,6 +111,8 @@ body.landing-body {
     overflow: hidden;
     color: #fff;
     isolation: isolate;
+    background:
+        linear-gradient(160deg, #1a2332 0%, #0c1016 45%, #152033 100%);
 }
 
 .l-hero__media {

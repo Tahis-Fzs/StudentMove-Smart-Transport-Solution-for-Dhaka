@@ -66,6 +66,28 @@ function setStatus(message, isError = false) {
     el.classList.toggle('auth-alert--ok', !isError && !!message);
 }
 
+function friendlyAuthError(err) {
+    const code = err?.code || '';
+    const host = window.location.hostname;
+
+    if (code === 'auth/unauthorized-domain') {
+        return (
+            `This site domain is not allowed in Firebase yet. Add “${host}” under ` +
+            'Firebase Console → Authentication → Settings → Authorized domains, then try again.'
+        );
+    }
+
+    if (code === 'auth/popup-blocked' || code === 'auth/popup-closed-by-user') {
+        return err?.message || 'Sign-in popup was blocked. Retrying with redirect…';
+    }
+
+    if (code === 'auth/operation-not-allowed') {
+        return 'This sign-in provider is disabled in Firebase. Enable it under Authentication → Sign-in method.';
+    }
+
+    return err?.message || 'Sign-in failed.';
+}
+
 function isPopupBlocked(err) {
     const code = err?.code || '';
     const msg = String(err?.message || '');
@@ -132,7 +154,7 @@ async function socialSignIn(providerName, intent) {
         }
     } catch (err) {
         console.error(err);
-        setStatus(err?.message || 'Sign-in failed.', true);
+        setStatus(friendlyAuthError(err), true);
         buttons.forEach((b) => {
             b.disabled = false;
         });
@@ -151,7 +173,7 @@ async function handleRedirectReturn(intent) {
         await finishSignIn(result.user, savedIntent);
     } catch (err) {
         console.error(err);
-        setStatus(err?.message || 'Sign-in failed.', true);
+        setStatus(friendlyAuthError(err), true);
     }
 }
 

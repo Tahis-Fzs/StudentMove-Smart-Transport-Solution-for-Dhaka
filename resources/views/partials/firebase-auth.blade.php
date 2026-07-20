@@ -18,6 +18,16 @@
 
     <div class="auth-alert" data-firebase-status hidden style="margin-bottom:0.75rem;"></div>
 
+    @if ($firebaseReady && ! in_array(request()->getHost(), ['localhost', '127.0.0.1'], true))
+        <p class="auth-hint" style="margin-bottom:0.75rem;">
+            Google sign-in needs this domain in Firebase Authorized domains:
+            <strong>{{ request()->getHost() }}</strong>
+            —
+            <a href="https://console.firebase.google.com/project/{{ config('services.firebase.project_id') }}/authentication/settings" target="_blank" rel="noopener">open Firebase settings</a>
+            (Add domain), then refresh.
+        </p>
+    @endif
+
     <div class="auth-social__grid">
         @if (in_array('google', $providers, true))
             <button type="button" class="auth-social__btn auth-social__btn--google" data-firebase-provider="google" @disabled(! $firebaseReady)>

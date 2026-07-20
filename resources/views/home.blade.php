@@ -22,11 +22,12 @@
         <div class="l-hero__media" aria-hidden="true">
             <img
                 class="l-hero__img"
-                src="https://images.unsplash.com/photo-1544620341-1adc1baa5c40?auto=format&fit=crop&w=2400&q=80"
+                src="{{ asset('images/hero-bus.jpg') }}"
                 alt=""
                 width="2400"
                 height="1600"
                 fetchpriority="high"
+                onerror="this.remove()"
             >
             <div class="l-hero__shade"></div>
             <div class="l-hero__grain"></div>
