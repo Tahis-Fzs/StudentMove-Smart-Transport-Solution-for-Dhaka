@@ -5,7 +5,7 @@ services:
     plan: free
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    healthCheckPath: /
+    healthCheckPath: /health.html
     envVars:
       - key: APP_ENV
         value: production
@@ -14,7 +14,9 @@ services:
       - key: APP_KEY
         generateValue: true
       - key: APP_URL
-        sync: false
+        value: https://studentmove-app-d866.onrender.com
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
       - key: LOG_CHANNEL
         value: stderr
       - key: DB_CONNECTION
