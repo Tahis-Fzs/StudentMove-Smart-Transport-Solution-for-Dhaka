@@ -4,6 +4,7 @@ services:
     runtime: docker
     plan: free
     dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /
     envVars:
       - key: APP_ENV
@@ -14,6 +15,8 @@ services:
         generateValue: true
       - key: APP_URL
         sync: false
+      - key: LOG_CHANNEL
+        value: stderr
       - key: DB_CONNECTION
         value: sqlite
       - key: DB_DATABASE
