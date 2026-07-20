@@ -46,6 +46,10 @@ fwrite(STDERR, "APP_KEY missing or invalid; generating a new Laravel key.\n");
 passthru("php artisan key:generate --force");
 '
 
+if grep -qE '^APP_KEY=base64:' .env 2>/dev/null; then
+  export APP_KEY="$(grep -m1 '^APP_KEY=' .env | cut -d= -f2-)"
+fi
+
 # Drop stale bootstrap caches (signed route closures break when APP_KEY changes).
 rm -f bootstrap/cache/config.php bootstrap/cache/routes*.php bootstrap/cache/services.php 2>/dev/null || true
 php artisan config:clear || true
