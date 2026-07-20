@@ -13,15 +13,14 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\AiController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserNotificationController; // <-- Add this line!
 use App\Models\Offer;
 use App\Models\Notification; //Nahid
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 
-Route::get('/', function () {
-    return auth()->check() ? redirect()->route('dashboard') : view('home');
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/dashboard', function () {
     return view('dashboard');

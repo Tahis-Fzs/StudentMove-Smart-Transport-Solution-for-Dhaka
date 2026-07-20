@@ -31,6 +31,7 @@ RUN mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cac
     && npm run build \
     && test -f public/build/manifest.json \
     && rm -rf node_modules \
+    && php artisan key:generate --force \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R ug+rwx storage bootstrap/cache database \
     && chmod +x /var/www/html/start.sh
