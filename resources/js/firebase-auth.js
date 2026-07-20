@@ -98,7 +98,7 @@ async function socialSignIn(providerName, intent) {
 
     try {
         const auth = getFirebaseAuth();
-        const result = await signInWithPopup(auth, providerFor(providerId));
+        const result = await signInWithPopup(auth, providerFor(providerName));
         const idToken = await result.user.getIdToken();
         const data = await syncWithLaravel(idToken, intent);
         setStatus('Synced to StudentMove. Redirecting…');
