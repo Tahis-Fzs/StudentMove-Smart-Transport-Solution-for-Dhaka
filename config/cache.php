@@ -15,7 +15,8 @@ return [
     |
     */
 
-    'default' => env('CACHE_STORE', 'database'),
+    // Prefer CACHE_STORE; fall back to legacy CACHE_DRIVER (Render blueprint uses CACHE_DRIVER=file).
+    'default' => env('CACHE_STORE', env('CACHE_DRIVER', 'file')),
 
     /*
     |--------------------------------------------------------------------------

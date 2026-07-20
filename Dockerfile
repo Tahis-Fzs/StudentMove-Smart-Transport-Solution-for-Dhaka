@@ -29,6 +29,7 @@ RUN mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cac
     && composer install --no-dev --optimize-autoloader --no-interaction \
     && npm ci \
     && npm run build \
+    && test -f public/build/manifest.json \
     && rm -rf node_modules \
     && php artisan key:generate --force \
     && chown -R www-data:www-data /var/www/html \

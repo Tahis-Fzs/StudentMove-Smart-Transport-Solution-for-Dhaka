@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: studentmove-app
+    name: studentmove-app-d866
     runtime: docker
     plan: free
     dockerfilePath: ./Dockerfile
@@ -26,6 +26,8 @@ services:
       - key: MAIL_MAILER
         value: log
       - key: CACHE_DRIVER
+        value: file
+      - key: CACHE_STORE
         value: file
       - key: SESSION_DRIVER
         value: file

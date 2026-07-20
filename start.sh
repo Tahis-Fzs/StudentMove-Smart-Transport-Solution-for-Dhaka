@@ -19,14 +19,19 @@ php artisan config:clear || true
 php artisan route:clear || true
 php artisan view:clear || true
 
-# Heavy Laravel boot runs after Apache is listening (health check hits /health.html).
+if [ -z "${APP_KEY:-}" ] && ! grep -qE '^APP_KEY=base64:' .env 2>/dev/null; then
+  echo "WARNING: APP_KEY is missing. Set it in Render env vars or run php artisan key:generate."
+fi
+
+if [ ! -f public/build/manifest.json ]; then
+  echo "WARNING: Vite manifest missing (public/build/manifest.json). Frontend pages will 500 until assets are built."
+fi
+
+# Migrations only — avoid config/route/view cache on Render (env vars + SQLite boot order).
 (
   sleep 2
   php artisan migrate --force || true
   php artisan storage:link || true
-  php artisan config:cache || true
-  php artisan route:cache || true
-  php artisan view:cache || true
 ) &
 
 echo "Starting Apache on ${PORT}..."
