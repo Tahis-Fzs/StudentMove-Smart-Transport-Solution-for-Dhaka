@@ -2,86 +2,63 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Subscription;
+use App\Mail\SubscriptionConfirmationMail;
 use App\Models\Invoice;
 use App\Models\PaymentAttempt;
-use App\Mail\SubscriptionConfirmationMail;
+use App\Models\Subscription;
+use App\Services\SslCommerzService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
 
 class SubscriptionController extends Controller
 {
-    // #region agent log helper
-    private function dbg(array $payload): void
+    public function __construct(protected SslCommerzService $sslCommerz)
     {
-        $line = json_encode([
-            'sessionId' => 'debug-session',
-            'runId' => 'prefetch',
-            'hypothesisId' => $payload['h'] ?? 'SUB',
-            'location' => $payload['loc'] ?? 'SubscriptionController',
-            'message' => $payload['msg'] ?? '',
-            'data' => $payload['data'] ?? [],
-            'timestamp' => round(microtime(true) * 1000),
-        ]);
-        if ($line !== false) {
-            @file_put_contents(base_path('.cursor/debug.log'), $line . PHP_EOL, FILE_APPEND | LOCK_EX);
-        }
     }
-    // #endregion
-    public function index()
+
+    /** Canonical plan catalog (keys kept for DB compatibility). */
+    public static function planCatalog(): array
     {
-        $plans = [
+        return [
             'monthly' => [
-                'name' => 'Monthly Plan',
-                'price' => 1500,
-                'duration' => 1,
-                'period' => 'month',
-                'daily_price' => 50,
-                'features' => [
-                    'Real-time bus tracking',
-                    'Route planning & scheduling',
-                    'Delay notifications',
-                    '24/7 customer support',
-                    'Mobile app access',
-                ]
+                'name' => 'Weekly Pass',
+                'price' => 350,
+                'days' => 7,
+                'desc' => 'Unlimited rides for 7 days',
+                'tag' => 'Most Popular',
             ],
             '6months' => [
-                'name' => '6 Months Plan',
-                'price' => 8100,
-                'duration' => 6,
-                'period' => '6 months',
-                'daily_price' => 45,
-                'savings' => 'Save 10%',
-                'features' => [
-                    'Everything in Monthly',
-                    'Priority customer support',
-                    'Advanced route analytics',
-                    'Custom notifications',
-                    'Exclusive student discounts',
-                ]
+                'name' => 'Monthly Pass',
+                'price' => 1200,
+                'days' => 30,
+                'desc' => 'Best for regular commuters',
+                'tag' => 'Best Value',
             ],
             'yearly' => [
-                'name' => '1 Year Plan',
-                'price' => 14400,
-                'duration' => 12,
-                'period' => 'year',
-                'daily_price' => 40,
-                'savings' => 'Save 20%',
-                'features' => [
-                    'Everything in 6 Months',
-                    'VIP customer support',
-                    'Personal route optimization',
-                    'Early access to new features',
-                    'Free premium workshops',
-                ]
+                'name' => 'Single Ride',
+                'price' => 30,
+                'days' => 1,
+                'desc' => 'Pay as you go',
+                'tag' => null,
             ],
         ];
+    }
 
-        $activeSubscription = Auth::check() 
+    public function index()
+    {
+        $catalog = self::planCatalog();
+        $plans = [];
+        foreach ($catalog as $key => $plan) {
+            $plans[] = array_merge($plan, ['key' => $key]);
+        }
+
+        $activeSubscription = Auth::check()
             ? Subscription::where('user_id', Auth::id())
                 ->where('status', 'completed')
                 ->where('ends_at', '>', now())
@@ -89,113 +66,370 @@ class SubscriptionController extends Controller
                 ->first()
             : null;
 
-        return view('subscription', compact('plans', 'activeSubscription'));
+        $sslEnabled = $this->sslCommerz->isConfigured();
+
+        return view('subscription', compact('plans', 'activeSubscription', 'sslEnabled'));
     }
 
+    /**
+     * Start checkout. With SSLCommerz configured → hosted gateway (Star Cineplex style).
+     * Without credentials → local demo/simulated path for development.
+     */
     public function store(Request $request)
     {
-        $this->dbg(['h' => 'S1', 'loc' => 'store.start', 'msg' => 'store called', 'data' => ['user' => Auth::id(), 'plan' => $request->plan_type, 'payment_method' => $request->payment_method, 'transaction_id' => $request->transaction_id ?? 'null', 'payment_provider' => $request->payment_provider ?? 'null']]);
+        $request->validate([
+            'plan_type' => 'required|in:monthly,6months,yearly',
+            'payment_method' => 'nullable|in:sslcommerz,card,mobile_banking',
+            'payment_provider' => 'required_if:payment_method,mobile_banking|nullable|in:bkash,nagad,rocket',
+            'transaction_id' => 'required_if:payment_method,mobile_banking|nullable|string|max:255',
+            'card_number' => 'required_if:payment_method,card|nullable|string|max:19',
+            'card_expiry' => 'required_if:payment_method,card|nullable|string|max:5',
+            'card_cvv' => 'required_if:payment_method,card|nullable|string|max:4',
+            'card_name' => 'required_if:payment_method,card|nullable|string|max:255',
+        ]);
 
-        try {
-            $request->validate([
-                'plan_type' => 'required|in:monthly,6months,yearly',
-                'payment_method' => 'required|in:card,mobile_banking',
-                'payment_provider' => 'required_if:payment_method,mobile_banking|nullable|in:bkash,nagad,rocket',
-                'transaction_id' => 'required_if:payment_method,mobile_banking|nullable|string|max:255',
-                'card_number' => 'required_if:payment_method,card|nullable|string|max:19',
-                'card_expiry' => 'required_if:payment_method,card|nullable|string|max:5',
-                'card_cvv' => 'required_if:payment_method,card|nullable|string|max:4',
-                'card_name' => 'required_if:payment_method,card|nullable|string|max:255',
-            ]);
-            $this->dbg(['h' => 'S1b', 'loc' => 'validation.passed', 'msg' => 'validation passed']);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            $this->dbg(['h' => 'S1b', 'loc' => 'validation.failed', 'msg' => 'validation failed', 'data' => ['errors' => $e->errors()]]);
-            throw $e;
+        $catalog = self::planCatalog();
+        $planType = $request->plan_type;
+        $plan = $catalog[$planType];
+        $amount = $plan['price'];
+
+        $method = $request->payment_method ?: ($this->sslCommerz->isConfigured() ? 'sslcommerz' : 'mobile_banking');
+
+        if ($method === 'sslcommerz' || ($this->sslCommerz->isConfigured() && $method !== 'card' && $method !== 'mobile_banking')) {
+            return $this->initiateSslCommerz($request, $planType, $amount, $plan);
         }
 
-        // Prevent duplicate successful payments with same transaction id/method
+        // Demo / offline path when SSLCommerz keys are not set
+        return $this->storeSimulated($request, $planType, $amount, $plan);
+    }
+
+    protected function initiateSslCommerz(Request $request, string $planType, float|int $amount, array $plan)
+    {
+        if (!$this->sslCommerz->isConfigured()) {
+            return back()->with('error', 'SSLCommerz is not configured. Add SSLCOMMERZ_STORE_ID and SSLCOMMERZ_STORE_PASSWORD to .env.')->withInput();
+        }
+
+        $user = Auth::user();
+        $tranId = 'SM' . $user->id . Str::upper(Str::random(10));
+
+        $attempt = PaymentAttempt::create([
+            'user_id' => $user->id,
+            'plan_type' => $planType,
+            'amount' => $amount,
+            'payment_method' => 'card',
+            'payment_provider' => 'sslcommerz',
+            'transaction_id' => $tranId,
+            'status' => 'pending',
+            'checksum' => hash('sha256', implode('|', [$user->id, $planType, $amount, $tranId, now()->timestamp])),
+            'meta' => [
+                'client_ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'plan_name' => $plan['name'],
+                'plan_days' => $plan['days'],
+            ],
+        ]);
+
+        $session = $this->sslCommerz->initiate([
+            'tran_id' => $tranId,
+            'amount' => $amount,
+            'product_name' => 'StudentMove ' . $plan['name'],
+            'success_url' => route('subscription.ssl.success'),
+            'fail_url' => route('subscription.ssl.fail'),
+            'cancel_url' => route('subscription.ssl.cancel'),
+            'ipn_url' => route('subscription.ssl.ipn'),
+            'customer' => [
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone ?: '01700000000',
+                'address' => $user->current_address ?: 'Dhaka',
+                'city' => 'Dhaka',
+            ],
+        ]);
+
+        if (!$session['ok']) {
+            $attempt->update([
+                'status' => 'failed',
+                'meta' => array_merge($attempt->meta ?? [], ['error' => $session['error'] ?? null]),
+            ]);
+
+            return back()->with('error', $session['error'] ?? 'Could not start payment.')->withInput();
+        }
+
+        $attempt->update([
+            'gateway_ref' => $session['sessionkey'] ?? null,
+            'meta' => array_merge($attempt->meta ?? [], ['sessionkey' => $session['sessionkey'] ?? null]),
+        ]);
+
+        return redirect()->away($session['gateway_url']);
+    }
+
+    /** SSLCommerz success redirect (browser). */
+    public function sslSuccess(Request $request)
+    {
+        $result = $this->completeSslPayment($request);
+
+        if ($result['ok']) {
+            return redirect()->route('subscription')
+                ->with('success', $result['message'])
+                ->with('invoice_id', $result['invoice_id'] ?? null);
+        }
+
+        return redirect()->route('subscription')->with('error', $result['error'] ?? 'Payment could not be confirmed.');
+    }
+
+    /** SSLCommerz fail redirect. */
+    public function sslFail(Request $request)
+    {
+        $this->markAttemptFailed($request->input('tran_id'), 'Payment failed at SSLCommerz.');
+
+        return redirect()->route('subscription')->with('error', 'Payment failed. You were not charged. Please try again.');
+    }
+
+    /** SSLCommerz cancel redirect. */
+    public function sslCancel(Request $request)
+    {
+        $this->markAttemptFailed($request->input('tran_id'), 'Payment cancelled by user.');
+
+        return redirect()->route('subscription')->with('error', 'Payment cancelled. No charge was made.');
+    }
+
+    /** SSLCommerz Instant Payment Notification (server-to-server). */
+    public function sslIpn(Request $request)
+    {
+        $result = $this->completeSslPayment($request);
+
+        return response($result['ok'] ? 'IPN OK' : 'IPN FAIL', $result['ok'] ? 200 : 400);
+    }
+
+    /**
+     * Validate with SSLCommerz and activate subscription (idempotent).
+     *
+     * @return array{ok:bool,message?:string,error?:string,invoice_id?:int}
+     */
+    protected function completeSslPayment(Request $request): array
+    {
+        $tranId = (string) $request->input('tran_id', '');
+        $valId = (string) $request->input('val_id', '');
+        $status = strtoupper((string) $request->input('status', ''));
+
+        if ($tranId === '') {
+            return ['ok' => false, 'error' => 'Missing transaction reference.'];
+        }
+
+        $attempt = PaymentAttempt::where('transaction_id', $tranId)
+            ->where('payment_provider', 'sslcommerz')
+            ->first();
+
+        if (!$attempt) {
+            return ['ok' => false, 'error' => 'Unknown payment attempt.'];
+        }
+
+        // Already fulfilled (success callback + IPN race)
+        if ($attempt->status === 'success' && !empty($attempt->meta['invoice_id'])) {
+            $invoice = Invoice::find($attempt->meta['invoice_id']);
+            $ends = optional(Subscription::find($invoice?->subscription_id))->ends_at;
+
+            return [
+                'ok' => true,
+                'message' => 'Subscription already active' . ($ends ? ' until ' . $ends->format('F d, Y') : '') . '.',
+                'invoice_id' => $invoice?->id,
+            ];
+        }
+
+        if ($status !== '' && !in_array($status, ['VALID', 'VALIDATED'], true)) {
+            $this->markAttemptFailed($tranId, 'Gateway status: ' . $status);
+
+            return ['ok' => false, 'error' => 'Payment was not successful.'];
+        }
+
+        if ($valId === '') {
+            return ['ok' => false, 'error' => 'Missing validation id from SSLCommerz.'];
+        }
+
+        $validation = $this->sslCommerz->validateByValId($valId);
+        if (!$validation['ok']) {
+            $this->markAttemptFailed($tranId, $validation['error'] ?? 'Validation failed');
+
+            return ['ok' => false, 'error' => $validation['error'] ?? 'Payment validation failed.'];
+        }
+
+        $data = $validation['data'];
+        $paidAmount = (float) ($data['amount'] ?? $data['currency_amount'] ?? 0);
+        $expected = (float) $attempt->amount;
+
+        if (abs($paidAmount - $expected) > 0.5) {
+            $this->markAttemptFailed($tranId, 'Amount mismatch');
+            Log::warning('SSLCommerz amount mismatch', [
+                'tran_id' => $tranId,
+                'expected' => $expected,
+                'paid' => $paidAmount,
+            ]);
+
+            return ['ok' => false, 'error' => 'Paid amount does not match the plan price.'];
+        }
+
+        if (($data['tran_id'] ?? '') !== $tranId) {
+            return ['ok' => false, 'error' => 'Transaction id mismatch.'];
+        }
+
+        try {
+            return DB::transaction(function () use ($attempt, $data, $tranId, $valId) {
+                $attempt = PaymentAttempt::where('id', $attempt->id)->lockForUpdate()->first();
+
+                if ($attempt->status === 'success' && !empty($attempt->meta['invoice_id'])) {
+                    return [
+                        'ok' => true,
+                        'message' => 'Subscription activated successfully!',
+                        'invoice_id' => $attempt->meta['invoice_id'],
+                    ];
+                }
+
+                $catalog = self::planCatalog();
+                $plan = $catalog[$attempt->plan_type] ?? null;
+                if (!$plan) {
+                    return ['ok' => false, 'error' => 'Unknown plan.'];
+                }
+
+                $startsAt = now();
+                $endsAt = $startsAt->copy()->addDays((int) $plan['days']);
+
+                $subscription = Subscription::create([
+                    'user_id' => $attempt->user_id,
+                    'plan_type' => $attempt->plan_type,
+                    'amount' => $attempt->amount,
+                    'payment_method' => 'card',
+                    'payment_provider' => 'sslcommerz',
+                    'transaction_id' => $tranId,
+                    'status' => 'completed',
+                    'starts_at' => $startsAt,
+                    'ends_at' => $endsAt,
+                ]);
+
+                $invoice = Invoice::create([
+                    'subscription_id' => $subscription->id,
+                    'user_id' => $attempt->user_id,
+                    'invoice_number' => Invoice::generateInvoiceNumber(),
+                    'amount' => $attempt->amount,
+                    'plan_type' => $attempt->plan_type,
+                    'payment_method' => 'card',
+                    'payment_provider' => 'sslcommerz',
+                    'transaction_id' => $tranId,
+                    'status' => 'paid',
+                    'issued_at' => now(),
+                ]);
+
+                $this->generateInvoicePDF($invoice, $subscription);
+
+                $attempt->update([
+                    'status' => 'success',
+                    'gateway_ref' => $valId,
+                    'meta' => array_merge($attempt->meta ?? [], [
+                        'invoice_id' => $invoice->id,
+                        'subscription_id' => $subscription->id,
+                        'ssl_status' => $data['status'] ?? null,
+                        'card_type' => $data['card_type'] ?? null,
+                        'bank_tran_id' => $data['bank_tran_id'] ?? null,
+                    ]),
+                ]);
+
+                try {
+                    $user = $subscription->user;
+                    if ($user?->email) {
+                        Mail::to($user->email)->send(new SubscriptionConfirmationMail($subscription, $invoice));
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Failed to send subscription confirmation email: ' . $e->getMessage());
+                }
+
+                $message = 'Subscription activated successfully! Your plan is active until '
+                    . $endsAt->format('F d, Y') . '.';
+
+                return [
+                    'ok' => true,
+                    'message' => $message,
+                    'invoice_id' => $invoice->id,
+                ];
+            });
+        } catch (\Throwable $e) {
+            Log::error('SSLCommerz complete failed', ['error' => $e->getMessage(), 'tran_id' => $tranId]);
+
+            return ['ok' => false, 'error' => 'Could not activate subscription after payment.'];
+        }
+    }
+
+    protected function markAttemptFailed(?string $tranId, string $reason): void
+    {
+        if (!$tranId) {
+            return;
+        }
+
+        $attempt = PaymentAttempt::where('transaction_id', $tranId)
+            ->where('payment_provider', 'sslcommerz')
+            ->where('status', 'pending')
+            ->first();
+
+        if ($attempt) {
+            $attempt->update([
+                'status' => 'failed',
+                'meta' => array_merge($attempt->meta ?? [], ['fail_reason' => $reason]),
+            ]);
+        }
+    }
+
+    /**
+     * Local/demo checkout without a real gateway (when SSLCommerz is not configured).
+     */
+    protected function storeSimulated(Request $request, string $planType, float|int $amount, array $plan)
+    {
         if ($request->payment_method === 'mobile_banking' && $request->transaction_id) {
             $exists = PaymentAttempt::where('payment_method', 'mobile_banking')
                 ->where('transaction_id', $request->transaction_id)
                 ->where('status', 'success')
                 ->exists();
-            $this->dbg(['h' => 'S1c', 'loc' => 'duplicate.check', 'msg' => 'duplicate check', 'data' => ['exists' => $exists, 'transaction_id' => $request->transaction_id]]);
             if ($exists) {
                 return back()->withErrors(['transaction_id' => 'This transaction ID was already used.'])->withInput();
             }
         }
 
-        $planPrices = [
-            'monthly' => 1500,
-            '6months' => 8100,
-            'yearly' => 14400,
-        ];
-
-        $planDurations = [
-            'monthly' => 1,
-            '6months' => 6,
-            'yearly' => 12,
-        ];
-
-        $amount = $planPrices[$request->plan_type];
-        $duration = $planDurations[$request->plan_type];
-
-        $startsAt = now();
-        $endsAt = $startsAt->copy()->addMonths($duration);
-
         $subscriptionData = [
             'user_id' => Auth::id(),
-            'plan_type' => $request->plan_type,
+            'plan_type' => $planType,
             'amount' => $amount,
-            'payment_method' => $request->payment_method,
+            'payment_method' => $request->payment_method === 'card' ? 'card' : 'mobile_banking',
             'status' => 'completed',
-            'starts_at' => $startsAt,
-            'ends_at' => $endsAt,
+            'starts_at' => now(),
+            'ends_at' => now()->addDays((int) $plan['days']),
         ];
 
         if ($request->payment_method === 'mobile_banking') {
-            $subscriptionData['payment_provider'] = $request->payment_provider;
-            $subscriptionData['transaction_id'] = $request->transaction_id;
-            
-            // FR-20: Payment validation for mobile banking (basic validation)
-            // In production, you would validate with bKash/Nagad API here
-            $this->dbg(['h' => 'S1d', 'loc' => 'txn_id.check', 'msg' => 'checking transaction id length', 'data' => ['txn_id' => $request->transaction_id, 'length' => strlen($request->transaction_id ?? '')]]);
             if (!$request->transaction_id || strlen($request->transaction_id) < 10) {
-                $this->dbg(['h' => 'S1d', 'loc' => 'txn_id.invalid', 'msg' => 'transaction id too short', 'data' => ['length' => strlen($request->transaction_id ?? '')]]);
                 return back()->withErrors(['transaction_id' => 'Please enter a valid transaction ID.'])->withInput();
             }
+            $subscriptionData['payment_provider'] = $request->payment_provider;
+            $subscriptionData['transaction_id'] = $request->transaction_id;
         } else {
-            $cardNumber = str_replace(' ', '', $request->card_number);
-            $this->dbg(['h' => 'S1e', 'loc' => 'card.validation', 'msg' => 'validating card', 'data' => ['card_number_length' => strlen($cardNumber ?? ''), 'card_name' => $request->card_name ?? 'null', 'card_expiry' => $request->card_expiry ?? 'null', 'card_cvv' => $request->card_cvv ?? 'null']]);
-            
-            // FR-20: Basic card validation (Luhn algorithm check)
-            $isValid = $this->validateCardNumber($cardNumber);
-            $this->dbg(['h' => 'S1e', 'loc' => 'card.validation.result', 'msg' => 'card validation result', 'data' => ['is_valid' => $isValid]]);
-            if (!$isValid) {
-                $this->dbg(['h' => 'S1e', 'loc' => 'card.invalid', 'msg' => 'card validation failed, returning error']);
+            $cardNumber = str_replace(' ', '', (string) $request->card_number);
+            if (!$this->validateCardNumber($cardNumber)) {
                 return back()->withErrors(['card_number' => 'Invalid card number.'])->withInput();
             }
-            
             $subscriptionData['card_last_four'] = substr($cardNumber, -4);
-            $this->dbg(['h' => 'S1e', 'loc' => 'card.validated', 'msg' => 'card validated successfully']);
         }
 
-        // Record payment attempt for audit/cross-check dataset
         $checksum = hash('sha256', implode('|', [
             Auth::id(),
-            $request->plan_type,
+            $planType,
             $amount,
             $request->payment_method,
             $request->payment_provider,
             $request->transaction_id,
-            $startsAt->timestamp,
+            now()->timestamp,
         ]));
 
         $attempt = PaymentAttempt::create([
             'user_id' => Auth::id(),
-            'plan_type' => $request->plan_type,
+            'plan_type' => $planType,
             'amount' => $amount,
-            'payment_method' => $request->payment_method,
+            'payment_method' => $subscriptionData['payment_method'],
             'payment_provider' => $request->payment_provider,
             'transaction_id' => $request->transaction_id,
             'card_last_four' => $subscriptionData['card_last_four'] ?? null,
@@ -204,32 +438,27 @@ class SubscriptionController extends Controller
             'meta' => [
                 'client_ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
+                'mode' => 'simulated',
             ],
         ]);
-        $this->dbg(['h' => 'S1a', 'loc' => 'payment_attempt.created', 'msg' => 'payment attempt created', 'data' => ['attempt_id' => $attempt->id, 'checksum' => $checksum]]);
 
         $subscription = Subscription::create($subscriptionData);
-        $this->dbg(['h' => 'S2', 'loc' => 'subscription.created', 'msg' => 'subscription created', 'data' => ['id' => $subscription->id, 'plan' => $subscription->plan_type]]);
 
-        // Generate Invoice (FR-21)
         $invoice = Invoice::create([
             'subscription_id' => $subscription->id,
             'user_id' => Auth::id(),
             'invoice_number' => Invoice::generateInvoiceNumber(),
             'amount' => $amount,
-            'plan_type' => $request->plan_type,
-            'payment_method' => $request->payment_method,
+            'plan_type' => $planType,
+            'payment_method' => $subscriptionData['payment_method'],
             'payment_provider' => $request->payment_provider ?? null,
             'transaction_id' => $request->transaction_id ?? null,
             'status' => 'paid',
             'issued_at' => now(),
         ]);
-        $this->dbg(['h' => 'S3', 'loc' => 'invoice.created', 'msg' => 'invoice created', 'data' => ['id' => $invoice->id, 'number' => $invoice->invoice_number]]);
 
-        // Generate PDF Invoice (FR-21)
         $this->generateInvoicePDF($invoice, $subscription);
 
-        // Mark payment attempt success and link invoice
         $attempt->update([
             'status' => 'success',
             'gateway_ref' => 'SIM-' . uniqid(),
@@ -238,33 +467,23 @@ class SubscriptionController extends Controller
                 'checksum_verified' => hash_equals($checksum, $attempt->checksum),
             ]),
         ]);
-        $this->dbg(['h' => 'S3a', 'loc' => 'payment_attempt.success', 'msg' => 'payment attempt completed', 'data' => ['attempt_id' => $attempt->id, 'invoice_id' => $invoice->id]]);
 
-        // Send Email Confirmation (FR-22)
         try {
             Mail::to(Auth::user()->email)->send(new SubscriptionConfirmationMail($subscription, $invoice));
         } catch (\Exception $e) {
-            // Log error but don't fail the subscription
-            \Log::error('Failed to send subscription confirmation email: ' . $e->getMessage());
+            Log::error('Failed to send subscription confirmation email: ' . $e->getMessage());
         }
 
-        // Prepare success message
+        $endsAt = $subscription->ends_at;
         $successMessage = 'Subscription activated successfully! Your plan is active until ' . $endsAt->format('F d, Y') . '.';
-
-        // Always redirect with success message and invoice ID for auto-download
         $disk = Storage::disk('local');
-        $hasInvoice = $invoice->invoice_pdf_path && $disk->exists($invoice->invoice_pdf_path) && file_exists($disk->path($invoice->invoice_pdf_path));
-        
-        $this->dbg(['h' => 'S4', 'loc' => 'redirect.prepare', 'msg' => 'preparing redirect', 'data' => ['has_invoice' => $hasInvoice, 'invoice_id' => $invoice->id]]);
+        $hasInvoice = $invoice->invoice_pdf_path && $disk->exists($invoice->invoice_pdf_path);
 
         return redirect()->route('subscription')
             ->with('success', $successMessage . ($hasInvoice ? ' Your receipt is ready for download.' : ' Check your email for confirmation.'))
             ->with('invoice_id', $hasInvoice ? $invoice->id : null);
     }
 
-    /**
-     * Display subscription history (FR-24)
-     */
     public function history()
     {
         $subscriptions = Subscription::where('user_id', Auth::id())
@@ -280,9 +499,6 @@ class SubscriptionController extends Controller
         return view('subscription-history', compact('subscriptions', 'invoices'));
     }
 
-    /**
-     * Download invoice PDF (FR-21)
-     */
     public function downloadInvoice($invoiceId)
     {
         $invoice = Invoice::where('id', $invoiceId)
@@ -290,7 +506,6 @@ class SubscriptionController extends Controller
             ->with(['subscription', 'user'])
             ->firstOrFail();
 
-        // If file exists, serve it
         $disk = Storage::disk('local');
         if ($invoice->invoice_pdf_path && $disk->exists($invoice->invoice_pdf_path)) {
             $abs = $disk->path($invoice->invoice_pdf_path);
@@ -299,12 +514,10 @@ class SubscriptionController extends Controller
                     'Content-Type' => 'application/pdf',
                 ]);
             }
-            $this->dbg(['h' => 'D1', 'loc' => 'downloadInvoice.missing-file', 'msg' => 'path missing on disk despite exists()', 'data' => ['abs' => $abs]]);
         }
 
-        // Generate PDF if not exists or missing
         $this->generateInvoicePDF($invoice, $invoice->subscription);
-        
+
         if ($invoice->invoice_pdf_path && $disk->exists($invoice->invoice_pdf_path)) {
             $abs = $disk->path($invoice->invoice_pdf_path);
             if (file_exists($abs)) {
@@ -312,72 +525,44 @@ class SubscriptionController extends Controller
                     'Content-Type' => 'application/pdf',
                 ]);
             }
-            $this->dbg(['h' => 'D2', 'loc' => 'downloadInvoice.missing-after-generate', 'msg' => 'path missing on disk after regeneration', 'data' => ['abs' => $abs]]);
         }
 
         return redirect()->back()->with('error', 'Invoice PDF could not be generated.');
     }
 
-    /**
-     * Generate Invoice PDF (FR-21)
-     */
     private function generateInvoicePDF($invoice, $subscription)
     {
         try {
-            $this->dbg(['h' => 'S5', 'loc' => 'pdf.start', 'msg' => 'starting PDF generation', 'data' => ['invoice_number' => $invoice->invoice_number]]);
-            
-            // Generate PDF from invoice view
             $pdf = Pdf::loadView('invoices.pdf', compact('invoice', 'subscription'));
             $pdf->setPaper('a4', 'portrait');
-            $this->dbg(['h' => 'S5', 'loc' => 'pdf.loaded', 'msg' => 'PDF object created']);
 
-            // Use 'local' disk explicitly to ensure we're writing to storage/app
             $disk = Storage::disk('local');
-            
-            // Ensure directory exists
             $disk->makeDirectory('invoices');
 
-            // Save PDF invoice
             $filename = 'invoices/invoice-' . $invoice->invoice_number . '.pdf';
-            $pdfContent = $pdf->output();
-            $this->dbg(['h' => 'S5', 'loc' => 'pdf.output', 'msg' => 'PDF content generated', 'data' => ['content_length' => strlen($pdfContent)]]);
-            
-            $disk->put($filename, $pdfContent);
-            
-            // Verify file was actually written (use disk->path() to get correct absolute path)
-            $absPath = $disk->path($filename);
-            $exists = file_exists($absPath);
-            $this->dbg(['h' => 'S5', 'loc' => 'invoice.generated', 'msg' => 'invoice PDF saved', 'data' => ['path' => $filename, 'abs_path' => $absPath, 'file_exists' => $exists, 'disk_exists' => $disk->exists($filename)]]);
+            $disk->put($filename, $pdf->output());
 
             $invoice->update(['invoice_pdf_path' => $filename]);
         } catch (\Exception $e) {
-            \Log::error('Failed to generate invoice PDF: ' . $e->getMessage());
-            $this->dbg(['h' => 'S5', 'loc' => 'invoice.error', 'msg' => 'generation failed', 'data' => ['error' => $e->getMessage(), 'class' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine()]]);
+            Log::error('Failed to generate invoice PDF: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Validate card number using Luhn algorithm (FR-20)
-     */
     private function validateCardNumber($cardNumber)
     {
         $cardNumber = preg_replace('/\D/', '', $cardNumber);
-        
+
         if (strlen($cardNumber) < 13 || strlen($cardNumber) > 19) {
             return false;
         }
 
         $sum = 0;
         $numDigits = strlen($cardNumber);
-        // Luhn algorithm: double every second digit from the RIGHT
-        // For 16 digits: double at positions 0,2,4,6,8,10,12,14 (from left, 0-indexed)
-        // This corresponds to positions 15,13,11,9,7,5,3,1 from right
-        
+
         for ($i = 0; $i < $numDigits; $i++) {
-            $digit = (int)$cardNumber[$i];
+            $digit = (int) $cardNumber[$i];
             $positionFromRight = $numDigits - 1 - $i;
-            
-            // Double every second digit from the right (positions 1,3,5,7... from right)
+
             if ($positionFromRight % 2 == 1) {
                 $digit *= 2;
             }
@@ -387,8 +572,6 @@ class SubscriptionController extends Controller
             $sum += $digit;
         }
 
-        $isValid = ($sum % 10) == 0;
-        $this->dbg(['h' => 'S1f', 'loc' => 'luhn.calc', 'msg' => 'luhn calculation', 'data' => ['card' => substr($cardNumber, 0, 4) . '****', 'sum' => $sum, 'sum_mod_10' => $sum % 10, 'is_valid' => $isValid]]);
-        return $isValid;
+        return ($sum % 10) == 0;
     }
 }

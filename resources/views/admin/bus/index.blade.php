@@ -10,18 +10,20 @@
             padding: 30px;
             box-sizing: border-box;
             overflow-x: visible;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: transparent;
             min-height: 100vh;
         }
         .bus-fleet-page h2 {
+            font-family: Syne, sans-serif;
+            letter-spacing: -0.03em;
             color: #1a202c !important;
             margin: 0;
             font-size: 2rem;
             font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            
         }
         .bus-fleet-page h2 i {
-            color: #667eea;
+            color: #0b6e6a;
             margin-right: 10px;
         }
         .bus-header-section {
@@ -33,14 +35,14 @@
             gap: 15px;
         }
         .add-bus-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0b6e6a 0%, #1e2630 100%);
             color: white;
             padding: 12px 24px;
             text-decoration: none;
             border-radius: 10px;
             font-weight: 600;
             font-size: 1rem;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 12px rgba(11, 110, 106, 0.28);
             transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
@@ -48,7 +50,7 @@
         }
         .add-bus-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 20px rgba(11, 110, 106, 0.35);
             color: white;
         }
         .bus-table-wrapper {
@@ -72,7 +74,7 @@
             overflow: hidden;
         }
         .bus-table-container thead {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0b6e6a 0%, #1e2630 100%);
         }
         .bus-table-container thead th {
             color: white !important;
@@ -88,7 +90,7 @@
             border-bottom: 1px solid #e5e7eb;
         }
         .bus-table-container tbody tr:hover {
-            background: #f8f9ff;
+            background: #f0f7f6;
             transform: scale(1.01);
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
@@ -188,7 +190,7 @@
                                     </button>
                                 </form>
                                 @if($bus->current_lat && $bus->current_lng)
-                                    <a href="{{ route('admin.buses.gps', $bus->id) }}" style="margin-left: 8px; color: #667eea; text-decoration: none; font-size: 1.1rem;" title="Edit GPS">
+                                    <a href="{{ route('admin.buses.gps', $bus->id) }}" style="margin-left: 8px; color: #0b6e6a; text-decoration: none; font-size: 1.1rem;" title="Edit GPS">
                                         <i class="bi bi-geo-alt"></i>
                                     </a>
                                 @endif
@@ -198,7 +200,7 @@
                         <tr>
                             <td colspan="6" style="text-align: center; padding: 40px; color: #888;">
                                 <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
-                                No buses found. <a href="{{ route('admin.buses.create') }}" style="color: #667eea; text-decoration: none;">Add your first bus</a>
+                                No buses found. <a href="{{ route('admin.buses.create') }}" style="color: #0b6e6a; text-decoration: none;">Add your first bus</a>
                             </td>
                         </tr>
                         @endforelse

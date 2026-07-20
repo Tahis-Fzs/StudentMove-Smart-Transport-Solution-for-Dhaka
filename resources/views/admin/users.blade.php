@@ -10,18 +10,20 @@
             padding: 30px;
             box-sizing: border-box;
             overflow-x: visible;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: transparent;
             min-height: 100vh;
         }
         .admin-users-page h2 {
+            font-family: Syne, sans-serif;
+            letter-spacing: -0.03em;
             color: #1a202c !important;
             margin-bottom: 10px;
             font-size: 2rem;
             font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            
         }
         .admin-users-page h2 i {
-            color: #007bff;
+            color: #0b6e6a;
             margin-right: 10px;
         }
         .users-table-wrapper {
@@ -50,7 +52,7 @@
             overflow: hidden;
         }
         .users-table-container thead {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0b6e6a 0%, #1e2630 100%);
         }
         .users-table-container thead th {
             color: white !important;
@@ -66,7 +68,7 @@
             border-bottom: 1px solid #e5e7eb;
         }
         .users-table-container tbody tr:hover {
-            background: #f8f9ff;
+            background: #f0f7f6;
             transform: scale(1.01);
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
@@ -124,23 +126,23 @@
         }
         .search-input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #0b6e6a;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         .search-btn {
             padding: 12px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0b6e6a 0%, #1e2630 100%);
             color: white;
             border: none;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 12px rgba(11, 110, 106, 0.28);
         }
         .search-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 20px rgba(11, 110, 106, 0.35);
         }
         .action-btn-ban {
             padding: 8px 16px;
@@ -157,13 +159,13 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
         .action-btn-edit {
-            color: #667eea;
+            color: #0b6e6a;
             font-size: 1.3rem;
             transition: all 0.2s ease;
             text-decoration: none;
         }
         .action-btn-edit:hover {
-            color: #764ba2;
+            color: #1e2630;
             transform: scale(1.2);
         }
     </style>

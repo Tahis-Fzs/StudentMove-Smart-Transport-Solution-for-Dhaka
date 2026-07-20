@@ -46,15 +46,21 @@ class LiveBusController extends Controller
             'bus_id' => ['required', 'integer', 'exists:bus_schedules,id'],
             'lat' => ['required', 'numeric', 'between:-90,90'],
             'lng' => ['required', 'numeric', 'between:-180,180'],
-            'heading' => ['nullable', 'numeric'],
+            'heading' => ['nullable', 'numeric', 'between:0,360'],
+            'speed' => ['nullable', 'numeric', 'min:0', 'max:80'],
+            'speed_kmh' => ['nullable', 'numeric', 'min:0', 'max:200'],
             'status' => ['nullable', 'string', 'max:40'],
         ]);
 
         $bus = BusSchedule::findOrFail($data['bus_id']);
+
+        $speedKmh = $data['speed_kmh'] ?? (isset($data['speed']) ? ((float) $data['speed'] * 3.6) : null);
+
         $bus->update([
             'current_lat' => $data['lat'],
             'current_lng' => $data['lng'],
             'heading' => $data['heading'] ?? $bus->heading,
+            'speed_kmh' => $speedKmh !== null ? round((float) $speedKmh, 1) : $bus->speed_kmh,
             'status' => $data['status'] ?? $bus->status,
             'location_updated_at' => now(),
         ]);
@@ -77,7 +83,8 @@ class LiveBusController extends Controller
             'status' => $bus->status,
             'lat' => $bus->current_lat !== null ? (float) $bus->current_lat : null,
             'lng' => $bus->current_lng !== null ? (float) $bus->current_lng : null,
-            'heading' => $bus->heading,
+            'heading' => $bus->heading !== null && $bus->heading !== '' ? (float) $bus->heading : null,
+            'speed_kmh' => $bus->speed_kmh !== null ? (float) $bus->speed_kmh : null,
             'location_updated_at' => $updated?->toIso8601String(),
             'location_age_seconds' => $age,
             'is_stale' => $age === null || $age > 120,

@@ -20,59 +20,19 @@ class FeedbackController extends Controller
     /** Store feedback */
     public function store(Request $request): RedirectResponse
     {
-        // #region agent log
-        @file_put_contents(
-            base_path('.cursor/debug.log'),
-            json_encode([
-                'sessionId' => 'debug-session',
-                'runId' => 'feedback',
-                'hypothesisId' => 'H1',
-                'location' => 'FeedbackController@store',
-                'message' => 'entry',
-                'data' => [
-                    'user_id' => Auth::id(),
-                    'subject_len' => strlen((string) $request->subject),
-                    'message_len' => strlen((string) $request->message),
-                ],
-                'timestamp' => round(microtime(true) * 1000),
-            ]) . PHP_EOL,
-            FILE_APPEND | LOCK_EX
-        );
-        // #endregion
-
         $request->validate([
             'subject' => ['required', 'string', 'max:255'],
             'message' => ['required', 'string', 'max:2000'],
             'rating' => ['nullable', 'integer', 'min:1', 'max:5'],
         ]);
 
-        $fb = Feedback::create([
+        Feedback::create([
             'user_id' => Auth::id(),
             'subject' => $request->subject,
             'message' => $request->message,
             'rating' => $request->rating ?? 5,
             'status' => 'pending',
         ]);
-
-        // #region agent log
-        @file_put_contents(
-            base_path('.cursor/debug.log'),
-            json_encode([
-                'sessionId' => 'debug-session',
-                'runId' => 'feedback',
-                'hypothesisId' => 'H2',
-                'location' => 'FeedbackController@store',
-                'message' => 'created',
-                'data' => [
-                    'id' => $fb->id,
-                    'user_id' => $fb->user_id,
-                    'status' => $fb->status,
-                ],
-                'timestamp' => round(microtime(true) * 1000),
-            ]) . PHP_EOL,
-            FILE_APPEND | LOCK_EX
-        );
-        // #endregion
 
         return redirect()->route('feedback.index')->with('success', 'Feedback submitted successfully!');
     }

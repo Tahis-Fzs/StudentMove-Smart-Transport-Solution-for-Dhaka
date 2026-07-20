@@ -3,113 +3,130 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Department;
 use App\Models\Notification;
 use App\Models\Offer;
-use Illuminate\Http\Request;
-use Illuminate\View\View;
+use App\Models\University;
+use App\Services\InboxService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class NotificationController extends Controller
 {
-    /**
-     * User notification settings page
-     */
+    public function __construct(protected InboxService $inbox)
+    {
+    }
     public function settings()
     {
         $user = Auth::user();
+
         return view('notification_settings', compact('user'));
     }
 
-    /**
-     * Display all notifications
-     */
     public function index(): View
     {
         $notifications = Notification::with('offer')->latest()->paginate(15);
+
         return view('admin.notifications.index', compact('notifications'));
     }
 
-    /**
-     * Show create form
-     */
     public function create(): View
     {
-        $offers = Offer::orderBy('title')->get();
-        return view('admin.notifications.create', compact('offers'));
+        return view('admin.notifications.create', $this->formExtras());
     }
 
-    /**
-     * Store new notification
-     */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'message' => ['required', 'string', 'max:500'],
-            'icon' => ['nullable', 'string', 'max:50'],
-            'icon_color' => ['nullable', 'string', 'max:50'],
-            'type' => ['nullable', 'string', 'in:info,success,warning,error'],
-            'is_active' => ['boolean'],
-            'sort_order' => ['nullable', 'integer'],
-            'offer_id' => ['nullable', 'exists:offers,id'],
-        ]);
+        $data = $this->validated($request);
 
-        Notification::create([
-            'message' => $request->message,
-            'icon' => $request->icon ?? 'bi-bell',
-            'icon_color' => $request->icon_color ?? 'blue',
-            'type' => $request->type ?? 'info',
-            'is_active' => $request->has('is_active'),
-            'sort_order' => $request->sort_order ?? 0,
-            'offer_id' => $request->offer_id,
-        ]);
+        $announcement = Notification::create($data);
 
-        return redirect()->route('admin.notifications.index')->with('success', 'Notification created successfully!');
+        if ($announcement->is_active) {
+            $this->inbox->fanOutAnnouncement($announcement);
+        }
+
+        return redirect()->route('admin.notifications.index')->with('success', 'Announcement created successfully!');
     }
 
-    /**
-     * Show edit form
-     */
     public function edit(Notification $notification): View
     {
-        $offers = Offer::orderBy('title')->get();
-        return view('admin.notifications.edit', compact('notification', 'offers'));
+        return view('admin.notifications.edit', array_merge(
+            ['notification' => $notification],
+            $this->formExtras()
+        ));
     }
 
-    /**
-     * Update notification
-     */
     public function update(Request $request, Notification $notification): RedirectResponse
     {
-        $request->validate([
-            'message' => ['required', 'string', 'max:500'],
-            'icon' => ['nullable', 'string', 'max:50'],
-            'icon_color' => ['nullable', 'string', 'max:50'],
-            'type' => ['nullable', 'string', 'in:info,success,warning,error'],
-            'is_active' => ['boolean'],
-            'sort_order' => ['nullable', 'integer'],
-            'offer_id' => ['nullable', 'exists:offers,id'],
-        ]);
+        $notification->update($this->validated($request));
 
-        $notification->update([
-            'message' => $request->message,
-            'icon' => $request->icon ?? 'bi-bell',
-            'icon_color' => $request->icon_color ?? 'blue',
-            'type' => $request->type ?? 'info',
-            'is_active' => $request->has('is_active'),
-            'sort_order' => $request->sort_order ?? 0,
-            'offer_id' => $request->offer_id,
-        ]);
-
-        return redirect()->route('admin.notifications.index')->with('success', 'Notification updated successfully!');
+        return redirect()->route('admin.notifications.index')->with('success', 'Announcement updated successfully!');
     }
 
-    /**
-     * Delete notification
-     */
     public function destroy(Notification $notification): RedirectResponse
     {
         $notification->delete();
-        return redirect()->route('admin.notifications.index')->with('success', 'Notification deleted successfully!');
+
+        return redirect()->route('admin.notifications.index')->with('success', 'Announcement deleted successfully!');
+    }
+
+    protected function formExtras(): array
+    {
+        return [
+            'offers' => Offer::orderBy('title')->get(),
+            'universities' => University::orderBy('name')->get(['id', 'name', 'short_name']),
+            'departments' => Department::orderBy('name')->pluck('name'),
+        ];
+    }
+
+    protected function validated(Request $request): array
+    {
+        $data = $request->validate([
+            'title' => ['nullable', 'string', 'max:120'],
+            'message' => ['required', 'string', 'max:500'],
+            'icon' => ['nullable', 'string', 'max:50'],
+            'icon_color' => ['nullable', 'string', 'max:50'],
+            'type' => ['nullable', 'string', 'in:info,success,warning,error'],
+            'audience' => ['required', 'in:all,university,department,route'],
+            'target_value' => ['nullable', 'string', 'max:255'],
+            'is_active' => ['boolean'],
+            'sort_order' => ['nullable', 'integer'],
+            'published_at' => ['nullable', 'date'],
+            'expires_at' => ['nullable', 'date'],
+            'offer_id' => ['nullable', 'exists:offers,id'],
+        ]);
+
+        $audience = $data['audience'];
+        $target = trim((string) ($data['target_value'] ?? ''));
+
+        if ($audience !== Notification::AUDIENCE_ALL && $target === '') {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'target_value' => 'Enter a target value for this audience (university, department, or route).',
+            ]);
+        }
+
+        if (!empty($data['published_at']) && !empty($data['expires_at'])
+            && strtotime($data['expires_at']) <= strtotime($data['published_at'])) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'expires_at' => 'Expiry must be after the publish time.',
+            ]);
+        }
+
+        return [
+            'title' => $data['title'] ?? null,
+            'message' => $data['message'],
+            'icon' => $data['icon'] ?? 'bi-bell',
+            'icon_color' => $data['icon_color'] ?? 'blue',
+            'type' => $data['type'] ?? 'info',
+            'audience' => $audience,
+            'target_value' => $audience === Notification::AUDIENCE_ALL ? null : $target,
+            'is_active' => $request->has('is_active'),
+            'sort_order' => $data['sort_order'] ?? 0,
+            'published_at' => $data['published_at'] ?? null,
+            'expires_at' => $data['expires_at'] ?? null,
+            'offer_id' => $data['offer_id'] ?? null,
+        ];
     }
 }

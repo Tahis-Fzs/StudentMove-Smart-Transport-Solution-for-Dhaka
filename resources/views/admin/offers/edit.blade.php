@@ -97,8 +97,8 @@
         .form-group small { display: block; margin-top: 5px; color: #6c757d; font-size: 0.875rem; }
         .error { color: #dc3545; font-size: 0.875rem; margin-top: 5px; display: block; }
         .form-actions { margin-top: 30px; display: flex; gap: 10px; }
-        .btn-primary { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
-        .btn-primary:hover { background: #0056b3; }
+        .btn-primary { background: #0b6e6a; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary:hover { background: #085854; }
         .btn-secondary { background: #6c757d; color: white; padding: 10px 20px; border-radius: 4px; text-decoration: none; }
         .btn-secondary:hover { background: #5a6268; color: white; }
     </style>

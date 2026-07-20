@@ -151,6 +151,18 @@ function initScrollReveals() {
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!document.body.classList.contains('landing-body')) return;
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) {
+        document.querySelectorAll(
+            '.l-hero__brand, .l-hero__headline, .l-hero__lede, .l-hero__cta, [data-reveal]'
+        ).forEach((el) => {
+            el.style.opacity = '1';
+            el.style.transform = 'none';
+        });
+        return;
+    }
+
     initHeroIntro();
     initHeroParallax();
     initScene3D();

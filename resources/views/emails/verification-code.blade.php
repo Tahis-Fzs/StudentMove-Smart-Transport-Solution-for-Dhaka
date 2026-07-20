@@ -6,7 +6,7 @@
     <title>Email Verification Code</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+    <div style="background: linear-gradient(135deg, #0b6e6a 0%, #1e2630 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
         <h1 style="color: white; margin: 0; font-size: 28px;">StudentMove</h1>
     </div>
     
@@ -17,8 +17,8 @@
         
         <p>Thank you for registering with StudentMove! Please use the following 6-digit code to verify your email address:</p>
         
-        <div style="background: white; border: 2px solid #667eea; border-radius: 8px; padding: 20px; text-align: center; margin: 30px 0;">
-            <div style="font-size: 36px; font-weight: bold; color: #667eea; letter-spacing: 8px; font-family: 'Courier New', monospace;">
+        <div style="background: white; border: 2px solid #0b6e6a; border-radius: 8px; padding: 20px; text-align: center; margin: 30px 0;">
+            <div style="font-size: 36px; font-weight: bold; color: #0b6e6a; letter-spacing: 8px; font-family: 'Courier New', monospace;">
                 {{ $code }}
             </div>
         </div>

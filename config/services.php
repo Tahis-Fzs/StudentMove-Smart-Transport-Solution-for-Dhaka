@@ -57,4 +57,15 @@ return [
         'default_model' => env('OPENAI_MODEL', 'meta-llama/llama-3.1-8b-instruct:free'),
     ],
 
+    /*
+    | SSLCommerz — Bangladesh hosted checkout (bKash, Nagad, cards, etc.)
+    | Sandbox credentials: https://developer.sslcommerz.com/registration/
+    */
+    'sslcommerz' => [
+        'store_id' => env('SSLCOMMERZ_STORE_ID'),
+        'store_password' => env('SSLCOMMERZ_STORE_PASSWORD'),
+        'sandbox' => filter_var(env('SSLCOMMERZ_SANDBOX', true), FILTER_VALIDATE_BOOLEAN),
+        'currency' => env('SSLCOMMERZ_CURRENCY', 'BDT'),
+    ],
+
 ];

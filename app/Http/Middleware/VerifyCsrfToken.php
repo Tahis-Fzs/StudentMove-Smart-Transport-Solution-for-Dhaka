@@ -12,8 +12,11 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
         '/__dbg',
+        'subscription/sslcommerz/success',
+        'subscription/sslcommerz/fail',
+        'subscription/sslcommerz/cancel',
+        'subscription/sslcommerz/ipn',
     ];
 }
 

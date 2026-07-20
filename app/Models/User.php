@@ -29,7 +29,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'student_id',
         'date_of_birth',
         'department',
+        'faculty',
         'year_of_study',
+        'semester',
+        'semester_system',
         'current_address',
         'home_address',
         'preferred_language',
@@ -86,5 +89,51 @@ class User extends Authenticatable implements MustVerifyEmail
     public function feedbacks()
     {
         return $this->hasMany(Feedback::class);
+    }
+
+    public function savedRoutes()
+    {
+        return $this->hasMany(SavedRoute::class)->latest();
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class)->latest();
+    }
+
+    public function inboxMessages()
+    {
+        return $this->hasMany(InboxMessage::class)->latest();
+    }
+
+    /** Public URL for the user's avatar (upload → Firebase/Google → placeholder). */
+    public function avatarUrl(): string
+    {
+        if ($this->profile_image) {
+            $path = '/storage/' . ltrim($this->profile_image, '/');
+            $version = optional($this->updated_at)->timestamp ?? time();
+
+            return $path . '?v=' . $version;
+        }
+
+        if (!empty($this->avatar_url)) {
+            return $this->avatar_url;
+        }
+
+        return $this->avatarPlaceholderUrl();
+    }
+
+    /**
+     * Next avatar when avatarUrl() fails in the browser.
+     * Never fall back to Google after a custom upload — use initials instead.
+     */
+    public function avatarFallbackUrl(): string
+    {
+        return $this->avatarPlaceholderUrl();
+    }
+
+    public function avatarPlaceholderUrl(): string
+    {
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name ?: 'User') . '&background=0b6e6a&color=fff';
     }
 }

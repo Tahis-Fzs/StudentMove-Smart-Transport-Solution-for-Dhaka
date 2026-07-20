@@ -27,7 +27,7 @@
                     <form method="POST" action="{{ route('feedback.reply', $feedback->id) }}" style="margin-top: 15px;">
                         @csrf
                         <textarea name="admin_response" rows="2" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" placeholder="Type your reply here..." required></textarea>
-                        <button type="submit" style="margin-top: 10px; background: #007bff; color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer;">
+                        <button type="submit" style="margin-top: 10px; background: #0b6e6a; color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer;">
                             <i class="bi bi-reply-fill"></i> Send Reply
                         </button>
                     </form>

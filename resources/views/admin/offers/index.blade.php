@@ -98,8 +98,8 @@
     <style>
         .action-buttons-inline { display: flex; gap: 5px; }
         .btn-sm { padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; text-decoration: none; display: inline-block; }
-        .btn-edit { background: #007bff; color: white; }
-        .btn-edit:hover { background: #0056b3; color: white; }
+        .btn-edit { background: #0b6e6a; color: white; }
+        .btn-edit:hover { background: #085854; color: white; }
         .btn-delete { background: #dc3545; color: white; }
         .btn-delete:hover { background: #c82333; color: white; }
         .inline-form { display: inline; margin: 0; }

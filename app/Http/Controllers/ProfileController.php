@@ -2,17 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Department;
+use App\Models\Faculty;
+use App\Models\University;
+use App\Services\AcademicCatalogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    public function __construct(protected AcademicCatalogService $academicCatalog)
+    {
+    }
+
     /**
      * Display the user's profile form.
      */
@@ -20,6 +26,9 @@ class ProfileController extends Controller
     {
         return view('profile.edit', [
             'user' => $request->user(),
+            'universities' => University::orderBy('name')->get(['id', 'name', 'short_name', 'calendar_type']),
+            'faculties' => Faculty::orderBy('name')->pluck('name'),
+            'departments' => Department::orderBy('name')->pluck('name'),
         ]);
     }
 
@@ -28,7 +37,6 @@ class ProfileController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
-        // Separate validation for file uploads - only validate if file is present
         $validationRules = [
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
@@ -39,7 +47,12 @@ class ProfileController extends Controller
                 'max:20',
                 'unique:users,phone,' . $request->user()->id,
             ],
-            'university' => ['nullable', 'string', 'max:255'],
+            'university_select' => ['nullable', 'string', 'max:255'],
+            'university_other' => ['nullable', 'string', 'max:255'],
+            'faculty_select' => ['nullable', 'string', 'max:255'],
+            'faculty_other' => ['nullable', 'string', 'max:255'],
+            'department_select' => ['nullable', 'string', 'max:255'],
+            'department_other' => ['nullable', 'string', 'max:255'],
             'student_id' => [
                 'nullable',
                 'string',
@@ -47,8 +60,9 @@ class ProfileController extends Controller
                 'unique:users,student_id,' . $request->user()->id,
             ],
             'date_of_birth' => ['nullable', 'date'],
-            'department' => ['nullable', 'string', 'max:255'],
-            'year_of_study' => ['nullable', 'string', 'max:10'],
+            'year_of_study' => ['nullable', 'string', 'max:20'],
+            'semester' => ['nullable', 'string', 'max:20'],
+            'semester_system' => ['nullable', 'in:bi,tri'],
             'current_address' => ['nullable', 'string', 'max:500'],
             'home_address' => ['nullable', 'string', 'max:500'],
             'preferred_language' => ['nullable', 'string', 'max:10'],
@@ -57,9 +71,7 @@ class ProfileController extends Controller
             'promotional_offers' => ['nullable', 'boolean'],
         ];
 
-        // Only validate profile_image if a file was uploaded
         if ($request->hasFile('profile_image')) {
-            // Allow largest files supported by server settings; no size cap here
             $validationRules['profile_image'] = ['required', 'image', 'mimes:jpeg,png,jpg,gif'];
         }
 
@@ -69,20 +81,22 @@ class ProfileController extends Controller
             'profile_image.required' => 'Please select an image file to upload.',
         ]);
 
+        if ($request->university_select === '__other__' && !trim((string) $request->university_other)) {
+            return back()->withErrors(['university_other' => 'Please type your university name.'])->withInput();
+        }
+        if ($request->faculty_select === '__other__' && !trim((string) $request->faculty_other)) {
+            return back()->withErrors(['faculty_other' => 'Please type your faculty name.'])->withInput();
+        }
+        if ($request->department_select === '__other__' && !trim((string) $request->department_other)) {
+            return back()->withErrors(['department_other' => 'Please type your department name.'])->withInput();
+        }
+
         $user = $request->user();
-        
-        // Handle profile image upload
+
         if ($request->hasFile('profile_image')) {
-            \Log::info('Profile image upload started', [
-                'user_id' => $user->id,
-                'file_name' => $request->file('profile_image')->getClientOriginalName(),
-                'file_size' => $request->file('profile_image')->getSize(),
-            ]);
-            
             try {
                 $image = $request->file('profile_image');
-                
-                // Check if file upload was successful
+
                 if (!$image->isValid()) {
                     $errorCode = $image->getError();
                     $errorMessages = [
@@ -94,58 +108,62 @@ class ProfileController extends Controller
                         UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk.',
                         UPLOAD_ERR_EXTENSION => 'A PHP extension stopped the file upload.',
                     ];
-                    
+
                     $errorMessage = $errorMessages[$errorCode] ?? 'File upload failed with error code: ' . $errorCode;
                     return back()->withErrors(['profile_image' => $errorMessage])->withInput();
                 }
 
-                // Delete old profile image if it exists
                 if ($user->profile_image && Storage::disk('public')->exists($user->profile_image)) {
                     Storage::disk('public')->delete($user->profile_image);
                 }
 
-                // Generate unique filename with original extension
                 $extension = $image->getClientOriginalExtension();
                 $imageName = 'profile_' . $user->id . '_' . time() . '.' . $extension;
-
-                // Ensure directory exists on public disk
                 Storage::disk('public')->makeDirectory('profile_images');
-
-                // Store the new image
                 $storedPath = $image->storeAs('profile_images', $imageName, 'public');
-                
+
                 if ($storedPath) {
                     $user->profile_image = 'profile_images/' . $imageName;
-                    \Log::info('Profile image saved successfully', [
-                        'user_id' => $user->id,
-                        'image_path' => $user->profile_image,
-                    ]);
                 } else {
-                    \Log::error('Profile image storage failed', ['user_id' => $user->id]);
                     return back()->withErrors(['profile_image' => 'Failed to save profile image. Please try again.'])->withInput();
                 }
             } catch (\Exception $e) {
-                \Log::error('Profile image upload error: ' . $e->getMessage(), [
-                    'user_id' => $user->id,
-                    'trace' => $e->getTraceAsString(),
-                ]);
                 return back()->withErrors(['profile_image' => 'An error occurred while uploading your image: ' . $e->getMessage()])->withInput();
             }
-        } else {
-            \Log::info('No profile image file in request', ['user_id' => $user->id]);
         }
 
-        // Update user data
+        $university = $this->academicCatalog->resolveUniversity(
+            $request->university_select,
+            $request->university_other
+        );
+        $faculty = $this->academicCatalog->resolveFaculty(
+            $request->faculty_select,
+            $request->faculty_other
+        );
+        $department = $this->academicCatalog->resolveDepartment(
+            $request->department_select,
+            $request->department_other
+        );
+
+        $calendar = $request->semester_system
+            ?: $this->academicCatalog->calendarForUniversity($university);
+        if ($calendar === 'both') {
+            $calendar = $request->semester_system ?: 'bi';
+        }
+
         $user->first_name = $request->first_name;
         $user->last_name = $request->last_name;
         $user->name = $request->first_name . ' ' . $request->last_name;
         $user->email = $request->email;
         $user->phone = $request->phone;
-        $user->university = $request->university;
+        $user->university = $university;
+        $user->faculty = $faculty;
+        $user->department = $department;
         $user->student_id = $request->student_id;
         $user->date_of_birth = $request->date_of_birth;
-        $user->department = $request->department;
         $user->year_of_study = $request->year_of_study;
+        $user->semester = $request->semester;
+        $user->semester_system = in_array($calendar, ['bi', 'tri'], true) ? $calendar : 'bi';
         $user->current_address = $request->current_address;
         $user->home_address = $request->home_address;
         $user->preferred_language = $request->preferred_language;
@@ -158,8 +176,6 @@ class ProfileController extends Controller
         }
 
         $user->save();
-
-        // Refresh user to ensure latest data is loaded
         $user->refresh();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated')->with('user', $user);

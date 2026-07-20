@@ -14,7 +14,7 @@
             padding: 20px;
         }
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0b6e6a 0%, #1e2630 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -34,7 +34,7 @@
             padding: 20px;
             border-radius: 8px;
             margin: 20px 0;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #0b6e6a;
         }
         .info-row {
             display: flex;
@@ -54,7 +54,7 @@
         }
         .button {
             display: inline-block;
-            background: #667eea;
+            background: #0b6e6a;
             color: white;
             padding: 12px 30px;
             text-decoration: none;

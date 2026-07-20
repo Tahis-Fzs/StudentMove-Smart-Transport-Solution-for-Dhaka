@@ -37,15 +37,17 @@
                     <div style="font-size: 0.9rem; margin-top: 5px;">
                         Status: <span id="status-badge-1" style="background: #d4edda; color: #155724; padding: 2px 8px; border-radius: 4px; font-weight: bold;">On Time</span>
                     </div>
+                    <div id="gps-badge-1" class="gps-live-badge gps-live-badge--idle">GPS: waiting for driver</div>
+                    <div id="motion-badge-1" class="gps-motion-badge">Heading — · Speed —</div>
                 </div>
                 <div style="text-align: right;">
                     <div style="font-size: 0.8rem; color: #cbd5e1;">Arriving in</div>
-                    <div id="eta-time-1" style="font-size: 1.5rem; font-weight: bold; color: #22c55e;">10 mins</div>
+                    <div id="eta-time-1" style="font-size: 1.5rem; font-weight: bold; color: #14a39c;">10 mins</div>
                 </div>
             </div>
 
             <div style="margin-top:10px; display:flex; gap:10px;">
-                <button onclick="startSimulation(1)" style="padding:10px; background:#28a745; color:white; border:none; border-radius:5px; cursor:pointer;">
+                <button onclick="startSimulation(1)" style="padding:10px; background:#0b6e6a; color:white; border:none; border-radius:5px; cursor:pointer;">
                     ▶️ Simulate Movement
                 </button>
                 <button onclick="triggerDelay(1)" style="padding:10px; background:#dc3545; color:white; border:none; border-radius:5px; cursor:pointer;">
@@ -69,15 +71,17 @@
                     <div style="font-size: 0.9rem; margin-top: 5px;">
                         Status: <span id="status-badge-2" style="background: #d4edda; color: #155724; padding: 2px 8px; border-radius: 4px; font-weight: bold;">On Time</span>
                     </div>
+                    <div id="gps-badge-2" class="gps-live-badge gps-live-badge--idle">GPS: waiting for driver</div>
+                    <div id="motion-badge-2" class="gps-motion-badge">Heading — · Speed —</div>
                 </div>
                 <div style="text-align: right;">
                     <div style="font-size: 0.8rem; color: #cbd5e1;">Arriving in</div>
-                    <div id="eta-time-2" style="font-size: 1.5rem; font-weight: bold; color: #22c55e;">15 mins</div>
+                    <div id="eta-time-2" style="font-size: 1.5rem; font-weight: bold; color: #14a39c;">15 mins</div>
                 </div>
             </div>
 
             <div style="margin-top:10px; display:flex; gap:10px;">
-                <button onclick="startSimulation(2)" style="padding:10px; background:#28a745; color:white; border:none; border-radius:5px; cursor:pointer;">
+                <button onclick="startSimulation(2)" style="padding:10px; background:#0b6e6a; color:white; border:none; border-radius:5px; cursor:pointer;">
                     ▶️ Simulate Movement
                 </button>
                 <button onclick="triggerDelay(2)" style="padding:10px; background:#dc3545; color:white; border:none; border-radius:5px; cursor:pointer;">
@@ -101,15 +105,17 @@
                     <div style="font-size: 0.9rem; margin-top: 5px;">
                         Status: <span id="status-badge-3" style="background: #d4edda; color: #155724; padding: 2px 8px; border-radius: 4px; font-weight: bold;">On Time</span>
                     </div>
+                    <div id="gps-badge-3" class="gps-live-badge gps-live-badge--idle">GPS: waiting for driver</div>
+                    <div id="motion-badge-3" class="gps-motion-badge">Heading — · Speed —</div>
                 </div>
                 <div style="text-align: right;">
                     <div style="font-size: 0.8rem; color: #cbd5e1;">Arriving in</div>
-                    <div id="eta-time-3" style="font-size: 1.5rem; font-weight: bold; color: #22c55e;">8 mins</div>
+                    <div id="eta-time-3" style="font-size: 1.5rem; font-weight: bold; color: #14a39c;">8 mins</div>
                 </div>
             </div>
 
             <div style="margin-top:10px; display:flex; gap:10px;">
-                <button onclick="startSimulation(3)" style="padding:10px; background:#28a745; color:white; border:none; border-radius:5px; cursor:pointer;">
+                <button onclick="startSimulation(3)" style="padding:10px; background:#0b6e6a; color:white; border:none; border-radius:5px; cursor:pointer;">
                     ▶️ Simulate Movement
                 </button>
                 <button onclick="triggerDelay(3)" style="padding:10px; background:#dc3545; color:white; border:none; border-radius:5px; cursor:pointer;">
@@ -207,6 +213,10 @@
         const scheduleLastPositions = {}; // Track last position for each schedule
         const scheduleLastDelays = {}; // Track last delay state for each schedule
         const scheduleNotificationTimeouts = {}; // Track notification timeouts per schedule
+        const scheduleAnimFrames = {}; // Smooth Pathao-style marker tweens
+        const scheduleHeadings = {}; // degrees 0–360
+        const POLL_MS = 1000;
+        const SMOOTH_MS = 900;
         const schedulePaths = {
             1: [
                 { lat: 23.8103, lng: 90.4125 },
@@ -263,8 +273,9 @@
                 });
                 osm.addTo(map);
                 
-                const marker = L.marker(center).addTo(map);
+                const marker = L.marker(center, { icon: busIcon(0), rotationOrigin: 'center center' }).addTo(map);
                 scheduleMarkers[scheduleId] = marker;
+                scheduleHeadings[scheduleId] = 0;
                 
                 dbg({ h: 'H1', loc: `map-init-${scheduleId}`, msg: 'map initialized', data: { scheduleId } });
                 
@@ -273,9 +284,9 @@
                     if (loadingEl) loadingEl.style.display = 'none';
                 }, 1000);
                 
-                // Start fetching live location for this schedule
-                setInterval(() => fetchLiveLocation(scheduleId, busId), 3000);
-                fetchLiveLocation(scheduleId, busId); // Initial fetch
+                // Near real-time: poll every 1s + smooth marker between fixes
+                setInterval(() => fetchLiveLocation(scheduleId, busId), POLL_MS);
+                fetchLiveLocation(scheduleId, busId);
             } catch (error) {
                 dbg({ h: 'H1', loc: `map-init-error-${scheduleId}`, msg: 'map init failed', data: { error: error.message, scheduleId } });
                 if (loadingEl) loadingEl.textContent = 'Error: ' + error.message;
@@ -285,62 +296,187 @@
         async function fetchLiveLocation(scheduleId, busId) {
             try {
                 const res = await fetch(`/api/bus/get-location/${busId}`);
-                dbg({ h: 'H2', loc: `fetch-start-${scheduleId}`, msg: 'fetching bus', data: { scheduleId, busId } });
                 if (!res.ok) throw new Error('Network response was not ok');
                 const data = await res.json();
-                
-                // Log delay calculation details
-                dbg({ 
-                    h: 'H2', 
-                    loc: `delay-calculation-${scheduleId}`, 
-                    msg: 'delay calculated dynamically', 
-                    data: { 
+
+                const {
+                    lat, lng, status, eta_text, delay_msg, is_delayed, status_msg, delay_minutes,
+                    has_gps, gps_fresh, gps_stale, gps_age_seconds, heading, speed_kmh
+                } = data;
+
+                updateGpsBadge(scheduleId, { has_gps, gps_fresh, gps_stale, gps_age_seconds });
+                updateMotionBadge(scheduleId, { heading, speed_kmh, has_gps });
+
+                // Prefer real driver GPS when we have coordinates
+                if (has_gps && lat != null && lng != null && !Number.isNaN(parseFloat(lat))) {
+                    updateMarker(
                         scheduleId,
-                        is_delayed: data.is_delayed,
-                        delay_minutes: data.delay_minutes,
-                        expected_eta: data.expected_eta,
-                        current_eta: data.current_eta,
-                        expected_arrival_time: data.expected_arrival_time,
-                        actual_arrival_time: data.actual_arrival_time,
-                        current_speed: data.current_speed,
-                        normal_speed: data.normal_speed,
-                        delay_msg: data.delay_msg
-                    } 
-                });
-                
-                const { lat, lng, status, eta_text, delay_msg, is_delayed, status_msg, delay_minutes } = data;
-                updateMarker(scheduleId, parseFloat(lat), parseFloat(lng), status || (is_delayed ? 'delayed' : 'on_time'), eta_text, delay_msg, status_msg, is_delayed, delay_minutes);
+                        parseFloat(lat),
+                        parseFloat(lng),
+                        status || (is_delayed ? 'delayed' : 'on_time'),
+                        eta_text,
+                        delay_msg,
+                        status_msg,
+                        is_delayed,
+                        delay_minutes,
+                        heading,
+                        speed_kmh
+                    );
+                    return;
+                }
+
+                // No driver fix yet — fall through to path simulation for demos
+                runSimulatedPath(scheduleId);
             } catch (error) {
-                dbg({ h: 'H2', loc: `fetch-error-${scheduleId}`, msg: 'fetch failed, using simulation', data: { error: error.message, scheduleId } });
-                // Use simulated path for this schedule - create smooth movement
+                updateGpsBadge(scheduleId, { has_gps: false, gps_fresh: false, gps_stale: false, gps_age_seconds: null, offline: true });
+                updateMotionBadge(scheduleId, { heading: null, speed_kmh: null, has_gps: false });
+                runSimulatedPath(scheduleId);
+            }
+        }
+
+        function compassLabel(deg) {
+            if (deg == null || Number.isNaN(deg)) return '—';
+            const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+            const i = Math.round((((deg % 360) + 360) % 360) / 45) % 8;
+            return dirs[i] + ' ' + Math.round(deg) + '°';
+        }
+
+        function updateMotionBadge(scheduleId, info) {
+            const el = document.getElementById(`motion-badge-${scheduleId}`);
+            if (!el) return;
+            if (!info.has_gps) {
+                el.textContent = 'Heading — · Speed —';
+                return;
+            }
+            const speed = info.speed_kmh != null ? Number(info.speed_kmh).toFixed(0) + ' km/h' : '—';
+            el.textContent = 'Heading ' + compassLabel(info.heading) + ' · Speed ' + speed;
+        }
+
+        function busIcon(headingDeg) {
+            const rot = headingDeg != null && !Number.isNaN(headingDeg) ? headingDeg : 0;
+            return L.divIcon({
+                className: 'bus-marker-wrap',
+                html: `<div class="bus-marker" style="transform:rotate(${rot}deg)" title="Heading ${Math.round(rot)}°"><span class="bus-marker__arrow"></span></div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14],
+            });
+        }
+
+        function setMarkerHeading(scheduleId, heading) {
+            const marker = scheduleMarkers[scheduleId];
+            if (!marker) return;
+            if (heading == null || Number.isNaN(heading)) return;
+            scheduleHeadings[scheduleId] = heading;
+            marker.setIcon(busIcon(heading));
+        }
+
+        function updateGpsBadge(scheduleId, info) {
+            const el = document.getElementById(`gps-badge-${scheduleId}`);
+            if (!el) return;
+            el.classList.remove('gps-live-badge--live', 'gps-live-badge--stale', 'gps-live-badge--idle', 'gps-live-badge--offline');
+
+            if (info.offline) {
+                el.classList.add('gps-live-badge--offline');
+                el.textContent = 'GPS: offline (demo path)';
+                return;
+            }
+            if (info.gps_fresh) {
+                el.classList.add('gps-live-badge--live');
+                el.textContent = 'GPS: live · ' + (info.gps_age_seconds ?? 0) + 's ago';
+                return;
+            }
+            if (info.gps_stale || info.has_gps) {
+                el.classList.add('gps-live-badge--stale');
+                const age = info.gps_age_seconds != null ? info.gps_age_seconds + 's ago' : 'stale';
+                el.textContent = 'GPS: stale · last ' + age;
+                return;
+            }
+            el.classList.add('gps-live-badge--idle');
+            el.textContent = 'GPS: waiting for driver';
+        }
+
+        function runSimulatedPath(scheduleId) {
                 const path = schedulePaths[scheduleId] || schedulePaths[1];
                 const timeMs = Date.now();
-                const cycleTime = 8000; // 8 second cycle through all points
+                const cycleTime = 8000;
                 const progress = (timeMs % cycleTime) / cycleTime;
                 const segmentIndex = Math.floor(progress * (path.length - 1));
                 const segmentProgress = (progress * (path.length - 1)) % 1;
-                
-                // Interpolate between current and next point for smooth movement
+
                 const currentPoint = path[segmentIndex];
                 const nextPoint = path[Math.min(segmentIndex + 1, path.length - 1)];
                 const lat = currentPoint.lat + (nextPoint.lat - currentPoint.lat) * segmentProgress;
                 const lng = currentPoint.lng + (nextPoint.lng - currentPoint.lng) * segmentProgress;
-                
-                // Calculate ETA based on progress
+
                 const etas = { 1: [10, 8, 6, 4], 2: [15, 12, 9, 6], 3: [8, 6, 4, 2] };
                 const etaValues = etas[scheduleId] || [10, 8, 6, 4];
                 const etaIndex = Math.floor(progress * (etaValues.length - 1));
                 const eta = Math.max(0, Math.ceil(etaValues[etaIndex] * (1 - segmentProgress)));
-                
-                // Simulate dynamic delay: delay increases as bus gets closer to destination if speed is slow
+
                 const isDelayed = segmentProgress > 0.6 && segmentIndex === path.length - 1;
                 const simulatedDelayMinutes = isDelayed ? Math.floor(5 + segmentProgress * 10) : 0;
-                
-                updateMarker(scheduleId, lat, lng, isDelayed ? 'delayed' : 'on_time', `${eta} mins`, isDelayed ? `Simulated delay: ${simulatedDelayMinutes} minutes` : null, isDelayed ? 'Delayed' : 'On Time', isDelayed, simulatedDelayMinutes);
-            }
+
+                const dLat = nextPoint.lat - currentPoint.lat;
+                const dLng = nextPoint.lng - currentPoint.lng;
+                const simHeading = (Math.atan2(dLng, dLat) * 180 / Math.PI + 360) % 360;
+                const simSpeed = 28 + segmentProgress * 8;
+
+                updateMotionBadge(scheduleId, { heading: simHeading, speed_kmh: simSpeed, has_gps: true });
+                updateMarker(scheduleId, lat, lng, isDelayed ? 'delayed' : 'on_time', `${eta} mins`, isDelayed ? `Simulated delay: ${simulatedDelayMinutes} minutes` : null, isDelayed ? 'Delayed' : 'On Time', isDelayed, simulatedDelayMinutes, simHeading, simSpeed);
         }
 
-        function updateMarker(scheduleId, lat, lng, status, etaText, delayMsg, statusMsg, isDelayedFlag, delayMinutes = 0) {
+        function easeInOutCubic(t) {
+            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+
+        /** Animate marker toward new GPS like Uber/Pathao (no hard jumps). */
+        function animateMarkerTo(scheduleId, lat, lng) {
+            const map = scheduleMaps[scheduleId];
+            const marker = scheduleMarkers[scheduleId];
+            if (!map || !marker) return;
+
+            if (scheduleAnimFrames[scheduleId]) {
+                cancelAnimationFrame(scheduleAnimFrames[scheduleId]);
+                scheduleAnimFrames[scheduleId] = null;
+            }
+
+            const from = marker.getLatLng();
+            const dLat = Math.abs(from.lat - lat);
+            const dLng = Math.abs(from.lng - lng);
+            if (dLat < 0.00001 && dLng < 0.00001) {
+                marker.setLatLng([lat, lng]);
+                scheduleLastPositions[scheduleId] = { lat, lng };
+                return;
+            }
+
+            const start = performance.now();
+            const fromLat = from.lat;
+            const fromLng = from.lng;
+            // Pan only on meaningful moves (~40m+) so the map doesn't jitter every tick
+            const shouldPan = dLat > 0.00035 || dLng > 0.00035;
+
+            function step(now) {
+                const t = Math.min(1, (now - start) / SMOOTH_MS);
+                const e = easeInOutCubic(t);
+                const curLat = fromLat + (lat - fromLat) * e;
+                const curLng = fromLng + (lng - fromLng) * e;
+                marker.setLatLng([curLat, curLng]);
+
+                if (t < 1) {
+                    scheduleAnimFrames[scheduleId] = requestAnimationFrame(step);
+                } else {
+                    scheduleAnimFrames[scheduleId] = null;
+                    scheduleLastPositions[scheduleId] = { lat, lng };
+                    if (shouldPan) {
+                        map.panTo([lat, lng], { animate: true, duration: 0.4 });
+                    }
+                }
+            }
+
+            scheduleAnimFrames[scheduleId] = requestAnimationFrame(step);
+        }
+
+        function updateMarker(scheduleId, lat, lng, status, etaText, delayMsg, statusMsg, isDelayedFlag, delayMinutes = 0, heading = null, speedKmh = null) {
             const map = scheduleMaps[scheduleId];
             const marker = scheduleMarkers[scheduleId];
             if (!map || !marker) {
@@ -348,29 +484,29 @@
                 return;
             }
             
-            // Get current marker position
             const currentPos = marker.getLatLng();
             const lastPos = scheduleLastPositions[scheduleId];
             const lastDelay = scheduleLastDelays[scheduleId];
             
-            // Check if position actually changed
             const positionChanged = !lastPos || 
                 Math.abs(currentPos.lat - lat) > 0.0001 || 
                 Math.abs(currentPos.lng - lng) > 0.0001;
             
-            // Check if delay status changed
             const delayChanged = lastDelay !== isDelayedFlag || 
                 (isDelayedFlag && lastDelay && Math.abs((lastDelay.delayMinutes || 0) - delayMinutes) >= 1);
-            
-            // Update marker position
-            marker.setLatLng([lat, lng]);
-            
-            // Only pan map if position changed significantly (to avoid constant panning)
-            if (positionChanged) {
-                map.panTo([lat, lng]);
+
+            // Derive heading from movement if API didn't send one
+            let h = heading != null && !Number.isNaN(Number(heading)) ? Number(heading) : null;
+            if (h == null && lastPos) {
+                const moved = Math.abs(lastPos.lat - lat) > 0.00002 || Math.abs(lastPos.lng - lng) > 0.00002;
+                if (moved) {
+                    h = (Math.atan2(lng - lastPos.lng, lat - lastPos.lat) * 180 / Math.PI + 360) % 360;
+                }
             }
+            if (h != null) setMarkerHeading(scheduleId, h);
             
-            // Store new position and delay state
+            animateMarkerTo(scheduleId, lat, lng);
+            
             scheduleLastPositions[scheduleId] = { lat, lng };
             scheduleLastDelays[scheduleId] = { isDelayed: isDelayedFlag, delayMinutes };
             
@@ -389,6 +525,8 @@
                     status,
                     isDelayed: isDelayedFlag,
                     delayMinutes,
+                    heading: h,
+                    speed_kmh: speedKmh,
                     timestamp: Date.now()
                 } 
             });
@@ -551,18 +689,22 @@
             }
         }
 
-        // Initialize all maps on page load
+        // Initialize maps with real bus IDs from the database (driver GPS keys off these)
         document.addEventListener('DOMContentLoaded', () => {
-            dbg({ h: 'H1', loc: 'DOMContentLoaded', msg: 'init start' });
-            
-            // Schedule 1: 7.00 AM - Bus ID 1
-            initMap(1, [23.8103, 90.4125], 1);
-            
-            // Schedule 2: 8.30 AM - Bus ID 2 (simulated)
-            initMap(2, [23.8150, 90.4100], 2);
-            
-            // Schedule 3: 12.00 PM - Bus ID 3 (simulated)
-            initMap(3, [23.8050, 90.4000], 3);
+            const buses = @json($buses->values());
+            const defaults = [
+                [23.8103, 90.4125],
+                [23.8150, 90.4100],
+                [23.8050, 90.4000],
+            ];
+
+            buses.slice(0, 3).forEach((bus, index) => {
+                const scheduleId = index + 1;
+                const center = (bus.current_lat && bus.current_lng)
+                    ? [parseFloat(bus.current_lat), parseFloat(bus.current_lng)]
+                    : defaults[index];
+                initMap(scheduleId, center, bus.id);
+            });
         });
     </script>
     @endpush

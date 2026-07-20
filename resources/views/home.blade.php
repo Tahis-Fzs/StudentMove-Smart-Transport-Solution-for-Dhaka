@@ -36,7 +36,7 @@
         <div class="l-hero__content">
             <p class="l-hero__brand">StudentMove</p>
             <h1 class="l-hero__headline">Move through Dhaka with intent.</h1>
-            <p class="l-hero__lede">Live buses, ranked routes, and student plans — designed for the city that never sits still.</p>
+            <p class="l-hero__lede">Live buses, ranked routes, and student plans — prestige tooling for the city that never sits still.</p>
             <div class="l-hero__cta">
                 @auth
                     <a class="l-btn l-btn--primary" href="{{ route('dashboard') }}">Open dashboard</a>

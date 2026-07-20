@@ -28,7 +28,11 @@ class AiController extends Controller
             ],
         ];
 
-        $model = $validated['model'] ?? null;
+        // Only pass a custom model when the remote provider is configured.
+        // Hardcoded browser models (e.g. gpt-4.1-mini) break OpenRouter free tiers.
+        $model = $this->aiService->isConfigured()
+            ? ($validated['model'] ?? null)
+            : null;
         $maxTokens = $validated['max_tokens'] ?? 512;
         $temperature = $validated['temperature'] ?? 0.7;
 
@@ -38,12 +42,13 @@ class AiController extends Controller
             return response()->json([
                 'output' => $content,
                 'model' => $model ?? config('services.openai.default_model'),
+                'offline' => !$this->aiService->isConfigured(),
             ]);
         } catch (\Throwable $e) {
             report($e);
+
             return response()->json([
                 'error' => 'AI request failed: ' . $e->getMessage(),
-                'base_url' => config('services.openai.base_url'),
             ], 500);
         }
     }

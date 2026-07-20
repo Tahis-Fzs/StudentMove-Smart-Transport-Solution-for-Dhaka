@@ -1,45 +1,36 @@
-<x-app-layout>
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <h1 class="text-3xl font-bold mb-6">Contact Us</h1>
-                    
-                    @if(session('success'))
-                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                            {{ session('success') }}
-                        </div>
-                    @endif
+<x-app-layout title="Contact">
+    <div class="sm-page">
+        <header class="sm-page-head" data-reveal>
+            <p class="sm-eyebrow">Support</p>
+            <h1 class="sm-page-head__title">Contact us</h1>
+            <p class="sm-page-head__lede">Questions about routes, passes, or your account — send a note and we’ll get back to you.</p>
+        </header>
 
-                    <form action="{{ route('contact.store') }}" method="POST" class="space-y-4">
-                        @csrf
-                        <div>
-                            <label for="name" class="block text-sm font-medium mb-2">Name</label>
-                            <input type="text" name="name" id="name" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label for="email" class="block text-sm font-medium mb-2">Email</label>
-                            <input type="email" name="email" id="email" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label for="subject" class="block text-sm font-medium mb-2">Subject</label>
-                            <input type="text" name="subject" id="subject" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label for="message" class="block text-sm font-medium mb-2">Message</label>
-                            <textarea name="message" id="message" rows="5" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
-                        </div>
-                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-                            Send Message
-                        </button>
-                    </form>
+        <div class="sm-panel" data-reveal style="max-width:640px;">
+            @if(session('success'))
+                <div class="sm-flash sm-flash--ok" style="margin:0 0 1.25rem;">{{ session('success') }}</div>
+            @endif
+
+            <form action="{{ route('contact.store') }}" method="POST">
+                @csrf
+                <div class="sm-field">
+                    <label for="name">Name</label>
+                    <input class="form-input" type="text" name="name" id="name" required value="{{ old('name') }}">
                 </div>
-            </div>
+                <div class="sm-field">
+                    <label for="email">Email</label>
+                    <input class="form-input" type="email" name="email" id="email" required value="{{ old('email') }}">
+                </div>
+                <div class="sm-field">
+                    <label for="subject">Subject</label>
+                    <input class="form-input" type="text" name="subject" id="subject" required value="{{ old('subject') }}">
+                </div>
+                <div class="sm-field">
+                    <label for="message">Message</label>
+                    <textarea class="form-input" name="message" id="message" rows="5" required>{{ old('message') }}</textarea>
+                </div>
+                <button type="submit" class="sm-btn sm-btn--primary">Send message</button>
+            </form>
         </div>
     </div>
 </x-app-layout>
-

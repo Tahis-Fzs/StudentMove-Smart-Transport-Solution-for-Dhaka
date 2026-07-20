@@ -20,8 +20,15 @@
                     <a href="{{ route('next-bus-arrival') }}" class="nav-link {{ request()->routeIs('next-bus-arrival') ? 'active' : '' }}">Live map</a>
                     @auth
                         <a href="{{ route('route-suggestion') }}" class="nav-link {{ request()->routeIs('route-suggestion') ? 'active' : '' }}">Routes</a>
+                        <a href="{{ route('bookings.index') }}" class="nav-link {{ request()->routeIs('bookings.*') ? 'active' : '' }}">Book</a>
                         <a href="{{ route('subscription') }}" class="nav-link {{ request()->routeIs('subscription*') ? 'active' : '' }}">Plans</a>
-                        <a href="{{ route('notifications') }}" class="nav-link {{ request()->routeIs('notifications') ? 'active' : '' }}">Alerts</a>
+                        <a href="{{ route('notifications') }}" class="nav-link {{ request()->routeIs('notifications*') ? 'active' : '' }}">
+                            Alerts
+                            @php $inboxUnread = auth()->user()->inboxMessages()->whereNull('read_at')->count(); @endphp
+                            @if ($inboxUnread > 0)
+                                <span class="inbox-nav-badge">{{ $inboxUnread > 9 ? '9+' : $inboxUnread }}</span>
+                            @endif
+                        </a>
                         <a href="{{ route('feedback.index') }}" class="nav-link {{ request()->routeIs('feedback.*') ? 'active' : '' }}">Feedback</a>
                         <a href="{{ route('profile.edit') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">Profile</a>
                         <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a>

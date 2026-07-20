@@ -51,20 +51,20 @@ class Subscription extends Model
 
     public function getPlanNameAttribute()
     {
-        return match($this->plan_type) {
-            'monthly' => 'Monthly Plan',
-            '6months' => '6 Months Plan',
-            'yearly' => '1 Year Plan',
+        return match ($this->plan_type) {
+            'monthly' => 'Weekly Pass',
+            '6months' => 'Monthly Pass',
+            'yearly' => 'Single Ride',
             default => 'Unknown Plan',
         };
     }
 
     public function getPlanDurationAttribute()
     {
-        return match($this->plan_type) {
-            'monthly' => 1,
-            '6months' => 6,
-            'yearly' => 12,
+        return match ($this->plan_type) {
+            'monthly' => 7,
+            '6months' => 30,
+            'yearly' => 1,
             default => 0,
         };
     }

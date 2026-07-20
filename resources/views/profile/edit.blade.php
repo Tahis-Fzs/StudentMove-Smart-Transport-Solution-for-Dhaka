@@ -22,8 +22,9 @@
             
             <!-- Profile Picture Section -->
             <div class="avatar-upload">
-                <img src="{{ Auth::user()->profile_image ? asset('storage/' . Auth::user()->profile_image) . '?v=' . time() : 'https://randomuser.me/api/portraits/men/32.jpg' }}" 
-                     alt="Profile Picture" class="profile-avatar" id="profile-avatar">
+                <img src="{{ Auth::user()->avatarUrl() }}"
+                     alt="Profile Picture" class="profile-avatar" id="profile-avatar"
+                     onerror="this.onerror=null;this.src='{{ Auth::user()->avatarFallbackUrl() }}';">
                 <button type="button" class="upload-btn" onclick="document.getElementById('avatar-input').click()">
                     <i class="bi bi-camera"></i> Change Photo
                 </button>
@@ -80,25 +81,85 @@
             </div>
 
             <!-- Academic Information -->
-            <div class="form-section">
+            @php
+                $uniNames = $universities->pluck('name')->all();
+                $matchUni = $user->university;
+                if ($matchUni && !in_array($matchUni, $uniNames, true)) {
+                    $byShort = $universities->first(fn ($u) => strcasecmp((string) $u->short_name, $matchUni) === 0);
+                    if ($byShort) {
+                        $matchUni = $byShort->name;
+                    }
+                }
+                $savedUni = old('university_select', in_array($matchUni, $uniNames, true) ? $matchUni : ($user->university ? '__other__' : ''));
+                $savedFac = old('faculty_select', $faculties->contains($user->faculty) ? $user->faculty : ($user->faculty ? '__other__' : ''));
+                $savedDept = old('department_select', $departments->contains($user->department) ? $user->department : ($user->department ? '__other__' : ''));
+                $uniMeta = $universities->mapWithKeys(fn ($u) => [$u->name => $u->calendar_type])->all();
+            @endphp
+            <div class="form-section" id="academic-section"
+                 data-calendars='@json($uniMeta)'
+                 data-saved-system="{{ old('semester_system', $user->semester_system) }}"
+                 data-saved-year="{{ old('year_of_study', $user->year_of_study) }}"
+                 data-saved-semester="{{ old('semester', $user->semester) }}">
                 <h3 class="form-section-title"><i class="bi bi-mortarboard"></i> Academic Information</h3>
-                
+
                 <div class="form-group">
                     <label class="form-label">University</label>
-                    <input type="text" class="form-input" name="university" value="{{ old('university', $user->university) }}">
-                    @error('university')
+                    <select class="form-input" name="university_select" id="university_select">
+                        <option value="">Select university</option>
+                        @foreach($universities as $uni)
+                            <option value="{{ $uni->name }}" @selected($savedUni === $uni->name)>
+                                {{ $uni->short_name ? $uni->short_name.' — ' : '' }}{{ $uni->name }}
+                            </option>
+                        @endforeach
+                        <option value="__other__" @selected($savedUni === '__other__')>Other (add manually)</option>
+                    </select>
+                    <input type="text" class="form-input academic-other" name="university_other" id="university_other"
+                           placeholder="Type your university name"
+                           value="{{ old('university_other', $savedUni === '__other__' ? $user->university : '') }}"
+                           style="{{ $savedUni === '__other__' ? '' : 'display:none;margin-top:8px;' }}">
+                    @error('university_other')
                         <div class="error-message">{{ $message }}</div>
                     @enderror
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Department</label>
-                        <input type="text" class="form-input" name="department" value="{{ old('department', $user->department) }}">
-                        @error('department')
+                        <label class="form-label">Faculty</label>
+                        <select class="form-input" name="faculty_select" id="faculty_select">
+                            <option value="">Select faculty</option>
+                            @foreach($faculties as $faculty)
+                                <option value="{{ $faculty }}" @selected($savedFac === $faculty)>{{ $faculty }}</option>
+                            @endforeach
+                            <option value="__other__" @selected($savedFac === '__other__')>Other (add manually)</option>
+                        </select>
+                        <input type="text" class="form-input academic-other" name="faculty_other" id="faculty_other"
+                               placeholder="Type your faculty name"
+                               value="{{ old('faculty_other', $savedFac === '__other__' ? $user->faculty : '') }}"
+                               style="{{ $savedFac === '__other__' ? '' : 'display:none;margin-top:8px;' }}">
+                        @error('faculty_other')
                             <div class="error-message">{{ $message }}</div>
                         @enderror
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">Department</label>
+                        <select class="form-input" name="department_select" id="department_select">
+                            <option value="">Select department</option>
+                            @foreach($departments as $department)
+                                <option value="{{ $department }}" @selected($savedDept === $department)>{{ $department }}</option>
+                            @endforeach
+                            <option value="__other__" @selected($savedDept === '__other__')>Other (add manually)</option>
+                        </select>
+                        <input type="text" class="form-input academic-other" name="department_other" id="department_other"
+                               placeholder="Type your department name"
+                               value="{{ old('department_other', $savedDept === '__other__' ? $user->department : '') }}"
+                               style="{{ $savedDept === '__other__' ? '' : 'display:none;margin-top:8px;' }}">
+                        @error('department_other')
+                            <div class="error-message">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Student ID</label>
                         <input type="text" class="form-input" name="student_id" value="{{ old('student_id', $user->student_id) }}">
@@ -106,20 +167,32 @@
                             <div class="error-message">{{ $message }}</div>
                         @enderror
                     </div>
+                    <div class="form-group" id="semester-system-wrap" style="display:none;">
+                        <label class="form-label">Semester system</label>
+                        <select class="form-input" name="semester_system" id="semester_system">
+                            <option value="bi">Bi-mester (2 / year)</option>
+                            <option value="tri">Tri-mester (3 / year)</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Year of Study</label>
-                    <select class="form-input" name="year_of_study">
-                        <option value="1" {{ old('year_of_study', $user->year_of_study) == '1' ? 'selected' : '' }}>1st Year</option>
-                        <option value="2" {{ old('year_of_study', $user->year_of_study) == '2' ? 'selected' : '' }}>2nd Year</option>
-                        <option value="3" {{ old('year_of_study', $user->year_of_study) == '3' ? 'selected' : '' }}>3rd Year</option>
-                        <option value="4" {{ old('year_of_study', $user->year_of_study) == '4' ? 'selected' : '' }}>4th Year</option>
-                    </select>
-                    @error('year_of_study')
-                        <div class="error-message">{{ $message }}</div>
-                    @enderror
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Year of Study</label>
+                        <select class="form-input" name="year_of_study" id="year_of_study"></select>
+                        @error('year_of_study')
+                            <div class="error-message">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" id="semester-label">Semester</label>
+                        <select class="form-input" name="semester" id="semester"></select>
+                        @error('semester')
+                            <div class="error-message">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
+                <p class="academic-hint" id="academic-hint">Pick a university to load bi-mester or tri-mester options.</p>
             </div>
 
             <!-- Address Information -->
@@ -212,6 +285,108 @@
                 reader.readAsDataURL(file);
             }
         }
+
+        (function academicFields() {
+            const section = document.getElementById('academic-section');
+            if (!section) return;
+
+            const calendars = JSON.parse(section.dataset.calendars || '{}');
+            const uniSelect = document.getElementById('university_select');
+            const uniOther = document.getElementById('university_other');
+            const facSelect = document.getElementById('faculty_select');
+            const facOther = document.getElementById('faculty_other');
+            const deptSelect = document.getElementById('department_select');
+            const deptOther = document.getElementById('department_other');
+            const systemWrap = document.getElementById('semester-system-wrap');
+            const systemSelect = document.getElementById('semester_system');
+            const yearSelect = document.getElementById('year_of_study');
+            const semesterSelect = document.getElementById('semester');
+            const semesterLabel = document.getElementById('semester-label');
+            const hint = document.getElementById('academic-hint');
+
+            const yearLabels = { 1: '1st Year', 2: '2nd Year', 3: '3rd Year', 4: '4th Year' };
+            const savedYear = section.dataset.savedYear || '';
+            const savedSemester = section.dataset.savedSemester || '';
+            const savedSystem = section.dataset.savedSystem || '';
+
+            function toggleOther(selectEl, otherEl) {
+                const isOther = selectEl.value === '__other__';
+                otherEl.style.display = isOther ? 'block' : 'none';
+                if (isOther) {
+                    otherEl.style.marginTop = '8px';
+                    otherEl.required = true;
+                } else {
+                    otherEl.required = false;
+                }
+            }
+
+            function fillSelect(select, options, selected) {
+                select.innerHTML = '';
+                options.forEach(([value, label]) => {
+                    const opt = document.createElement('option');
+                    opt.value = value;
+                    opt.textContent = label;
+                    if (String(value) === String(selected)) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            }
+
+            function activeSystem() {
+                const uni = uniSelect.value;
+                if (!uni || uni === '__other__') {
+                    return systemSelect.value || 'bi';
+                }
+                const type = calendars[uni] || 'bi';
+                if (type === 'both') return systemSelect.value || 'bi';
+                return type;
+            }
+
+            function refreshSemesterUI() {
+                const uni = uniSelect.value;
+                let type = (!uni || uni === '__other__') ? 'bi' : (calendars[uni] || 'bi');
+
+                if (type === 'both' || !uni || uni === '__other__') {
+                    systemWrap.style.display = '';
+                    if (savedSystem) systemSelect.value = savedSystem;
+                    type = systemSelect.value || 'bi';
+                } else {
+                    systemWrap.style.display = 'none';
+                    systemSelect.value = type;
+                }
+
+                fillSelect(yearSelect, Object.entries(yearLabels), savedYear || '1');
+
+                if (type === 'tri') {
+                    semesterLabel.textContent = 'Tri-mester';
+                    fillSelect(semesterSelect, [
+                        ['1', 'Term 1'],
+                        ['2', 'Term 2'],
+                        ['3', 'Term 3'],
+                    ], savedSemester || '1');
+                    hint.textContent = 'This university uses a tri-mester calendar (3 terms per year).';
+                } else {
+                    semesterLabel.textContent = 'Bi-mester';
+                    fillSelect(semesterSelect, [
+                        ['1', 'Semester 1'],
+                        ['2', 'Semester 2'],
+                    ], savedSemester || '1');
+                    hint.textContent = 'This university uses a bi-mester calendar (2 semesters per year).';
+                }
+            }
+
+            uniSelect.addEventListener('change', () => {
+                toggleOther(uniSelect, uniOther);
+                refreshSemesterUI();
+            });
+            facSelect.addEventListener('change', () => toggleOther(facSelect, facOther));
+            deptSelect.addEventListener('change', () => toggleOther(deptSelect, deptOther));
+            systemSelect.addEventListener('change', refreshSemesterUI);
+
+            toggleOther(uniSelect, uniOther);
+            toggleOther(facSelect, facOther);
+            toggleOther(deptSelect, deptOther);
+            refreshSemesterUI();
+        })();
 
         // Form validation
         document.getElementById('profile-form').addEventListener('submit', function(e) {

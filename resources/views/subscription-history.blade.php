@@ -11,8 +11,11 @@
             margin-bottom: 30px;
         }
         .history-header h1 {
-            font-size: 2rem;
-            color: #333;
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-family: Syne, sans-serif;
+            font-weight: 800;
+            letter-spacing: -0.035em;
+            color: #12161c;
             margin-bottom: 10px;
         }
         .tab-buttons {
@@ -32,8 +35,8 @@
             transition: all 0.3s;
         }
         .tab-btn.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
+            color: #0b6e6a;
+            border-bottom-color: #0b6e6a;
             font-weight: 600;
         }
         .tab-content {
@@ -123,7 +126,7 @@
             transition: all 0.3s;
         }
         .btn-primary {
-            background: #667eea;
+            background: #0b6e6a;
             color: white;
         }
         .btn-primary:hover {
@@ -131,8 +134,8 @@
         }
         .btn-outline {
             background: white;
-            color: #667eea;
-            border: 1px solid #667eea;
+            color: #0b6e6a;
+            border: 1px solid #0b6e6a;
         }
         .btn-outline:hover {
             background: #f0f0f0;

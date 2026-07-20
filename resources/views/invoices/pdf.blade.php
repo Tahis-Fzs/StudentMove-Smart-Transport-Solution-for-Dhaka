@@ -15,11 +15,11 @@
             justify-content: space-between;
             margin-bottom: 40px;
             padding-bottom: 20px;
-            border-bottom: 2px solid #667eea;
+            border-bottom: 2px solid #0b6e6a;
         }
         .company-info h1 {
             margin: 0;
-            color: #667eea;
+            color: #0b6e6a;
             font-size: 28px;
         }
         .invoice-info {
@@ -37,7 +37,7 @@
         }
         .detail-section h3 {
             margin-top: 0;
-            color: #667eea;
+            color: #0b6e6a;
             font-size: 16px;
             text-transform: uppercase;
         }
@@ -57,7 +57,7 @@
             margin-bottom: 30px;
         }
         .invoice-table th {
-            background: #667eea;
+            background: #0b6e6a;
             color: white;
             padding: 12px;
             text-align: left;
@@ -91,8 +91,8 @@
         .grand-total {
             font-size: 20px;
             font-weight: bold;
-            color: #667eea;
-            border-top: 2px solid #667eea;
+            color: #0b6e6a;
+            border-top: 2px solid #0b6e6a;
             padding-top: 10px;
         }
         .footer {

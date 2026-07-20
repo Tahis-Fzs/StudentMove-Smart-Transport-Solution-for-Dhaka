@@ -5,8 +5,8 @@
 @section('content')
     <div class="admin-container">
         <div class="admin-header">
-            <h1><i class="bi bi-bell"></i> Manage Notifications</h1>
-            <p>Create and manage user notifications</p>
+            <h1><i class="bi bi-bell"></i> Manage Announcements</h1>
+            <p>Targeted alerts by university, department, or route — with publish/expire windows</p>
         </div>
 
         <div class="admin-toolbar">
@@ -29,6 +29,8 @@
                         <tr>
                             <th>ID</th>
                             <th>Message</th>
+                            <th>Audience</th>
+                            <th>Schedule</th>
                             <th>Offer</th>
                             <th>Type</th>
                             <th>Status</th>
@@ -40,11 +42,31 @@
                         @foreach($notifications as $notification)
                         <tr>
                             <td>{{ $notification->id }}</td>
-                            <td><strong>{{ Str::limit($notification->message, 60) }}</strong></td>
+                            <td>
+                                @if($notification->title)
+                                    <div style="font-weight:700;margin-bottom:2px;">{{ Str::limit($notification->title, 40) }}</div>
+                                @endif
+                                <strong>{{ Str::limit($notification->message, 60) }}</strong>
+                            </td>
+                            <td>
+                                <span style="font-size:0.85rem;">{{ $notification->audienceLabel() }}</span>
+                            </td>
+                            <td style="font-size:0.8rem;color:#5b6572;">
+                                @if($notification->published_at)
+                                    <div>From {{ $notification->published_at->format('M d, H:i') }}</div>
+                                @else
+                                    <div>Immediate</div>
+                                @endif
+                                @if($notification->expires_at)
+                                    <div>Until {{ $notification->expires_at->format('M d, H:i') }}</div>
+                                @else
+                                    <div>No expiry</div>
+                                @endif
+                            </td>
                             <td>
                                 @if($notification->offer)
                                     <div style="display: flex; align-items: center; gap: 6px;">
-                                        <i class="bi bi-gift-fill" style="color: #3b82f6;"></i>
+                                        <i class="bi bi-gift-fill" style="color: #0b6e6a;"></i>
                                         <span style="font-weight: 500;">{{ Str::limit($notification->offer->title, 30) }}</span>
                                         @if($notification->offer->discount_percentage > 0)
                                         <span style="background: #10b981; color: white; padding: 2px 6px; border-radius: 8px; font-size: 0.75rem; font-weight: 600;">

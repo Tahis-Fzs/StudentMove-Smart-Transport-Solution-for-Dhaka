@@ -16,25 +16,33 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call([
+            AcademicCatalogSeeder::class,
+        ]);
+
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        if (!User::where('email', 'test@example.com')->exists()) {
+            User::factory()->create([
+                'name' => 'Test User',
+                'email' => 'test@example.com',
+            ]);
+        }
 
-        BusSchedule::create([
-            'route_name' => 'Uttara to DSC',
-            'departure_time' => '07:00',
-            'departure_location' => 'Rajlakshmi',
-            'arrival_location' => 'DSC',
-            'bus_number' => 'BUS-001',
-            'price' => 50.00,
-            'is_active' => true,
-            'current_lat' => 23.8103,
-            'current_lng' => 90.4125,
-            'status' => 'on_time',
-            'delay_minutes' => 0,
-        ]);
+        if (!BusSchedule::where('bus_number', 'BUS-001')->exists()) {
+            BusSchedule::create([
+                'route_name' => 'Uttara to DSC',
+                'departure_time' => '07:00',
+                'departure_location' => 'Rajlakshmi',
+                'arrival_location' => 'DSC',
+                'bus_number' => 'BUS-001',
+                'price' => 50.00,
+                'is_active' => true,
+                'current_lat' => 23.8103,
+                'current_lng' => 90.4125,
+                'status' => 'on_time',
+                'delay_minutes' => 0,
+            ]);
+        }
     }
 }

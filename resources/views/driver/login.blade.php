@@ -7,21 +7,22 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     @vite(['resources/css/premium.css', 'resources/js/app.js'])
     <style>
-        .driver-shell { min-height: 100vh; }
         .driver-card {
             width: 100%;
             max-width: 420px;
-            background: rgba(255,255,255,0.94);
+            background: rgba(255,255,255,0.96);
             border: 1px solid rgba(18,22,28,0.08);
-            border-radius: 0.75rem;
+            border-radius: 0.85rem;
             padding: 2rem;
             box-shadow: 0 18px 50px rgba(18,22,28,0.1);
         }
         .driver-card h1 {
             font-family: Syne, sans-serif;
             font-size: 1.75rem;
+            font-weight: 800;
             letter-spacing: -0.03em;
             margin: 0 0 0.35rem;
+            color: #12161c;
         }
         .driver-card .lede { color: #5b6572; margin-bottom: 1.5rem; }
         .driver-submit {
@@ -47,10 +48,11 @@
         </div>
     </nav>
 
-    <main class="driver-shell d-flex align-items-center justify-content-center" style="padding: 2rem 1rem;">
+    <main class="d-flex align-items-center justify-content-center" style="min-height:calc(100vh - 72px);padding:2rem 1rem;">
         <div class="driver-card sm-reveal">
-            <h1>Driver access</h1>
-            <p class="lede">Select your bus and start the shift.</p>
+            <p class="sm-eyebrow">Driver</p>
+            <h1>Start shift</h1>
+            <p class="lede">Select your bus and enter the driver PIN.</p>
 
             @if(session('error'))
                 <div class="sm-flash sm-flash--err" style="margin-bottom:1rem;">{{ session('error') }}</div>

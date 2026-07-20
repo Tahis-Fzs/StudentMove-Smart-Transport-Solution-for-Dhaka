@@ -5,14 +5,14 @@
 
 <div class="container">
     @if(session('success'))
-        <div class="alert alert-success" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); display: flex; align-items: center; gap: 12px;">
+        <div class="alert alert-success" style="background:linear-gradient(135deg,#0b6e6a,#1e2630);color:#fff;padding:1rem 1.25rem;border-radius:0.75rem;margin-bottom:1.25rem;box-shadow:0 12px 28px rgba(11,110,106,0.25);display:flex;align-items:center;gap:0.75rem;">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
             <div>
-                <strong style="font-size: 16px; display: block; margin-bottom: 4px;">Purchase Successful!</strong>
-                <span style="font-size: 14px; opacity: 0.95;">{{ session('success') }}</span>
+                <strong style="font-size:16px;display:block;margin-bottom:4px;">Purchase successful</strong>
+                <span style="font-size:14px;opacity:0.95;">{{ session('success') }}</span>
             </div>
         </div>
     @endif
@@ -53,25 +53,20 @@
         </div>
     @endif
 
-    <div class="card">
-        <h1 class="mb-2">Subscriptions</h1>
-        <p>Select a plan to continue.</p>
+    <div class="sub-masthead" data-reveal>
+        <p class="sub-masthead__eyebrow">StudentMove · Passes</p>
+        <h1 class="sub-masthead__title">Plans built for the commute</h1>
+        <p class="sub-masthead__lede">Weekly, monthly, or a single ride — checkout via SSLCommerz when configured.</p>
+    </div>
 
-        @php
-            $plans = [
-                ['key' => 'monthly', 'title' => 'Weekly Pass', 'price' => 350, 'desc' => 'Unlimited rides for 7 days', 'tag' => 'Most Popular'],
-                ['key' => '6months', 'title' => 'Monthly Pass', 'price' => 1200, 'desc' => 'Best for regular commuters', 'tag' => 'Best Value'],
-                ['key' => 'yearly', 'title' => 'Single Ride', 'price' => 30, 'desc' => 'Pay as you go', 'tag' => null],
-            ];
-        @endphp
-
+    <div class="card" data-reveal>
         <div class="plans-grid">
             @foreach($plans as $plan)
                 <div class="plan-card" data-plan="{{ $plan['key'] }}">
-                    @if($plan['tag'])
+                    @if(!empty($plan['tag']))
                         <span class="pill">{{ $plan['tag'] }}</span>
                     @endif
-                    <div class="plan-title">{{ $plan['title'] }}</div>
+                    <div class="plan-title">{{ $plan['name'] }}</div>
                     <div class="plan-price">৳ {{ $plan['price'] }}</div>
                     <div class="plan-desc">{{ $plan['desc'] }}</div>
                     <button type="button" class="plan-cta choose-plan" data-plan="{{ $plan['key'] }}">Choose Plan</button>
@@ -89,17 +84,32 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Selected Plan</label>
-                    <div id="selected-plan-label" class="pill">Weekly Pass</div>
+                    <div id="selected-plan-label" class="pill">{{ $plans[0]['name'] ?? 'Weekly Pass' }}</div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Payment Method</label>
-                    <select name="payment_method" id="payment_method" class="form-input">
-                        <option value="mobile_banking">Mobile Banking</option>
-                        <option value="card">Card</option>
-                    </select>
-                </div>
+                @if($sslEnabled)
+                    <div class="form-group">
+                        <label class="form-label">Payment</label>
+                        <input type="hidden" name="payment_method" value="sslcommerz">
+                        <div class="pill" style="background:#0b6e6a;color:#fff;">SSLCommerz (bKash · Nagad · Card)</div>
+                        <p class="academic-hint" style="margin-top:8px;font-size:13px;color:#5b6572;">
+                            You’ll be redirected to SSLCommerz to pay — same flow as Star Cineplex ticket booking.
+                        </p>
+                    </div>
+                @else
+                    <div class="form-group">
+                        <label class="form-label">Payment Method</label>
+                        <select name="payment_method" id="payment_method" class="form-input">
+                            <option value="mobile_banking">Mobile Banking (demo)</option>
+                            <option value="card">Card (demo)</option>
+                        </select>
+                        <p style="margin-top:8px;font-size:12px;color:#b42318;">
+                            SSLCommerz not configured — demo checkout only. Add store credentials in <code>.env</code> for live gateway.
+                        </p>
+                    </div>
+                @endif
             </div>
 
+            @unless($sslEnabled)
             <div id="mobile-fields" class="form-row">
                 <div class="form-group">
                     <label class="form-label">Provider</label>
@@ -140,9 +150,12 @@
                     <input type="text" name="card_cvv" class="form-input" placeholder="123">
                 </div>
             </div>
+            @endunless
 
-            <button type="submit" class="plan-cta" id="submit-btn" style="margin-top:12px; width: 220px;">Complete Purchase</button>
-            <div id="checkout-hint" style="margin-top:8px; font-size:13px; color:#fca5a5; display:none;">Please complete all required fields.</div>
+            <button type="submit" class="plan-cta" id="submit-btn" style="margin-top:12px; min-width: 220px;">
+                {{ $sslEnabled ? 'Pay with SSLCommerz' : 'Complete Purchase' }}
+            </button>
+            <div id="checkout-hint" style="margin-top:8px; font-size:13px; color:#b42318; display:none;">Please complete all required fields.</div>
         </form>
     </div>
 </div>
@@ -151,17 +164,15 @@
 <script>
     const submitBtn = document.querySelector('#submit-btn');
     const hint = document.getElementById('checkout-hint');
-    const planMap = {
-        monthly: 'Weekly Pass',
-        '6months': 'Monthly Pass',
-        yearly: 'Single Ride'
-    };
+    const sslEnabled = @json($sslEnabled);
+    const planMap = @json(collect($plans)->pluck('name', 'key'));
 
     document.querySelectorAll('.choose-plan').forEach(btn => {
         btn.addEventListener('click', () => {
             const plan = btn.dataset.plan;
             document.getElementById('plan_type').value = plan;
             document.getElementById('selected-plan-label').textContent = planMap[plan] || plan;
+            document.getElementById('checkout-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     });
 
@@ -169,40 +180,44 @@
     const mobileFields = document.getElementById('mobile-fields');
     const cardFields = document.getElementById('card-fields');
 
-    paymentMethod.addEventListener('change', () => {
-        const method = paymentMethod.value;
-        if (method === 'card') {
-            mobileFields.style.display = 'none';
-            cardFields.style.display = 'grid';
-        } else {
-            mobileFields.style.display = 'grid';
-            cardFields.style.display = 'none';
-        }
-        validateForm();
-    });
+    if (paymentMethod && mobileFields && cardFields) {
+        paymentMethod.addEventListener('change', () => {
+            const method = paymentMethod.value;
+            if (method === 'card') {
+                mobileFields.style.display = 'none';
+                cardFields.style.display = 'grid';
+            } else {
+                mobileFields.style.display = 'grid';
+                cardFields.style.display = 'none';
+            }
+            validateForm();
+        });
+    }
 
     const validateForm = () => {
-        const method = paymentMethod.value;
         let ok = true;
 
         if (!document.getElementById('plan_type').value) ok = false;
 
-        if (method === 'mobile_banking') {
-            const provider = document.querySelector('[name="payment_provider"]').value;
-            const txn = document.querySelector('[name="transaction_id"]').value.trim();
-            if (!provider) ok = false;
-            if (!txn || txn.length < 10) ok = false;
-        } else if (method === 'card') {
-            const cardNumber = document.querySelector('[name="card_number"]').value.replace(/\s+/g, '');
-            const cardName = document.querySelector('[name="card_name"]').value.trim();
-            const cardExpiry = document.querySelector('[name="card_expiry"]').value.trim();
-            const cardCvv = document.querySelector('[name="card_cvv"]').value.trim();
-            if (!cardNumber || cardNumber.length < 13) ok = false;
-            if (!cardName) ok = false;
-            if (!cardExpiry || cardExpiry.length < 4) ok = false;
-            if (!cardCvv || cardCvv.length < 3) ok = false;
-        } else {
-            ok = false;
+        if (!sslEnabled && paymentMethod) {
+            const method = paymentMethod.value;
+            if (method === 'mobile_banking') {
+                const provider = document.querySelector('[name="payment_provider"]').value;
+                const txn = document.querySelector('[name="transaction_id"]').value.trim();
+                if (!provider) ok = false;
+                if (!txn || txn.length < 10) ok = false;
+            } else if (method === 'card') {
+                const cardNumber = document.querySelector('[name="card_number"]').value.replace(/\s+/g, '');
+                const cardName = document.querySelector('[name="card_name"]').value.trim();
+                const cardExpiry = document.querySelector('[name="card_expiry"]').value.trim();
+                const cardCvv = document.querySelector('[name="card_cvv"]').value.trim();
+                if (!cardNumber || cardNumber.length < 13) ok = false;
+                if (!cardName) ok = false;
+                if (!cardExpiry || cardExpiry.length < 4) ok = false;
+                if (!cardCvv || cardCvv.length < 3) ok = false;
+            } else {
+                ok = false;
+            }
         }
 
         if (submitBtn) {
@@ -212,13 +227,6 @@
         }
         if (hint) {
             hint.style.display = ok ? 'none' : 'block';
-            if (!ok && method === 'mobile_banking') {
-                hint.textContent = 'Enter provider and transaction ID (min 10 chars).';
-            } else if (!ok && method === 'card') {
-                hint.textContent = 'Fill all card fields with valid values.';
-            } else {
-                hint.textContent = 'Please complete all required fields.';
-            }
         }
     };
 
@@ -229,25 +237,22 @@
 
     validateForm();
 
-    // Handle form submission feedback
     const form = document.getElementById('checkout-form');
     if (form) {
-        form.addEventListener('submit', function(e) {
-            const submitBtn = document.getElementById('submit-btn');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Processing...';
-                submitBtn.style.opacity = '0.7';
+        form.addEventListener('submit', function() {
+            const btn = document.getElementById('submit-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = sslEnabled ? 'Redirecting to SSLCommerz…' : 'Processing...';
+                btn.style.opacity = '0.7';
             }
         });
     }
 
-    // Auto-download invoice PDF if invoice_id is present
     @if(session('invoice_id'))
         (function() {
             const invoiceId = {{ session('invoice_id') }};
             if (invoiceId) {
-                // Trigger download after a short delay to ensure page loads
                 setTimeout(() => {
                     window.location.href = '{{ route("subscription.invoice.download", ["invoice" => session("invoice_id")]) }}';
                 }, 500);
@@ -255,9 +260,7 @@
         })();
     @endif
 
-    // Show success message if present
     @if(session('success'))
-        // Scroll to top to show success message
         setTimeout(() => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }, 100);

@@ -16,12 +16,13 @@ class BusSchedule extends Model
         'arrival_location',
         'bus_number',
         'price',
+        'seats_total',
         'is_active',
-        // 🚀 ADD THESE FOR DYNAMIC TRACKING
         'current_lat',
         'current_lng',
         'location_updated_at',
         'heading',
+        'speed_kmh',
         'status',
         'delay_minutes',
     ];
@@ -29,5 +30,8 @@ class BusSchedule extends Model
     protected $casts = [
         'location_updated_at' => 'datetime',
         'is_active' => 'boolean',
+        'speed_kmh' => 'float',
+        'current_lat' => 'float',
+        'current_lng' => 'float',
     ];
 }

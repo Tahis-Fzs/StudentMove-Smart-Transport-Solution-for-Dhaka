@@ -1,12 +1,12 @@
 @extends('admin.layout')
 
-@section('title', 'Create Notification')
+@section('title', 'Create Announcement')
 
 @section('content')
     <div class="admin-container">
         <div class="admin-header">
-            <h1><i class="bi bi-plus-circle"></i> Create New Notification</h1>
-            <p>Add a new notification for users</p>
+            <h1><i class="bi bi-plus-circle"></i> Create Announcement</h1>
+            <p>Publish alerts with audience targeting and schedule windows</p>
         </div>
 
         <div class="admin-toolbar">
@@ -16,14 +16,55 @@
         </div>
 
         <div class="admin-section">
-            <form method="POST" action="{{ route('admin.notifications.store') }}" class="admin-form">
+            <form method="POST" action="{{ route('admin.notifications.store') }}" class="admin-form" id="announcementForm">
                 @csrf
 
                 <div class="form-grid">
                     <div class="form-group full-width">
+                        <label>Title (optional)</label>
+                        <input type="text" name="title" value="{{ old('title') }}" placeholder="e.g. DIU morning shuttle delay">
+                    </div>
+
+                    <div class="form-group full-width">
                         <label>Message *</label>
-                        <textarea name="message" rows="3" required placeholder="Notification message...">{{ old('message') }}</textarea>
+                        <textarea name="message" rows="3" required placeholder="Announcement message...">{{ old('message') }}</textarea>
                         @error('message')
+                            <span class="error">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label>Audience *</label>
+                        <select name="audience" id="audienceSelect">
+                            <option value="all" @selected(old('audience', 'all') === 'all')>Everyone</option>
+                            <option value="university" @selected(old('audience') === 'university')>University</option>
+                            <option value="department" @selected(old('audience') === 'department')>Department</option>
+                            <option value="route" @selected(old('audience') === 'route')>Route / stop</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="targetValueGroup">
+                        <label>Target value *</label>
+                        <input type="text" name="target_value" id="targetValueInput" list="targetSuggestions"
+                               value="{{ old('target_value') }}" placeholder="e.g. DIU, CSE, Uttara">
+                        <datalist id="targetSuggestions"></datalist>
+                        <small id="targetHint">Shown only to matching students.</small>
+                        @error('target_value')
+                            <span class="error">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label>Publish at</label>
+                        <input type="datetime-local" name="published_at" value="{{ old('published_at') }}">
+                        <small>Leave blank to publish immediately</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Expires at</label>
+                        <input type="datetime-local" name="expires_at" value="{{ old('expires_at') }}">
+                        <small>Leave blank for no expiry</small>
+                        @error('expires_at')
                             <span class="error">{{ $message }}</span>
                         @enderror
                     </div>
@@ -86,11 +127,13 @@
 
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">
-                        <i class="bi bi-check-circle"></i> Create Notification
+                        <i class="bi bi-check-circle"></i> Create Announcement
                     </button>
                     <a href="{{ route('admin.notifications.index') }}" class="btn-secondary">Cancel</a>
                 </div>
             </form>
         </div>
     </div>
+
+    @include('admin.notifications._targeting_script')
 @endsection

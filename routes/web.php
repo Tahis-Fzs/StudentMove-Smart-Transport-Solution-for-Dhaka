@@ -32,21 +32,23 @@ Route::post('/subscription', [SubscriptionController::class, 'store'])->middlewa
 Route::get('/subscription/history', [SubscriptionController::class, 'history'])->middleware('auth')->name('subscription.history');
 Route::get('/subscription/invoice/{invoice}/download', [SubscriptionController::class, 'downloadInvoice'])->middleware('auth')->name('subscription.invoice.download');
 
-Route::get('/notifications', function () {
-    $notifications = Notification::with('offer')->active()->orderBy('sort_order')->orderBy('created_at', 'desc')->get();
-    return view('notifications', compact('notifications'));
-})->middleware(['auth'])->name('notifications');
-
-Route::get('/messages', [ContactController::class, 'index'])->name('messages');
-Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
-
 Route::get('/offers', function () {
-    $offers = Offer::active()->orderBy('sort_order')->orderBy('created_at', 'desc')->get();
-    return view('offers', compact('offers'));
-})->name('offers');
+    $offers = Offer::active()->orderBy('sort_order')->orderByDesc('discount_percentage')->get();
 
-// FR-28: Notification Settings
+    return view('offers', compact('offers'));
+})->middleware(['auth', 'verified'])->name('offers');
+
+// SSLCommerz callbacks (CSRF-exempt — gateway POSTs here)
+Route::match(['get', 'post'], '/subscription/sslcommerz/success', [SubscriptionController::class, 'sslSuccess'])->name('subscription.ssl.success');
+Route::match(['get', 'post'], '/subscription/sslcommerz/fail', [SubscriptionController::class, 'sslFail'])->name('subscription.ssl.fail');
+Route::match(['get', 'post'], '/subscription/sslcommerz/cancel', [SubscriptionController::class, 'sslCancel'])->name('subscription.ssl.cancel');
+Route::post('/subscription/sslcommerz/ipn', [SubscriptionController::class, 'sslIpn'])->name('subscription.ssl.ipn');
+
 Route::middleware('auth')->group(function () {
+    Route::get('/notifications', [UserNotificationController::class, 'index'])->name('notifications');
+    Route::post('/notifications/inbox/{inboxMessage}/read', [UserNotificationController::class, 'markRead'])->name('notifications.inbox.read');
+    Route::post('/notifications/inbox/read-all', [UserNotificationController::class, 'markAllRead'])->name('notifications.inbox.readAll');
+    Route::delete('/notifications/inbox/{inboxMessage}', [UserNotificationController::class, 'destroy'])->name('notifications.inbox.destroy');
     Route::get('/notifications/settings', [UserNotificationController::class, 'settings'])->name('notifications.settings');
     Route::post('/notifications/settings', [UserNotificationController::class, 'updateSettings'])->name('notifications.update');
 });
@@ -62,14 +64,22 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
     Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
+
+    Route::get('/bookings', [\App\Http\Controllers\BookingController::class, 'index'])->name('bookings.index');
+    Route::post('/bookings', [\App\Http\Controllers\BookingController::class, 'store'])->name('bookings.store');
+    Route::post('/bookings/{booking}/cancel', [\App\Http\Controllers\BookingController::class, 'cancel'])->name('bookings.cancel');
 });
 
 // Public bus routes and APIs (no auth required for map)
 Route::get('/next-bus-arrival', [BusRouteController::class, 'index'])->name('next-bus-arrival');
 Route::get('/route-suggestion', [BusRouteController::class, 'suggest'])->name('route-suggestion');
-Route::post('/save-route', [BusRouteController::class, 'saveFavorite'])->name('route.save');
 Route::post('/api/bus/update-location', [BusRouteController::class, 'updateLocation'])->name('api.bus.update');
 Route::get('/api/bus/get-location/{id}', [BusRouteController::class, 'getBusLocation'])->name('api.bus.get');
+
+Route::middleware('auth')->group(function () {
+    Route::post('/save-route', [BusRouteController::class, 'saveFavorite'])->name('route.save');
+    Route::delete('/saved-routes/{savedRoute}', [BusRouteController::class, 'destroyFavorite'])->name('route.favorite.destroy');
+});
 
 // FR-42: Driver Auth (public driver routes)
 Route::get('/driver/login', [App\Http\Controllers\Driver\DriverAuthController::class, 'showLogin'])->name('driver.login');

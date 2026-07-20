@@ -9,18 +9,20 @@
             max-width: 100% !important;
             padding: 30px;
             box-sizing: border-box;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: transparent;
             min-height: 100vh;
         }
         .reports-page h2 {
+            font-family: Syne, sans-serif;
+            letter-spacing: -0.03em;
             color: #1a202c !important;
             margin-bottom: 30px;
             font-size: 2.5rem;
             font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            
         }
         .reports-page h2 i {
-            color: #667eea;
+            color: #0b6e6a;
             margin-right: 15px;
         }
         .reports-grid {
@@ -63,13 +65,13 @@
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         }
         .report-card-users {
-            border-top: 5px solid #3b82f6;
+            border-top: 5px solid #14a39c;
         }
         .report-card-users::before {
-            background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+            background: linear-gradient(90deg, transparent, #14a39c, transparent);
         }
         .report-card-users .card-icon {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            background: linear-gradient(135deg, #14a39c 0%, #0b6e6a 100%);
         }
         .card-header {
             display: flex;
@@ -120,7 +122,7 @@
         .print-btn {
             margin-top: 40px;
             padding: 15px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0b6e6a 0%, #1e2630 100%);
             color: white;
             border: none;
             border-radius: 12px;
@@ -128,14 +130,14 @@
             font-size: 1.1rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 12px rgba(11, 110, 106, 0.28);
             display: inline-flex;
             align-items: center;
             gap: 10px;
         }
         .print-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 20px rgba(11, 110, 106, 0.35);
         }
         @media (max-width: 768px) {
             .reports-grid {
@@ -172,7 +174,7 @@
                     </div>
                     <h3 class="card-title">User Growth</h3>
                 </div>
-                <div class="card-value" style="color: #3b82f6;">
+                <div class="card-value" style="color: #14a39c;">
                     +{{ $newUsers }}
                 </div>
                 <div class="card-label">

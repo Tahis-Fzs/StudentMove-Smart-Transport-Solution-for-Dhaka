@@ -28,7 +28,7 @@
                     <input type="checkbox" name="promotional_offers" value="1" @checked(old('promotional_offers', $user->promotional_offers ?? false))>
                     <span>Promotional offers</span>
                 </label>
-                <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem; padding: 10px 20px; border-radius: 8px; border: none; background: #2563eb; color: white; font-weight: 600; cursor: pointer;">
+                <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem; padding: 10px 20px; border-radius: 8px; border: none; background: #0b6e6a; color: white; font-weight: 600; cursor: pointer;">
                     Save preferences
                 </button>
             </form>

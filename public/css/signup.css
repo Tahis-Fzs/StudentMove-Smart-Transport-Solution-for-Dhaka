@@ -1,5 +1,5 @@
 body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
     background: #f4f6fb;
     margin: 0;
     padding: 0;
@@ -73,7 +73,7 @@ body {
 
 .form-input:focus {
     outline: none;
-    border-color: #2563eb;
+    border-color: #0b6e6a;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
@@ -87,7 +87,7 @@ body {
 }
 
 .terms-text a {
-    color: #2563eb;
+    color: #0b6e6a;
     text-decoration: none;
     font-weight: 600;
 }
@@ -98,7 +98,7 @@ body {
 
 .signup-btn {
     margin-top: 4px;
-    background: linear-gradient(90deg, #2563eb, #1d4ed8);
+    background: linear-gradient(90deg, #0b6e6a, #085854);
     color: #fff;
     border: none;
     padding: 12px 14px;
@@ -131,7 +131,7 @@ body {
 }
 
 .signin-link a {
-    color: #2563eb;
+    color: #0b6e6a;
     font-weight: 600;
     text-decoration: none;
 }

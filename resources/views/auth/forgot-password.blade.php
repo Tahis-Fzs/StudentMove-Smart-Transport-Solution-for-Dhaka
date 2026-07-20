@@ -7,6 +7,7 @@
         <aside class="auth-aside" aria-hidden="true">
             <img class="auth-aside__img" src="{{ asset('images/auth-city.jpg') }}" alt="" onerror="this.remove()">
             <div class="auth-aside__shade"></div>
+            @include('partials.auth-corridor')
             <div class="auth-aside__copy">
                 <p class="auth-aside__brand">StudentMove</p>
                 <p class="auth-aside__text">Reset access securely — only registered emails receive a link.</p>

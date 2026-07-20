@@ -20,7 +20,7 @@
                         </label>
                         <input type="text" id="currentLocation" name="current_location" 
                                placeholder="Enter your current location (e.g., Uttara, Dhaka)" 
-                               value="{{ Auth::user()->university ?? '' }}" required>
+                               value="{{ Auth::user()?->university ?? '' }}" required>
                     </div>
                     <div class="form-group">
                         <label for="destination">
@@ -85,6 +85,63 @@
                 <!-- Route suggestions will be populated here -->
             </div>
         </div>
+
+        @auth
+        <!-- Saved Favorites (Flutter-parity: userPreferences.savedRoutes) -->
+        <div class="saved-routes-section" id="savedRoutesSection">
+            <div class="saved-routes-header">
+                <h2 class="section-title"><i class="bi bi-bookmark-star-fill"></i> Saved routes</h2>
+                <span class="saved-routes-count">{{ $savedRoutes->count() }} saved</span>
+            </div>
+
+            @if (session('success'))
+                <p class="saved-flash">{{ session('success') }}</p>
+            @endif
+
+            @if ($savedRoutes->isEmpty())
+                <p class="saved-empty">No favorites yet. Generate a suggestion and tap <strong>Save Route</strong>.</p>
+            @else
+                <div class="saved-routes-list">
+                    @foreach ($savedRoutes as $route)
+                        <div class="saved-route-card">
+                            <button type="button" class="saved-route-main"
+                                onclick="loadHistoryRoute(@json($route->origin), @json($route->destination))">
+                                <div class="saved-route-top">
+                                    <span class="saved-route-title">{{ $route->title ?: 'Saved route' }}</span>
+                                    @if ($route->rating)
+                                        <span class="saved-route-rating"><i class="bi bi-star-fill"></i> {{ number_format($route->rating, 1) }}</span>
+                                    @endif
+                                </div>
+                                <div class="saved-route-path">{{ $route->pathLabel() }}</div>
+                                <div class="saved-route-meta">
+                                    @if ($route->duration_label)<span>{{ $route->duration_label }}</span>@endif
+                                    @if ($route->cost_label)<span>{{ $route->cost_label }}</span>@endif
+                                    @if ($route->transfers !== null)<span>{{ $route->transfers }} transfer{{ $route->transfers === 1 ? '' : 's' }}</span>@endif
+                                </div>
+                                @if (!empty($route->buses))
+                                    <div class="bus-tags">
+                                        @foreach ($route->buses as $bus)
+                                            <span class="bus-tag">{{ $bus }}</span>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </button>
+                            <form method="POST" action="{{ route('route.favorite.destroy', $route) }}" class="saved-route-remove"
+                                  onsubmit="return confirm('Remove this saved route?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" title="Remove"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+        @else
+        <div class="saved-routes-section">
+            <p class="saved-empty"><a href="{{ route('login') }}">Sign in</a> to save favorite routes across sessions.</p>
+        </div>
+        @endauth
 
         <!-- Popular Destinations -->
         <div class="popular-destinations">
@@ -217,7 +274,7 @@
                     description: "Direct bus from " + from + " to " + to + " with no transfers",
                     rating: 4.2,
                     comfort: "High",
-                    color: "purple"
+                    color: "#0b6e6a"
                 }
             ];
 
@@ -271,7 +328,7 @@
                         <button class="select-route-btn" onclick="selectRoute(${suggestion.id})">
                             <i class="bi bi-check-circle"></i> Select This Route
                         </button>
-                        <button class="save-route-btn" onclick="saveRoute(${suggestion.id})">
+                        <button class="save-route-btn" onclick='saveRoute(${JSON.stringify(suggestion)})'>
                             <i class="bi bi-bookmark"></i> Save Route
                         </button>
                     </div>
@@ -282,14 +339,62 @@
 
         // Select route
         function selectRoute(routeId) {
-            alert(`Route ${routeId} selected! You will be redirected to the bus tracking page.`);
-            // Here you would typically redirect to bus tracking or save the selected route
+            window.location.href = @json(route('next-bus-arrival'));
         }
 
-        // Save route
-        function saveRoute(routeId) {
-            alert(`Route ${routeId} saved to your favorites!`);
-            // Here you would typically save the route to user's favorites
+        // Save route to server favorites
+        async function saveRoute(suggestion) {
+            @guest
+            window.location.href = @json(route('login'));
+            return;
+            @endguest
+
+            const origin = document.getElementById('currentLocation').value.trim();
+            const destination = document.getElementById('destination').value.trim();
+            if (!origin || !destination) {
+                alert('Enter origin and destination first.');
+                return;
+            }
+
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+                || document.querySelector('input[name="_token"]')?.value;
+
+            try {
+                const res = await fetch(@json(route('route.save')), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrf,
+                    },
+                    body: JSON.stringify({
+                        origin,
+                        destination,
+                        title: suggestion.title || 'Saved route',
+                        duration_label: suggestion.duration || null,
+                        cost_label: suggestion.cost || null,
+                        transfers: suggestion.transfers ?? null,
+                        buses: suggestion.buses || [],
+                        description: suggestion.description || null,
+                        comfort: suggestion.comfort || null,
+                        rating: suggestion.rating || null,
+                    }),
+                });
+
+                if (res.status === 401 || res.status === 419) {
+                    window.location.href = @json(route('login'));
+                    return;
+                }
+
+                const data = await res.json();
+                if (!res.ok || !data.ok) {
+                    throw new Error(data.message || 'Could not save route');
+                }
+
+                window.location.reload();
+            } catch (err) {
+                alert(err.message || 'Failed to save route');
+            }
         }
 
         // Form submission
@@ -297,10 +402,6 @@
             e.preventDefault();
             generateSuggestions();
         });
-
-        // Auto-generate suggestions when both fields are filled
-        document.getElementById('currentLocation').addEventListener('blur', generateSuggestions);
-        document.getElementById('destination').addEventListener('blur', generateSuggestions);
     </script>
     @endpush
 </x-app-layout>

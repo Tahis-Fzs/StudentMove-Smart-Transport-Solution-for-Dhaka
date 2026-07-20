@@ -27,7 +27,10 @@ body.landing-body {
     min-height: 100vh;
     font-family: 'IBM Plex Sans', sans-serif;
     color: var(--ink);
-    background: var(--mist);
+    background:
+        radial-gradient(ellipse 70% 45% at 100% 0%, rgba(20, 163, 156, 0.16), transparent 50%),
+        radial-gradient(ellipse 50% 40% at 0% 100%, rgba(224, 149, 44, 0.12), transparent 48%),
+        linear-gradient(180deg, #dce4ea 0%, #e4eaef 50%, #dde8e6 100%);
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
 }
@@ -249,8 +252,9 @@ body.landing-body {
     position: relative;
     padding: clamp(4rem, 10vw, 7rem) 1.5rem;
     background:
-        radial-gradient(ellipse 80% 50% at 80% 0%, rgba(20, 163, 156, 0.12), transparent 55%),
-        linear-gradient(180deg, #e7ebf0 0%, var(--mist) 40%, #e4e9ee 100%);
+        radial-gradient(ellipse 80% 55% at 100% -10%, rgba(20, 163, 156, 0.28), transparent 52%),
+        radial-gradient(ellipse 55% 45% at -5% 110%, rgba(224, 149, 44, 0.16), transparent 50%),
+        linear-gradient(180deg, #9aadb8 0%, #b0c0ca 40%, #a8bcc4 100%);
     overflow: hidden;
 }
 
@@ -317,10 +321,12 @@ body.landing-body {
     inset: 0;
     border-radius: 1.25rem;
     background:
-        linear-gradient(135deg, #cfd7e0 0%, #b8c3cf 45%, #aeb9c6 100%);
+        radial-gradient(ellipse 60% 50% at 70% 20%, rgba(20, 163, 156, 0.35), transparent 55%),
+        radial-gradient(ellipse 40% 40% at 20% 80%, rgba(224, 149, 44, 0.2), transparent 50%),
+        linear-gradient(145deg, #1a2330 0%, #0e131a 50%, #152028 100%);
     box-shadow:
-        0 40px 80px rgba(18, 22, 28, 0.18),
-        inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        0 40px 80px rgba(18, 22, 28, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
     overflow: hidden;
 }
 
@@ -422,9 +428,30 @@ body.landing-body {
 
 /* —— Strip —— */
 .l-strip {
+    position: relative;
     padding: clamp(4rem, 9vw, 6.5rem) 1.5rem;
-    background: var(--ink);
+    background:
+        radial-gradient(ellipse 60% 50% at 90% 0%, rgba(20, 163, 156, 0.22), transparent 55%),
+        radial-gradient(ellipse 40% 40% at 10% 100%, rgba(224, 149, 44, 0.12), transparent 50%),
+        linear-gradient(160deg, #12161c 0%, #0c1016 55%, #152028 100%);
     color: #f3f5f7;
+    overflow: hidden;
+}
+
+.l-strip::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.35;
+    pointer-events: none;
+    background-image:
+        repeating-linear-gradient(
+            -18deg,
+            transparent 0,
+            transparent 48px,
+            rgba(20, 163, 156, 0.07) 48px,
+            rgba(20, 163, 156, 0.07) 49px
+        );
 }
 
 .l-strip__inner {
@@ -510,4 +537,35 @@ body.landing-body {
 .l-hero__lede,
 .l-hero__cta {
     opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .l-hero__brand,
+    .l-hero__headline,
+    .l-hero__lede,
+    .l-hero__cta,
+    [data-reveal] {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
+    .l-hero__img {
+        transform: none !important;
+    }
+}
+
+/* Route glow under stage title */
+.l-stage__title {
+    position: relative;
+}
+
+.l-stage::after {
+    content: '';
+    position: absolute;
+    width: 42%;
+    height: 40%;
+    right: -8%;
+    top: 10%;
+    background: radial-gradient(circle, rgba(224, 149, 44, 0.12), transparent 70%);
+    pointer-events: none;
 }

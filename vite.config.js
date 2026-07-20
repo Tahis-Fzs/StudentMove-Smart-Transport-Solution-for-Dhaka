@@ -10,6 +10,7 @@ export default defineConfig({
                 'resources/css/landing.css',
                 'resources/css/auth.css',
                 'resources/js/app.js',
+                'resources/js/motion.js',
                 'resources/js/landing.js',
                 'resources/js/firebase-auth.js',
             ],
