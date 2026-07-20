@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://studentmove-app.onrender.com"><strong>Live Demo</strong></a>
+  <a href="https://sit-mississippi-sri-clara.trycloudflare.com/dashboard"><strong>Live Demo</strong></a>
   ·
   <a href="#quick-start">Quick Start</a>
   ·
@@ -26,7 +26,7 @@ Built for **Daffodil International University** · Software Engineering project 
 
 | | |
 |---|---|
-| **Live app** | [https://studentmove-app.onrender.com](https://studentmove-app.onrender.com) |
+| **Live app** | [https://sit-mississippi-sri-clara.trycloudflare.com/dashboard](https://sit-mississippi-sri-clara.trycloudflare.com/dashboard) |
 | **Stack** | Laravel 9 · Blade · Tailwind · MySQL/SQLite · Leaflet |
 | **Payments** | SSLCommerz (bKash · Nagad · cards) |
 
@@ -80,7 +80,7 @@ Then visit `/subscription` and checkout via the sandbox gateway.
 
 ### 4. Try the live demo
 
-**[https://studentmove-app.onrender.com](https://studentmove-app.onrender.com)** — hosted on Render (free tier may cold-start ~30s).
+**[https://sit-mississippi-sri-clara.trycloudflare.com/dashboard](https://sit-mississippi-sri-clara.trycloudflare.com/dashboard)** — live via Cloudflare tunnel.
 
 ---
 
@@ -177,7 +177,7 @@ See [README_IMPLEMENTATION.md](README_IMPLEMENTATION.md) for subscription / paym
 | Map tiles missing | Hard-refresh; check `/css/leaflet-bundle.css` loads |
 | SSLCommerz not redirecting | Run `php artisan sslcommerz:check --probe`; set store creds in `.env` |
 | Live stream idle | SSE opens a long connection — normal; driver must ping GPS |
-| Render cold start | Wait ~30s on free tier, then reload |
+| Render cold start | N/A for Cloudflare tunnel — if the tunnel restarts, update `APP_URL` and Firebase authorized domains |
 | Migrations fail | `php artisan migrate:fresh --seed` on a clean DB |
 
 ---
