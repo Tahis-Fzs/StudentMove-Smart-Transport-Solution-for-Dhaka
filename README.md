@@ -142,3 +142,17 @@ This project is collaboratively built by **5 team members**, where each member d
 ```bash
 git clone https://github.com/<your-repo>/StudentMove.git
 cd StudentMove
+
+
+## Team
+
+StudentMove — Smart Transport Solution · **Daffodil International University**
+
+| Member | ID |
+|--------|-----|
+| Md. Shadman Hasin | 0242220005101462 |
+| Md. Shadman Tahsin | 0242220005101461 |
+| Md. Julfikar Hasan | 0242220005101495 |
+| Nahid Hasan | 0242220005101460 |
+| KM Najimuddin | 0242220005101493 |
+
