@@ -398,31 +398,8 @@ class BusRouteController extends Controller
             ->unique();
 
         if ($userIds->isEmpty()) {
-            // Fallback when nobody booked today: notify opted-in users who either
-            // (a) saved a matching route, or (b) have delay alerts on but no favorites yet.
-            // Requiring savedRoutes alone excluded everyone without favorites.
-            $needle = strtolower(trim((string) $bus->route_name));
-
             User::query()
-                ->where(function ($q) {
-                    $q->where('bus_delay_notifications', true)
-                        ->orWhereNull('bus_delay_notifications');
-                })
-                ->where(function ($q) use ($needle) {
-                    // (no favorites) OR (has a favorite matching this route name)
-                    $q->whereDoesntHave('savedRoutes');
-
-                    if ($needle !== '') {
-                        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $needle) . '%';
-                        $q->orWhereHas('savedRoutes', function ($sq) use ($like) {
-                            $sq->where(function ($match) use ($like) {
-                                $match->whereRaw('LOWER(origin) LIKE ?', [$like])
-                                    ->orWhereRaw('LOWER(destination) LIKE ?', [$like])
-                                    ->orWhereRaw('LOWER(title) LIKE ?', [$like]);
-                            });
-                        });
-                    }
-                })
+                ->eligibleForDelayFallback($bus->route_name)
                 ->limit(50)
                 ->get()
                 ->each(fn (User $u) => $this->inbox->pushDelayOnce($u, (int) $bus->id, $title, $body));

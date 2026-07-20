@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -109,6 +110,44 @@ class User extends Authenticatable implements MustVerifyEmail
     public function chatThreads()
     {
         return $this->hasMany(ChatThread::class);
+    }
+
+    /**
+     * Users eligible for fallback delay alerts when nobody booked the bus today.
+     * Must group route matching as (no favorites OR matching favorite) — never OR at query root
+     * or users with saved routes bypass the notification preference check.
+     */
+    public function scopeEligibleForDelayFallback(Builder $query, ?string $routeName = null): Builder
+    {
+        $query->where(function ($q) {
+            $q->where('bus_delay_notifications', true)
+                ->orWhereNull('bus_delay_notifications');
+        });
+
+        $needle = strtolower(trim((string) $routeName));
+
+        $query->where(function ($q) use ($needle) {
+            if ($needle === '') {
+                $q->whereDoesntHave('savedRoutes');
+
+                return;
+            }
+
+            $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $needle) . '%';
+
+            $q->where(function ($routeQ) use ($like) {
+                $routeQ->whereDoesntHave('savedRoutes')
+                    ->orWhereHas('savedRoutes', function ($sq) use ($like) {
+                        $sq->where(function ($match) use ($like) {
+                            $match->whereRaw('LOWER(origin) LIKE ?', [$like])
+                                ->orWhereRaw('LOWER(destination) LIKE ?', [$like])
+                                ->orWhereRaw('LOWER(title) LIKE ?', [$like]);
+                        });
+                    });
+            });
+        });
+
+        return $query;
     }
 
     /** Public URL for the user's avatar (upload → Firebase/Google → placeholder). */
