@@ -22,6 +22,20 @@ try {
     ]);
     $response = $kernel->handle($request);
     echo 'home_status=' . $response->getStatusCode() . PHP_EOL;
+    if ($response->getStatusCode() >= 500) {
+        $body = $response->getContent();
+        if (preg_match('/<!--\s*(.+?)-->/s', $body, $m)) {
+            echo 'home_error=' . trim(strip_tags($m[1])) . PHP_EOL;
+        } else {
+            echo 'home_body=' . substr($body, 0, 400) . PHP_EOL;
+        }
+    }
+
+    $login = $kernel->handle(Illuminate\Http\Request::create('/login', 'GET', [], [], [], [
+        'HTTP_HOST' => $_SERVER['HTTP_HOST'] ?? 'localhost',
+        'HTTPS' => 'on',
+    ]));
+    echo 'login_status=' . $login->getStatusCode() . PHP_EOL;
 } catch (Throwable $e) {
     http_response_code(500);
     echo 'error=' . $e->getMessage() . PHP_EOL;
