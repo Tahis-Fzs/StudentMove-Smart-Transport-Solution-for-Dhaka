@@ -47,8 +47,9 @@ class AiController extends Controller
         } catch (\Throwable $e) {
             report($e);
 
+            // Do not echo exception text — it can include provider URLs / config details.
             return response()->json([
-                'error' => 'AI request failed: ' . $e->getMessage(),
+                'error' => 'AI request failed. Please try again later.',
             ], 500);
         }
     }

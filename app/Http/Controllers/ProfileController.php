@@ -127,23 +127,27 @@ class ProfileController extends Controller
                 } else {
                     return back()->withErrors(['profile_image' => 'Failed to save profile image. Please try again.'])->withInput();
                 }
-            } catch (\Exception $e) {
-                return back()->withErrors(['profile_image' => 'An error occurred while uploading your image: ' . $e->getMessage()])->withInput();
+            } catch (\Throwable $e) {
+                report($e);
+
+                return back()->withErrors(['profile_image' => 'An error occurred while uploading your image. Please try again.'])->withInput();
             }
         }
 
+        // resolve* returns null when both select/other are empty — preserve existing
+        // academic fields so a partial profile save cannot wipe them.
         $university = $this->academicCatalog->resolveUniversity(
             $request->university_select,
             $request->university_other
-        );
+        ) ?? $user->university;
         $faculty = $this->academicCatalog->resolveFaculty(
             $request->faculty_select,
             $request->faculty_other
-        );
+        ) ?? $user->faculty;
         $department = $this->academicCatalog->resolveDepartment(
             $request->department_select,
             $request->department_other
-        );
+        ) ?? $user->department;
 
         $calendar = $request->semester_system
             ?: $this->academicCatalog->calendarForUniversity($university);

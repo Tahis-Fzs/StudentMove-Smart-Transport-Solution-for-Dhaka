@@ -19,7 +19,7 @@ return new class extends Migration
             }
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->enum('plan_type', ['monthly', '6months', 'yearly']);
+            $table->enum('plan_type', ['weekly', 'monthly', 'single']);
             $table->decimal('amount', 10, 2);
             $table->enum('payment_method', ['card', 'mobile_banking']);
             $table->string('payment_provider')->nullable();

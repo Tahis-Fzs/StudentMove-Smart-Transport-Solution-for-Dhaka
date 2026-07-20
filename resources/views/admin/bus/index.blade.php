@@ -183,6 +183,9 @@
                                 </span>
                             </td>
                             <td>
+                                <a href="{{ route('admin.buses.edit', $bus) }}" style="color:#0b6e6a;text-decoration:none;font-weight:600;margin-right:8px;">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
                                 <form method="POST" action="{{ route('admin.buses.destroy', $bus->id) }}" style="display:inline;">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="action-btn-delete" onclick="return confirm('Are you sure you want to delete this bus route?')">

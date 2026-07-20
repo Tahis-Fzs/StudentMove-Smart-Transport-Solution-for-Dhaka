@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="StudentMove">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b6e6a"/>
+      <stop offset="100%" stop-color="#1e2630"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path fill="#fff" d="M96 300h320v36c0 17.7-14.3 32-32 32H128c-17.7 0-32-14.3-32-32v-36z"/>
+  <path fill="#14a39c" d="M128 176h256c26.5 0 48 21.5 48 48v52H80v-52c0-26.5 21.5-48 48-48z"/>
+  <rect x="144" y="204" width="72" height="48" rx="8" fill="#eef7f6"/>
+  <rect x="296" y="204" width="72" height="48" rx="8" fill="#eef7f6"/>
+  <circle cx="160" cy="336" r="28" fill="#12161c"/>
+  <circle cx="352" cy="336" r="28" fill="#12161c"/>
+  <circle cx="160" cy="336" r="12" fill="#c8d3db"/>
+  <circle cx="352" cy="336" r="12" fill="#c8d3db"/>
+  <path fill="#e0952c" d="M368 120h48l24 56h-72z"/>
+</svg>

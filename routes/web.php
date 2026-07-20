@@ -11,6 +11,7 @@ use App\Http\Controllers\BusRouteController; // Tahsin
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\AiController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\UserNotificationController; // <-- Add this line!
 use App\Models\Offer;
@@ -62,6 +63,13 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:30,1')
         ->name('ai.generate');
 
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::post('/chat', [ChatController::class, 'store'])
+        ->middleware('throttle:30,1')
+        ->name('chat.store');
+    Route::get('/chat/poll', [ChatController::class, 'poll'])->name('chat.poll');
+    Route::post('/chat/clear', [ChatController::class, 'clear'])->name('chat.clear');
+
     Route::get('/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
     Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
 
@@ -75,6 +83,7 @@ Route::get('/next-bus-arrival', [BusRouteController::class, 'index'])->name('nex
 Route::get('/route-suggestion', [BusRouteController::class, 'suggest'])->name('route-suggestion');
 Route::post('/api/bus/update-location', [BusRouteController::class, 'updateLocation'])->name('api.bus.update');
 Route::get('/api/bus/get-location/{id}', [BusRouteController::class, 'getBusLocation'])->name('api.bus.get');
+Route::get('/api/bus/stream/{id}', [\App\Http\Controllers\Api\BusStreamController::class, 'stream'])->name('api.bus.stream');
 
 Route::middleware('auth')->group(function () {
     Route::post('/save-route', [BusRouteController::class, 'saveFavorite'])->name('route.save');
@@ -123,7 +132,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('notifications', NotificationController::class)->except(['show']);
 
         // Bus management routes: index, create, store, destroy
-        Route::resource('buses', BusController::class)->only(['index', 'create', 'store', 'destroy']);
+        Route::resource('buses', BusController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
         // Manual GPS edit/override routes for buses (FR-38)
         Route::get('buses/{id}/gps', [BusController::class, 'editGps'])->name('buses.gps');
@@ -134,49 +143,20 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // FR-41: Activity Logs (renamed to logs, avoid reserved log filename)
         Route::get('logs', [AdminController::class, 'logs'])->name('logs');
+
+        // Support chat (student ↔ admin)
+        Route::get('chat', [\App\Http\Controllers\Admin\ChatController::class, 'index'])->name('chat.index');
+        Route::get('chat/{thread}', [\App\Http\Controllers\Admin\ChatController::class, 'show'])->name('chat.show');
+        Route::post('chat/{thread}/reply', [\App\Http\Controllers\Admin\ChatController::class, 'reply'])->name('chat.reply');
+        Route::post('chat/{thread}/close', [\App\Http\Controllers\Admin\ChatController::class, 'close'])->name('chat.close');
+        Route::post('chat/{thread}/reopen', [\App\Http\Controllers\Admin\ChatController::class, 'reopen'])->name('chat.reopen');
+
+        // FR-34 / FR-35: Feedback review + archive
+        Route::get('feedback', [\App\Http\Controllers\Admin\FeedbackController::class, 'index'])->name('feedback.index');
+        Route::post('feedback/{feedback}/reply', [\App\Http\Controllers\Admin\FeedbackController::class, 'reply'])->name('feedback.reply');
+        Route::post('feedback/{feedback}/archive', [\App\Http\Controllers\Admin\FeedbackController::class, 'archive'])->name('feedback.archive');
+        Route::post('feedback/{feedback}/restore', [\App\Http\Controllers\Admin\FeedbackController::class, 'restore'])->name('feedback.restore');
     });
 });
 
 require __DIR__.'/auth.php';
-
-// #region agent log
-// Test email endpoint (for debugging)
-Route::get('/test-email', function () {
-    try {
-        $user = \App\Models\User::latest()->first();
-        if (!$user) {
-            return response()->json(['error' => 'No users found'], 404);
-        }
-        
-        $user->sendEmailVerificationNotification();
-        
-        // Check Mailpit
-        $mailpitCheck = @file_get_contents('http://127.0.0.1:8025/api/v1/messages');
-        $mailpitData = $mailpitCheck ? json_decode($mailpitCheck, true) : null;
-        
-        return response()->json([
-            'status' => 'Email sent',
-            'user_email' => $user->email,
-            'mailpit_total' => $mailpitData['total'] ?? 0,
-            'mail_config' => [
-                'host' => config('mail.mailers.smtp.host'),
-                'port' => config('mail.mailers.smtp.port'),
-                'username' => config('mail.mailers.smtp.username'),
-                'has_password' => !empty(config('mail.mailers.smtp.password'))
-            ]
-        ]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-})->middleware('auth');
-
-Route::post('/__dbg', function (Request $request) {
-    $payload = $request->all();
-    $payload['timestamp'] = $payload['timestamp'] ?? round(microtime(true) * 1000);
-    $line = json_encode($payload);
-    if ($line !== false) {
-        @file_put_contents(base_path('.cursor/debug.log'), $line . PHP_EOL, FILE_APPEND | LOCK_EX);
-    }
-    return response()->json(['ok' => true]);
-});
-// #endregion

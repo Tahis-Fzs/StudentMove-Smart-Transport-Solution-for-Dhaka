@@ -79,10 +79,12 @@
 
 ## 🚀 Next Steps (Optional Enhancements)
 
-1. **FR-20 Full Implementation:**
-   - Integrate bKash Payment Gateway API
-   - Integrate Nagad Payment Gateway API
-   - Integrate SSLCommerz for card payments
+1. **FR-20 Payment Gateway (SSLCommerz):**
+   - Copy `.env.example` → `.env` (includes sandbox `testbox` / `qwerty`)
+   - Local test: `php artisan sslcommerz:check --probe`
+   - Production: set live store id/password, `SSLCOMMERZ_SANDBOX=false`, HTTPS `APP_URL`
+   - Checkout: `/subscription` redirects to SSLCommerz hosted page (bKash, Nagad, cards)
+   - Callbacks: `/subscription/sslcommerz/{success,fail,cancel,ipn}` (CSRF-exempt)
 
 2. **PDF Generation:**
    - Install `barryvdh/laravel-dompdf` package
@@ -120,7 +122,7 @@ Click "Download Invoice" button in subscription history
 |---|---|---|
 | FR-18 | Subscription Plans | ✅ Complete |
 | FR-19 | Plan Details Display | ✅ Complete |
-| FR-20 | Payment Gateway | ⚠️ Partial (needs API integration) |
+| FR-20 | Payment Gateway | ✅ SSLCommerz (sandbox + live) |
 | FR-21 | Invoice Generation | ✅ Complete |
 | FR-22 | Email Confirmation | ✅ Complete |
 | FR-23 | Status Update | ✅ Complete |

@@ -106,6 +106,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(InboxMessage::class)->latest();
     }
 
+    public function chatThreads()
+    {
+        return $this->hasMany(ChatThread::class);
+    }
+
     /** Public URL for the user's avatar (upload → Firebase/Google → placeholder). */
     public function avatarUrl(): string
     {

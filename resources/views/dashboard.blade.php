@@ -35,6 +35,7 @@
                 <a href="{{ route('bookings.index') }}" class="dash-rail__btn">Book</a>
                 <a href="{{ route('subscription') }}" class="dash-rail__btn">Plans</a>
                 <a href="{{ route('notifications') }}" class="dash-rail__btn">Alerts</a>
+                <a href="{{ route('chat.index') }}" class="dash-rail__btn">Chat</a>
             </div>
         </header>
 
@@ -125,7 +126,7 @@
             <div class="dash-section-head" style="margin-bottom:0.85rem;">
                 <p class="sm-eyebrow">Assistant</p>
                 <h2 class="dash-section-head__title">Ask AI</h2>
-                <p class="dash-section-head__lede">Routes, schedules, delays — ask in plain language.</p>
+                <p class="dash-section-head__lede">Routes, schedules, delays — saved in your chat history.</p>
             </div>
             <form id="ai-form" class="dash-ai__form" onsubmit="return sendAi(event);">
                 <input type="text" id="ai-prompt" name="prompt" class="form-input" placeholder="e.g. Best way from Uttara to DSC after 5pm?" required autocomplete="off">
@@ -133,6 +134,10 @@
             </form>
             <div id="ai-status" class="dash-ai__status" style="display:none;">Thinking…</div>
             <div id="ai-output" class="dash-ai__output" style="display:none;"></div>
+            <p style="margin:0.75rem 0 0;font-size:0.88rem;">
+                <a href="{{ route('chat.index') }}" style="color:#0b6e6a;font-weight:700;text-decoration:none;">Open full chat</a>
+                · <a href="{{ route('chat.index', ['channel' => 'support']) }}" style="color:#5b6572;font-weight:600;text-decoration:none;">Contact support</a>
+            </p>
         </section>
 
         <section class="dashboard-section" data-reveal>
@@ -259,19 +264,20 @@
             out.style.display = 'none';
             btn.disabled = true;
             try {
-                const res = await fetch('{{ route('ai.generate') }}', {
+                const res = await fetch('{{ route('chat.store') }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
                         'Accept': 'application/json',
                     },
-                    body: JSON.stringify({ prompt }),
+                    body: JSON.stringify({ message: prompt, channel: 'assistant' }),
                 });
                 const data = await res.json();
                 status.style.display = 'none';
                 out.style.display = 'block';
-                out.textContent = data.output || data.error || 'No response';
+                const reply = (data.messages || []).find(m => m.role === 'assistant');
+                out.textContent = reply?.body || data.error || 'No response';
             } catch (err) {
                 status.style.display = 'none';
                 out.style.display = 'block';

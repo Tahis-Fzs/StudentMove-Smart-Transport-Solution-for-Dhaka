@@ -21,6 +21,12 @@
     <a href="{{ route('admin.logs') }}" class="{{ request()->routeIs('admin.logs') ? 'active' : '' }}">
         <i class="bi bi-file-text"></i> Activity Logs
     </a>
+    <a href="{{ route('admin.chat.index') }}" class="{{ request()->routeIs('admin.chat*') ? 'active' : '' }}">
+        <i class="bi bi-chat-dots"></i> Support Chat
+    </a>
+    <a href="{{ route('admin.feedback.index') }}" class="{{ request()->routeIs('admin.feedback*') ? 'active' : '' }}">
+        <i class="bi bi-chat-left-text"></i> Feedback
+    </a>
     
     <form method="POST" action="{{ route('admin.logout') }}" class="mt-5">
         @csrf

@@ -79,7 +79,7 @@
         <h2 class="mb-2">Checkout</h2>
         <form method="POST" action="{{ route('subscription.store') }}" class="checkout-form" id="checkout-form">
             @csrf
-            <input type="hidden" name="plan_type" id="plan_type" value="monthly">
+            <input type="hidden" name="plan_type" id="plan_type" value="weekly">
 
             <div class="form-row">
                 <div class="form-group">
@@ -91,8 +91,16 @@
                         <label class="form-label">Payment</label>
                         <input type="hidden" name="payment_method" value="sslcommerz">
                         <div class="pill" style="background:#0b6e6a;color:#fff;">SSLCommerz (bKash · Nagad · Card)</div>
+                        @if($sslSandbox)
+                            <div class="pill" style="margin-top:8px;background:#fef3c7;color:#92400e;font-size:12px;">Sandbox mode — test payments only</div>
+                        @else
+                            <div class="pill" style="margin-top:8px;background:#ecfdf5;color:#047857;font-size:12px;">Live gateway — real charges</div>
+                        @endif
                         <p class="academic-hint" style="margin-top:8px;font-size:13px;color:#5b6572;">
                             You’ll be redirected to SSLCommerz to pay — same flow as Star Cineplex ticket booking.
+                            @if($sslSandbox)
+                                Use sandbox test cards or mobile wallets on the SSLCommerz page.
+                            @endif
                         </p>
                     </div>
                 @else

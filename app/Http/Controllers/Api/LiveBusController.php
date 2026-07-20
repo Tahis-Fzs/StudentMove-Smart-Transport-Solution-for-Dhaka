@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BusSchedule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Services\BusLiveStream;
 
 class LiveBusController extends Controller
 {
@@ -63,6 +64,14 @@ class LiveBusController extends Controller
             'speed_kmh' => $speedKmh !== null ? round((float) $speedKmh, 1) : $bus->speed_kmh,
             'status' => $data['status'] ?? $bus->status,
             'location_updated_at' => now(),
+        ]);
+
+        BusLiveStream::publishGps((int) $bus->id, [
+            'lat' => (float) $data['lat'],
+            'lng' => (float) $data['lng'],
+            'heading' => $bus->heading !== null && $bus->heading !== '' ? (float) $bus->heading : null,
+            'speed_kmh' => $bus->speed_kmh !== null ? (float) $bus->speed_kmh : null,
+            'location_updated_at' => now()->toIso8601String(),
         ]);
 
         return response()->json([

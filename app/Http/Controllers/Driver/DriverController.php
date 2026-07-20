@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BusSchedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use App\Services\BusLiveStream;
 
 class DriverController extends Controller
 {
@@ -78,20 +79,35 @@ class DriverController extends Controller
             }
         }
 
+        $savedHeading = $heading !== null
+            ? round($heading, 1)
+            : ($bus->heading !== null && $bus->heading !== '' ? (float) $bus->heading : null);
+        $savedSpeed = $speedKmh !== null
+            ? round($speedKmh, 1)
+            : ($bus->speed_kmh !== null ? (float) $bus->speed_kmh : null);
+
         $bus->update([
             'current_lat' => $lat,
             'current_lng' => $lng,
-            'heading' => $heading !== null ? round($heading, 1) : $bus->heading,
-            'speed_kmh' => $speedKmh !== null ? round($speedKmh, 1) : $bus->speed_kmh,
+            'heading' => $savedHeading,
+            'speed_kmh' => $savedSpeed,
             'location_updated_at' => now(),
+        ]);
+
+        BusLiveStream::publishGps((int) $busId, [
+            'lat' => $lat,
+            'lng' => $lng,
+            'heading' => $savedHeading,
+            'speed_kmh' => $savedSpeed,
+            'location_updated_at' => now()->toIso8601String(),
         ]);
 
         return response()->json([
             'success' => true,
             'lat' => $lat,
             'lng' => $lng,
-            'heading' => $bus->heading !== null ? (float) $bus->heading : null,
-            'speed_kmh' => $bus->speed_kmh !== null ? (float) $bus->speed_kmh : null,
+            'heading' => $savedHeading,
+            'speed_kmh' => $savedSpeed,
             'accuracy' => isset($data['accuracy']) ? (float) $data['accuracy'] : null,
             'updated_at' => now()->toIso8601String(),
         ]);

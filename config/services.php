@@ -59,7 +59,9 @@ return [
 
     /*
     | SSLCommerz — Bangladesh hosted checkout (bKash, Nagad, cards, etc.)
-    | Sandbox credentials: https://developer.sslcommerz.com/registration/
+    | Sandbox defaults for local dev: store_id=testbox, store_password=qwerty
+    | Register: https://developer.sslcommerz.com/registration/
+    | Verify: php artisan sslcommerz:check --probe
     */
     'sslcommerz' => [
         'store_id' => env('SSLCOMMERZ_STORE_ID'),

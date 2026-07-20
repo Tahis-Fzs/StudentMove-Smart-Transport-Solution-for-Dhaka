@@ -98,6 +98,43 @@
     font-weight: 500;
 }
 
+.nba-uni-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 8px 0 4px;
+}
+
+.nba-uni-tag {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(11, 110, 106, 0.12);
+    color: #0b4f4c;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.nba-whiteboard {
+    margin: 8px 0 4px;
+    padding: 0.65rem 0.75rem;
+    border-radius: 0.55rem;
+    background: rgba(224, 149, 44, 0.12);
+    border: 1px solid rgba(224, 149, 44, 0.28);
+    color: #7a4e12;
+    font-size: 0.85rem;
+    line-height: 1.45;
+}
+
+.nba-whiteboard i {
+    margin-right: 0.25rem;
+}
+
+.nba-schedule-card[style*="display: none"] {
+    pointer-events: none;
+}
+
 .nba-map-img {
     width: 100%;
     border-radius: 10px;
@@ -152,10 +189,29 @@
 
 .gps-motion-badge {
     margin-top: 0.4rem;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #5b6572;
     letter-spacing: 0.02em;
+}
+
+.gps-motion-badge.is-live {
+    color: #0b6e6a;
+}
+
+.gps-motion-badge.is-demo {
+    color: #0f766e;
+}
+
+.gps-motion-badge.is-idle {
+    color: #94a3b8;
+}
+
+.gps-bus-link {
+    margin-top: 0.35rem;
+    font-size: 0.72rem;
+    color: #94a3b8;
+    letter-spacing: 0.01em;
 }
 
 .bus-marker-wrap {

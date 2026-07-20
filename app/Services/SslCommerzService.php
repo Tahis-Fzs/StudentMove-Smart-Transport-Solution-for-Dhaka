@@ -18,6 +18,58 @@ class SslCommerzService
         return (bool) config('services.sslcommerz.sandbox', true);
     }
 
+    /** @return array{configured:bool,sandbox:bool,currency:string,store_id_hint:?string,init_url:string} */
+    public function configSummary(): array
+    {
+        $storeId = (string) config('services.sslcommerz.store_id', '');
+
+        return [
+            'configured' => $this->isConfigured(),
+            'sandbox' => $this->isSandbox(),
+            'currency' => (string) config('services.sslcommerz.currency', 'BDT'),
+            'store_id_hint' => $storeId !== ''
+                ? substr($storeId, 0, min(4, strlen($storeId))) . '***'
+                : null,
+            'init_url' => $this->initUrl(),
+        ];
+    }
+
+    /**
+     * Ping SSLCommerz with a throwaway session (does not charge).
+     *
+     * @return array{ok:bool,gateway_url?:string,error?:string}
+     */
+    public function probe(): array
+    {
+        if (!$this->isConfigured()) {
+            return ['ok' => false, 'error' => 'SSLCommerz is not configured.'];
+        }
+
+        $tranId = 'SMCHK' . strtoupper(bin2hex(random_bytes(4)));
+
+        $result = $this->initiate([
+            'tran_id' => $tranId,
+            'amount' => 10,
+            'product_name' => 'StudentMove connectivity check',
+            'success_url' => route('subscription.ssl.success'),
+            'fail_url' => route('subscription.ssl.fail'),
+            'cancel_url' => route('subscription.ssl.cancel'),
+            'customer' => [
+                'name' => 'Connectivity Check',
+                'email' => 'check@studentmove.test',
+                'phone' => '01700000000',
+                'address' => 'Dhaka',
+                'city' => 'Dhaka',
+            ],
+        ]);
+
+        if ($result['ok']) {
+            return ['ok' => true, 'gateway_url' => $result['gateway_url'] ?? null];
+        }
+
+        return ['ok' => false, 'error' => $result['error'] ?? 'Probe failed.'];
+    }
+
     protected function initUrl(): string
     {
         return $this->isSandbox()

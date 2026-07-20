@@ -56,6 +56,14 @@ class OfferController extends Controller
     }
 
     /**
+     * Display a single offer (resource show).
+     */
+    public function show(Offer $offer): RedirectResponse
+    {
+        return redirect()->route('admin.offers.edit', $offer);
+    }
+
+    /**
      * Show edit form
      */
     public function edit(Offer $offer): View

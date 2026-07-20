@@ -31,32 +31,9 @@ class FeedbackController extends Controller
             'subject' => $request->subject,
             'message' => $request->message,
             'rating' => $request->rating ?? 5,
-            'status' => 'pending',
+            'status' => Feedback::STATUS_PENDING,
         ]);
 
         return redirect()->route('feedback.index')->with('success', 'Feedback submitted successfully!');
-    }
-
-    /** Admin view all feedback */
-    public function adminIndex(): View
-    {
-        $feedbacks = Feedback::with('user')->orderBy('created_at', 'desc')->get();
-        return view('feedback.admin_list', compact('feedbacks'));
-    }
-
-    /** Admin reply to feedback */
-    public function reply(Request $request, $id): RedirectResponse
-    {
-        $request->validate([
-            'admin_response' => 'required|string|max:1000',
-        ]);
-
-        $feedback = Feedback::findOrFail($id);
-        $feedback->update([
-            'admin_response' => $request->admin_response,
-            'status' => 'replied',
-        ]);
-
-        return back()->with('success', 'Reply sent successfully!');
     }
 }

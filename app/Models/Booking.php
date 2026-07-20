@@ -75,7 +75,8 @@ class Booking extends Model
     /** Seats already held (pending/confirmed) for a schedule on a date. */
     public static function seatsTaken(?int $busScheduleId, string $travelDate): int
     {
-        if (!$busScheduleId) {
+        // Strict null check: id 0 must not be treated as a demo/empty schedule.
+        if ($busScheduleId === null) {
             return 0;
         }
 

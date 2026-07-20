@@ -144,14 +144,18 @@ class BookingController extends Controller
             'notes' => $data['notes'] ?? null,
         ]);
 
-        $this->inbox->pushBooking(
-            Auth::user(),
-            'Booking confirmed · ' . $booking->booking_code,
-            $booking->pathLabel() . ' on ' . $booking->travel_date->format('M j, Y')
-                . ($booking->departure_time ? ' at ' . $booking->departure_time : '')
-                . ' · ' . $booking->seats . ' seat(s).',
-            ['booking_id' => $booking->id, 'code' => $booking->booking_code]
-        );
+        try {
+            $this->inbox->pushBooking(
+                Auth::user(),
+                'Booking confirmed · ' . $booking->booking_code,
+                $booking->pathLabel() . ' on ' . $booking->travel_date->format('M j, Y')
+                    . ($booking->departure_time ? ' at ' . $booking->departure_time : '')
+                    . ' · ' . $booking->seats . ' seat(s).',
+                ['booking_id' => $booking->id, 'code' => $booking->booking_code]
+            );
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return redirect()
             ->route('bookings.index')
@@ -168,12 +172,16 @@ class BookingController extends Controller
 
         $booking->update(['status' => Booking::STATUS_CANCELLED]);
 
-        $this->inbox->pushBooking(
-            Auth::user(),
-            'Booking cancelled · ' . $booking->booking_code,
-            $booking->pathLabel() . ' on ' . $booking->travel_date->format('M j, Y') . ' was cancelled.',
-            ['booking_id' => $booking->id, 'code' => $booking->booking_code, 'cancelled' => true]
-        );
+        try {
+            $this->inbox->pushBooking(
+                Auth::user(),
+                'Booking cancelled · ' . $booking->booking_code,
+                $booking->pathLabel() . ' on ' . $booking->travel_date->format('M j, Y') . ' was cancelled.',
+                ['booking_id' => $booking->id, 'code' => $booking->booking_code, 'cancelled' => true]
+            );
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return back()->with('success', 'Booking ' . $booking->booking_code . ' cancelled.');
     }

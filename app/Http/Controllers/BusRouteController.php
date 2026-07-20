@@ -8,6 +8,7 @@ use App\Models\BusSchedule;
 use App\Models\SavedRoute;
 use App\Models\User;
 use App\Services\InboxService;
+use App\Services\BusLiveStream;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,21 +23,121 @@ class BusRouteController extends Controller
     // Backend Logic for FR-9 & FR-16
     public function index()
     {
-        $buses = BusSchedule::query()
-            ->orderBy('id')
-            ->take(3)
-            ->get(['id', 'route_name', 'bus_number', 'departure_time', 'current_lat', 'current_lng']);
+        $demos = collect([
+            (object) [
+                'id' => 1,
+                'route_name' => 'Uttara to DSC',
+                'bus_number' => 'Demo-1',
+                'departure_time' => '07:00',
+                'departure_location' => 'Uttara',
+                'arrival_location' => 'DSC',
+                'current_lat' => null,
+                'current_lng' => null,
+                'run_days' => ['sun', 'mon', 'tue', 'wed', 'thu'],
+                'schedule_note' => 'Morning peak — allow extra 10 min through Kuril.',
+                'university_tags' => ['DIU', 'DSC'],
+            ],
+            (object) [
+                'id' => 2,
+                'route_name' => 'Rajlakshmi to Mirpur',
+                'bus_number' => 'Demo-2',
+                'departure_time' => '09:00',
+                'departure_location' => 'Rajlakshmi',
+                'arrival_location' => 'Mirpur',
+                'current_lat' => null,
+                'current_lng' => null,
+                'run_days' => ['sun', 'tue', 'thu', 'sat'],
+                'schedule_note' => 'Board at Rajlakshmi main gate · student ID required.',
+                'university_tags' => ['DIU', 'BUET'],
+            ],
+            (object) [
+                'id' => 3,
+                'route_name' => 'Rajlakshmi to Gulshan',
+                'bus_number' => 'Demo-3',
+                'departure_time' => '12:00',
+                'departure_location' => 'Rajlakshmi',
+                'arrival_location' => 'Gulshan',
+                'current_lat' => null,
+                'current_lng' => null,
+                'run_days' => ['mon', 'wed', 'sat'],
+                'schedule_note' => 'Lunch corridor — limited stops after Banani.',
+                'university_tags' => ['NSU', 'BRAC'],
+            ],
+        ]);
 
-        // Fallback demo IDs if no schedules seeded yet
-        if ($buses->isEmpty()) {
-            $buses = collect([
-                (object) ['id' => 1, 'route_name' => 'Uttara to DSC', 'bus_number' => 'Demo-1', 'departure_time' => '07:00', 'current_lat' => null, 'current_lng' => null],
-                (object) ['id' => 2, 'route_name' => 'Rajlakshmi to Mirpur', 'bus_number' => 'Demo-2', 'departure_time' => '09:00', 'current_lat' => null, 'current_lng' => null],
-                (object) ['id' => 3, 'route_name' => 'Rajlakshmi to Gulshan', 'bus_number' => 'Demo-3', 'departure_time' => '12:00', 'current_lat' => null, 'current_lng' => null],
-            ]);
+        $buses = BusSchedule::query()
+            ->orderBy('departure_time')
+            ->take(3)
+            ->get();
+
+        while ($buses->count() < 3) {
+            $buses->push($demos[$buses->count()]);
         }
 
-        return view('next-bus-arrival', compact('buses'));
+        $scheduleCards = $buses->take(3)->values()->map(fn ($bus) => $this->scheduleCard($bus));
+
+        return view('next-bus-arrival', compact('scheduleCards'));
+    }
+
+    /** Normalize a DB model or demo object for the live-map cards. */
+    protected function scheduleCard(mixed $bus): object
+    {
+        if ($bus instanceof BusSchedule) {
+            return (object) [
+                'id' => $bus->id,
+                'live_stream' => true,
+                'route_name' => $bus->route_name,
+                'bus_number' => $bus->bus_number,
+                'departure_time' => $bus->departure_time,
+                'current_lat' => $bus->current_lat,
+                'current_lng' => $bus->current_lng,
+                'run_days' => $bus->runDays(),
+                'schedule_note' => $bus->schedule_note,
+                'university_tags' => $bus->universityTags(),
+                'display_time' => $bus->displayTimeLabel(),
+                'display_date' => $bus->displayDateLabel(),
+                'path_label' => $bus->routePathLabel(),
+            ];
+        }
+
+        $runDays = $bus->run_days ?? BusSchedule::DAY_KEYS;
+        if (!is_array($runDays)) {
+            $runDays = BusSchedule::DAY_KEYS;
+        }
+
+        $tags = $bus->university_tags ?? [];
+        if (!is_array($tags)) {
+            $tags = [];
+        }
+
+        $path = ($bus->departure_location ?? null) && ($bus->arrival_location ?? null)
+            ? $bus->departure_location . ' → ' . $bus->arrival_location
+            : ($bus->route_name ?? 'Route');
+
+        $timeLabel = '—';
+        if (!empty($bus->departure_time)) {
+            try {
+                $timeLabel = \Carbon\Carbon::parse($bus->departure_time)->format('g.i A');
+            } catch (\Throwable) {
+                $timeLabel = (string) $bus->departure_time;
+            }
+        }
+
+        return (object) [
+            'id' => $bus->id ?? null,
+            'live_stream' => false,
+            'route_name' => $bus->route_name ?? 'Route',
+            'bus_number' => $bus->bus_number ?? null,
+            'departure_time' => $bus->departure_time ?? null,
+            'current_lat' => $bus->current_lat ?? null,
+            'current_lng' => $bus->current_lng ?? null,
+            'run_days' => array_values(array_intersect(array_map('strtolower', $runDays), BusSchedule::DAY_KEYS)),
+            'schedule_note' => $bus->schedule_note ?? null,
+            'university_tags' => array_values(array_filter(array_map('trim', $tags))),
+            'display_time' => $timeLabel,
+            'display_date' => now()->format('j M'),
+            'path_label' => $path,
+        ];
     }
 
     // Backend Logic for FR-13 (Route Suggestion) + saved favorites
@@ -119,6 +220,15 @@ class BusRouteController extends Controller
                 'current_lng' => $request->lng,
                 'location_updated_at' => now(),
             ]);
+
+            BusLiveStream::publishGps((int) $bus->id, [
+                'lat' => (float) $request->lat,
+                'lng' => (float) $request->lng,
+                'heading' => $bus->heading !== null && $bus->heading !== '' ? (float) $bus->heading : null,
+                'speed_kmh' => $bus->speed_kmh !== null ? (float) $bus->speed_kmh : null,
+                'location_updated_at' => now()->toIso8601String(),
+            ]);
+
             return response()->json(['status' => 'success']);
         }
         return response()->json(['status' => 'error'], 404);
@@ -135,8 +245,11 @@ class BusRouteController extends Controller
 
         $gpsAgeSeconds = null;
         $gpsFresh = false;
-        $hasFix = $bus->current_lat !== null && $bus->current_lng !== null;
-        if ($hasFix && $bus->location_updated_at) {
+        // Defaults on the table mean lat/lng are rarely null — require a real driver ping.
+        $hasFix = $bus->current_lat !== null
+            && $bus->current_lng !== null
+            && $bus->location_updated_at !== null;
+        if ($hasFix) {
             $gpsAgeSeconds = max(0, (int) $bus->location_updated_at->diffInSeconds(now()));
             // Fresh if pinged within the last 45 seconds
             $gpsFresh = $gpsAgeSeconds <= 45;
@@ -148,9 +261,14 @@ class BusRouteController extends Controller
         $speedKmh = $bus->speed_kmh !== null ? (float) $bus->speed_kmh : null;
 
         // 1. Calculate expected arrival time based on schedule
-        $departureTime = \Carbon\Carbon::parse($bus->departure_time);
         $now = \Carbon\Carbon::now();
-        
+        try {
+            $departureTime = \Carbon\Carbon::parse($bus->departure_time ?: '07:00');
+        } catch (\Throwable $e) {
+            report($e);
+            $departureTime = $now->copy()->startOfDay()->setTime(7, 0);
+        }
+
         // Expected arrival time (assuming 30 minutes travel time from departure)
         $expectedArrivalTime = $departureTime->copy()->addMinutes(30);
         
@@ -189,13 +307,21 @@ class BusRouteController extends Controller
                 'status' => 'delayed',
                 'delay_minutes' => round($delayMinutes)
             ]);
-            $this->notifyDelayInbox($bus, (int) round($delayMinutes));
+            try {
+                $this->notifyDelayInbox($bus, (int) round($delayMinutes));
+            } catch (\Throwable $e) {
+                report($e);
+            }
         } elseif (!$isDelayed && $wasDelayed) {
             $bus->update([
                 'status' => 'on_time',
                 'delay_minutes' => 0
             ]);
-            $this->notifyArrivalInbox($bus);
+            try {
+                $this->notifyArrivalInbox($bus);
+            } catch (\Throwable $e) {
+                report($e);
+            }
         } else {
             $bus->update(['delay_minutes' => round($delayMinutes)]);
         }
@@ -213,15 +339,15 @@ class BusRouteController extends Controller
         }
         
         return response()->json([
-            'lat' => $bus->current_lat !== null ? (float) $bus->current_lat : null,
-            'lng' => $bus->current_lng !== null ? (float) $bus->current_lng : null,
-            'has_gps' => $bus->current_lat !== null && $bus->current_lng !== null,
+            'lat' => $hasFix ? (float) $bus->current_lat : null,
+            'lng' => $hasFix ? (float) $bus->current_lng : null,
+            'has_gps' => $hasFix,
             'location_updated_at' => $bus->location_updated_at?->toIso8601String(),
             'gps_age_seconds' => $gpsAgeSeconds,
             'gps_fresh' => $gpsFresh,
             'gps_stale' => $hasFix && !$gpsFresh,
-            'heading' => $heading,
-            'speed_kmh' => $speedKmh !== null ? round($speedKmh, 1) : null,
+            'heading' => $hasFix ? $heading : null,
+            'speed_kmh' => $hasFix && $speedKmh !== null ? round($speedKmh, 1) : null,
             'is_delayed' => $isDelayed,
             'delay_minutes' => round($delayMinutes),
             'expected_eta' => round($expectedEtaMinutes) . " mins",
@@ -272,20 +398,30 @@ class BusRouteController extends Controller
             ->unique();
 
         if ($userIds->isEmpty()) {
-            // Fallback: anyone with delay prefs who saved a matching route
-            $needle = strtolower((string) $bus->route_name);
+            // Fallback when nobody booked today: notify opted-in users who either
+            // (a) saved a matching route, or (b) have delay alerts on but no favorites yet.
+            // Requiring savedRoutes alone excluded everyone without favorites.
+            $needle = strtolower(trim((string) $bus->route_name));
+
             User::query()
                 ->where(function ($q) {
-                    $q->where('bus_delay_notifications', true)->orWhereNull('bus_delay_notifications');
+                    $q->where('bus_delay_notifications', true)
+                        ->orWhereNull('bus_delay_notifications');
                 })
-                ->whereHas('savedRoutes', function ($q) use ($needle) {
-                    if ($needle === '') {
-                        $q->whereRaw('1=0');
-                        return;
+                ->where(function ($q) use ($needle) {
+                    // (no favorites) OR (has a favorite matching this route name)
+                    $q->whereDoesntHave('savedRoutes');
+
+                    if ($needle !== '') {
+                        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $needle) . '%';
+                        $q->orWhereHas('savedRoutes', function ($sq) use ($like) {
+                            $sq->where(function ($match) use ($like) {
+                                $match->whereRaw('LOWER(origin) LIKE ?', [$like])
+                                    ->orWhereRaw('LOWER(destination) LIKE ?', [$like])
+                                    ->orWhereRaw('LOWER(title) LIKE ?', [$like]);
+                            });
+                        });
                     }
-                    $q->whereRaw('LOWER(origin) like ?', ['%' . $needle . '%'])
-                        ->orWhereRaw('LOWER(destination) like ?', ['%' . $needle . '%'])
-                        ->orWhereRaw('LOWER(title) like ?', ['%' . $needle . '%']);
                 })
                 ->limit(50)
                 ->get()

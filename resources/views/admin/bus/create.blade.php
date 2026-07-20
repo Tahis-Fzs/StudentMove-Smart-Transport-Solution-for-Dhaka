@@ -26,7 +26,9 @@
                     <label>Ticket Price</label>
                     <input name="price" type="number" placeholder="Ticket Price" required style="padding:10px; border:1px solid #ddd; width:100%; border-radius:5px;">
                 </div>
-                
+
+                @include('admin.bus._schedule_fields', ['bus' => new \App\Models\BusSchedule()])
+
                 <button type="submit" class="action-btn" style="background:#0b6e6a; color:white; padding:10px; border:none; cursor:pointer; border-radius:5px;">Save Bus</button>
                 <a href="{{ route('admin.buses.index') }}" class="btn-back">← Back to Buses</a>
             </form>

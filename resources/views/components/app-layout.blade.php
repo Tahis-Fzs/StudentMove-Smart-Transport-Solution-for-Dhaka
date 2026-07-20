@@ -4,9 +4,10 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{{ $title }}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    @include('partials.pwa-head')
     @vite(['resources/css/app.css', 'resources/css/premium.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
@@ -30,6 +31,7 @@
                             @endif
                         </a>
                         <a href="{{ route('feedback.index') }}" class="nav-link {{ request()->routeIs('feedback.*') ? 'active' : '' }}">Feedback</a>
+                        <a href="{{ route('chat.index') }}" class="nav-link {{ request()->routeIs('chat.*') ? 'active' : '' }}">Chat</a>
                         <a href="{{ route('profile.edit') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">Profile</a>
                         <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a>
                     @endauth
@@ -72,6 +74,7 @@
             {{ $slot }}
         </main>
     </div>
+    @include('partials.pwa-install')
     @stack('scripts')
 </body>
 </html>

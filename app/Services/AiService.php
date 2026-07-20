@@ -46,7 +46,7 @@ class AiService
         }
 
         if (!filter_var($baseUrl, FILTER_VALIDATE_URL)) {
-            throw new \RuntimeException('OPENAI_BASE_URL is invalid: ' . $baseUrl);
+            throw new \RuntimeException('OPENAI_BASE_URL is invalid.');
         }
 
         $this->baseUrl = $baseUrl;

@@ -167,19 +167,22 @@ class Notification extends Model
 
     protected function matchesRoute(User $user, string $target): bool
     {
-        $needle = Str::lower($target);
+        $needle = Str::lower(trim($target));
+        if ($needle === '') {
+            return false;
+        }
 
+        // Match in SQL (case-insensitive) against individual fields — avoids loading
+        // every saved route into memory and accidental cross-field concatenations.
         return $user->savedRoutes()
-            ->get(['origin', 'destination', 'title'])
-            ->contains(function ($route) use ($needle) {
-                $hay = Str::lower(implode(' ', [
-                    (string) $route->origin,
-                    (string) $route->destination,
-                    (string) $route->title,
-                ]));
-
-                return str_contains($hay, $needle);
-            });
+            ->where(function (Builder $q) use ($needle) {
+                $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $needle) . '%';
+                $q->whereRaw('LOWER(origin) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(destination) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(title) LIKE ?', [$like])
+                    ->orWhereRaw("LOWER(CONCAT(COALESCE(origin,''), ' to ', COALESCE(destination,''))) LIKE ?", [$like]);
+            })
+            ->exists();
     }
 
     protected function matchesText(?string $value, string $target): bool

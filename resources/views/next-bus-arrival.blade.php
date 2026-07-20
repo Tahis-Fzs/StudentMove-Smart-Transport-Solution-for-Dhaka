@@ -3,128 +3,29 @@
     <link rel="stylesheet" href="/css/notification.css">
     <link rel="stylesheet" href="/css/next-bus-arrival.css">
     {{-- Leaflet CSS (local to avoid SRI/network issues) --}}
-    <link rel="stylesheet" href="/css/leaflet-bundle.css">
+    <link rel="stylesheet" href="/css/leaflet-bundle.css?v=1.9.4">
     @endpush
 
+    <div class="nba-container">
     <!-- Day Tabs -->
     <div class="nba-day-tabs">
-        <button onclick="switchDay('sat')">SAT</button>
-        <button class="active" onclick="switchDay('sun')">SUN</button>
-        <button onclick="switchDay('mon')">MON</button>
-        <button onclick="switchDay('tue')">TUE</button>
-        <button onclick="switchDay('wed')">WED</button>
-        <button onclick="switchDay('thu')">THU</button>
+        @foreach(['sat','sun','mon','tue','wed','thu'] as $day)
+            <button type="button" data-day="{{ $day }}" onclick="switchDay('{{ $day }}', this)">{{ strtoupper($day) }}</button>
+        @endforeach
     </div>
     <div class="nba-tabs-underline"></div>
 
-    <!-- Schedule Info -->
-    <div class="nba-info">Three Schedule Available</div>
-    
-    <!-- Schedules -->
-    <div class="nba-schedules">
-        <!-- Schedule 1: 7.00 AM -->
-        <div class="nba-schedule-card">
-            <div class="nba-card-title">7.00 AM, 12 May<br><span>from: Rajlakshmi to DSC</span></div>
-            
-            <!-- Map & Arrival Card -->
-            <div id="map-1" class="schedule-map" style="width: 100%; height: 450px; border-radius: 12px; margin-top: 15px; background:#1e293b; border: 1px solid rgba(255,255,255,0.1); position: relative;">
-                <div id="map-loading-1" class="map-loading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #94a3b8; font-size: 14px; z-index: 1000;">Loading map...</div>
-            </div>
+    <div class="nba-info" id="nba-info">{{ $scheduleCards->count() }} schedules available</div>
 
-            <div id="eta-card-1" class="eta-card" style="background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04)); padding: 15px; border-radius: 10px; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.12);">
-                <div>
-                    <h3 style="margin:0; color:#e5e7eb; font-size: 1.1rem;">Next Bus: <span id="route-name-1">Uttara to DSC</span></h3>
-                    <div style="font-size: 0.9rem; margin-top: 5px;">
-                        Status: <span id="status-badge-1" style="background: #d4edda; color: #155724; padding: 2px 8px; border-radius: 4px; font-weight: bold;">On Time</span>
-                    </div>
-                    <div id="gps-badge-1" class="gps-live-badge gps-live-badge--idle">GPS: waiting for driver</div>
-                    <div id="motion-badge-1" class="gps-motion-badge">Heading — · Speed —</div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 0.8rem; color: #cbd5e1;">Arriving in</div>
-                    <div id="eta-time-1" style="font-size: 1.5rem; font-weight: bold; color: #14a39c;">10 mins</div>
-                </div>
-            </div>
-
-            <div style="margin-top:10px; display:flex; gap:10px;">
-                <button onclick="startSimulation(1)" style="padding:10px; background:#0b6e6a; color:white; border:none; border-radius:5px; cursor:pointer;">
-                    ▶️ Simulate Movement
-                </button>
-                <button onclick="triggerDelay(1)" style="padding:10px; background:#dc3545; color:white; border:none; border-radius:5px; cursor:pointer;">
-                    ⚠️ Simulate Traffic Delay
-                </button>
-            </div>
-        </div>
-
-        <!-- Schedule 2: 8.30 AM -->
-        <div class="nba-schedule-card">
-            <div class="nba-card-title">8.30 AM, 12 May<br><span>from: Rajlakshmi to Mirpur</span></div>
-            
-            <!-- Map & Arrival Card -->
-            <div id="map-2" class="schedule-map" style="width: 100%; height: 450px; border-radius: 12px; margin-top: 15px; background:#1e293b; border: 1px solid rgba(255,255,255,0.1); position: relative;">
-                <div id="map-loading-2" class="map-loading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #94a3b8; font-size: 14px; z-index: 1000;">Loading map...</div>
-            </div>
-
-            <div id="eta-card-2" class="eta-card" style="background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04)); padding: 15px; border-radius: 10px; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.12);">
-                <div>
-                    <h3 style="margin:0; color:#e5e7eb; font-size: 1.1rem;">Next Bus: <span id="route-name-2">Rajlakshmi to Mirpur</span></h3>
-                    <div style="font-size: 0.9rem; margin-top: 5px;">
-                        Status: <span id="status-badge-2" style="background: #d4edda; color: #155724; padding: 2px 8px; border-radius: 4px; font-weight: bold;">On Time</span>
-                    </div>
-                    <div id="gps-badge-2" class="gps-live-badge gps-live-badge--idle">GPS: waiting for driver</div>
-                    <div id="motion-badge-2" class="gps-motion-badge">Heading — · Speed —</div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 0.8rem; color: #cbd5e1;">Arriving in</div>
-                    <div id="eta-time-2" style="font-size: 1.5rem; font-weight: bold; color: #14a39c;">15 mins</div>
-                </div>
-            </div>
-
-            <div style="margin-top:10px; display:flex; gap:10px;">
-                <button onclick="startSimulation(2)" style="padding:10px; background:#0b6e6a; color:white; border:none; border-radius:5px; cursor:pointer;">
-                    ▶️ Simulate Movement
-                </button>
-                <button onclick="triggerDelay(2)" style="padding:10px; background:#dc3545; color:white; border:none; border-radius:5px; cursor:pointer;">
-                    ⚠️ Simulate Traffic Delay
-                </button>
-            </div>
-        </div>
-
-        <!-- Schedule 3: 12.00 PM -->
-        <div class="nba-schedule-card">
-            <div class="nba-card-title">12.00 PM, 12 May<br><span>from: Rajlakshmi to Gulshan</span></div>
-            
-            <!-- Map & Arrival Card -->
-            <div id="map-3" class="schedule-map" style="width: 100%; height: 450px; border-radius: 12px; margin-top: 15px; background:#1e293b; border: 1px solid rgba(255,255,255,0.1); position: relative;">
-                <div id="map-loading-3" class="map-loading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #94a3b8; font-size: 14px; z-index: 1000;">Loading map...</div>
-            </div>
-
-            <div id="eta-card-3" class="eta-card" style="background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04)); padding: 15px; border-radius: 10px; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.12);">
-                <div>
-                    <h3 style="margin:0; color:#e5e7eb; font-size: 1.1rem;">Next Bus: <span id="route-name-3">Rajlakshmi to Gulshan</span></h3>
-                    <div style="font-size: 0.9rem; margin-top: 5px;">
-                        Status: <span id="status-badge-3" style="background: #d4edda; color: #155724; padding: 2px 8px; border-radius: 4px; font-weight: bold;">On Time</span>
-                    </div>
-                    <div id="gps-badge-3" class="gps-live-badge gps-live-badge--idle">GPS: waiting for driver</div>
-                    <div id="motion-badge-3" class="gps-motion-badge">Heading — · Speed —</div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 0.8rem; color: #cbd5e1;">Arriving in</div>
-                    <div id="eta-time-3" style="font-size: 1.5rem; font-weight: bold; color: #14a39c;">8 mins</div>
-                </div>
-            </div>
-
-            <div style="margin-top:10px; display:flex; gap:10px;">
-                <button onclick="startSimulation(3)" style="padding:10px; background:#0b6e6a; color:white; border:none; border-radius:5px; cursor:pointer;">
-                    ▶️ Simulate Movement
-                </button>
-                <button onclick="triggerDelay(3)" style="padding:10px; background:#dc3545; color:white; border:none; border-radius:5px; cursor:pointer;">
-                    ⚠️ Simulate Traffic Delay
-                </button>
-            </div>
-        </div>
+    <div class="nba-schedules" id="nba-schedules">
+        @foreach($scheduleCards as $index => $card)
+            @include('partials.nba-schedule-card', [
+                'card' => $card,
+                'scheduleId' => $index + 1,
+            ])
+        @endforeach
     </div>
-    
+
     <!-- Toast Notification for Delay -->
     <div id="toast-notification" style="display:none; position:fixed; top:80px; left:50%; transform:translateX(-50%); background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color:white; padding:20px 24px; border-radius:12px; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4); z-index:10000; min-width:400px; max-width:90%; animation:slideDown 0.3s ease-out;">
         <div style="display:flex; align-items:center; gap:12px;">
@@ -157,12 +58,41 @@
     <button class="nba-download-btn" onclick="downloadPDF()">
         <i class="bi bi-file-earmark-pdf"></i> Download PDF
     </button>
+    </div>
 
     @push('scripts')
     <script>
-        function switchDay(day) {
-            document.querySelectorAll('.nba-day-tabs button').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+        function switchDay(day, btn) {
+            document.querySelectorAll('.nba-day-tabs button').forEach(b => b.classList.remove('active'));
+            (btn || event.target).classList.add('active');
+
+            let visible = 0;
+            document.querySelectorAll('.nba-schedule-card').forEach(card => {
+                let days = [];
+                try {
+                    days = JSON.parse(card.dataset.runDays || '[]');
+                } catch (e) {
+                    days = [];
+                }
+                const show = !days.length || days.includes(day);
+                card.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            const info = document.getElementById('nba-info');
+            if (info) {
+                info.textContent = visible + ' schedule' + (visible === 1 ? '' : 's')
+                    + ' available · ' + day.toUpperCase();
+            }
+        }
+
+        function initDayTabs() {
+            const map = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+            const supported = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu'];
+            const today = map[new Date().getDay()];
+            const day = supported.includes(today) ? today : 'sun';
+            const btn = document.querySelector('.nba-day-tabs button[data-day="' + day + '"]');
+            if (btn) switchDay(day, btn);
         }
 
         function downloadPDF() {
@@ -174,49 +104,27 @@
             document.body.removeChild(link);
         }
     </script>
-    {{-- Leaflet JS (local; avoids SRI errors) --}}
-    <script src="/js/leaflet-bundle.js"></script>
+    {{-- Leaflet 1.9.4 (real library — stub previously broke markers / simulation) --}}
+    <script src="/js/leaflet-bundle.js?v=1.9.4"></script>
     <script>
-        // #region agent log
-        const dbg = (payload) => {
-            const body = JSON.stringify({
-                sessionId: 'debug-session',
-                runId: 'prefetch',
-                hypothesisId: payload.h || 'H1',
-                location: payload.loc || 'next-bus-arrival.blade.php',
-                message: payload.msg,
-                data: payload.data || {},
-                timestamp: Date.now()
-            });
-            const headers = { 'Content-Type': 'application/json' };
-            fetch('http://127.0.0.1:7242/ingest/2aff5801-28d0-4d2a-a13f-8cffcaa49a63', {
-                method: 'POST',
-                headers,
-                body
-            }).catch(() => {
-                // Fallback to local proxy if ingest not reachable
-                fetch('/__dbg', { method: 'POST', headers, body }).catch(() => {});
-            });
-        };
-        // capture global errors and rejections
-        window.addEventListener('error', (ev) => {
-            dbg({ h: 'HE', loc: 'window.error', msg: ev.message || 'error', data: { file: ev.filename, line: ev.lineno, col: ev.colno } });
-        });
-        window.addEventListener('unhandledrejection', (ev) => {
-            dbg({ h: 'HE', loc: 'unhandledrejection', msg: ev.reason ? (ev.reason.message || ev.reason.toString()) : 'rejection' });
-        });
-        // #endregion
-
-        // Store maps and markers for each schedule
         const scheduleMaps = {};
         const scheduleMarkers = {};
-        const scheduleLastPositions = {}; // Track last position for each schedule
-        const scheduleLastDelays = {}; // Track last delay state for each schedule
-        const scheduleNotificationTimeouts = {}; // Track notification timeouts per schedule
-        const scheduleAnimFrames = {}; // Smooth Pathao-style marker tweens
-        const scheduleHeadings = {}; // degrees 0–360
+        const scheduleBusIds = {};
+        const schedulePollTimers = {};
+        const scheduleEventSources = {};
+        const scheduleStreamActive = {};
+        const scheduleLastPositions = {};
+        const scheduleLastDelays = {};
+        const scheduleNotificationTimeouts = {};
+        const scheduleAnimFrames = {};
+        const scheduleHeadings = {};
+        const scheduleSimTimers = {};
+        const manualOverride = {};
         const POLL_MS = 1000;
+        const ETA_POLL_MS = 5000;
+        const STREAM_RECONNECT_MS = 3000;
         const SMOOTH_MS = 900;
+        const LIVE_GPS_MAX_AGE = 120;
         const schedulePaths = {
             1: [
                 { lat: 23.8103, lng: 90.4125 },
@@ -238,64 +146,190 @@
             ]
         };
 
-        // Initialize all maps
-        function initMap(scheduleId, center, busId) {
-            dbg({ h: 'H1', loc: `initMap-${scheduleId}`, msg: 'initializing map', data: { scheduleId, center, busId } });
-            
+        function busIcon(headingDeg) {
+            const rot = headingDeg != null && !Number.isNaN(headingDeg) ? headingDeg : 0;
+            if (typeof L === 'undefined' || typeof L.divIcon !== 'function') return null;
+            return L.divIcon({
+                className: 'bus-marker-wrap',
+                html: `<div class="bus-marker" style="transform:rotate(${rot}deg)" title="Heading ${Math.round(rot)}°"><span class="bus-marker__arrow"></span></div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14],
+            });
+        }
+
+        function ensureMap(scheduleId, center) {
             const mapEl = document.getElementById(`map-${scheduleId}`);
             const loadingEl = document.getElementById(`map-loading-${scheduleId}`);
-            
-            if (!mapEl) {
-                dbg({ h: 'H1', loc: `map-element-missing-${scheduleId}`, msg: 'map element not found', data: { scheduleId } });
+            if (!mapEl || typeof L === 'undefined') return null;
+
+            let map = scheduleMaps[scheduleId];
+            if (!map) {
+                if (mapEl._leaflet_id) {
+                    mapEl._leaflet_id = null;
+                    mapEl.innerHTML = '';
+                    if (loadingEl) {
+                        mapEl.appendChild(loadingEl);
+                        loadingEl.style.display = '';
+                    }
+                }
+                const view = center || schedulePaths[scheduleId]?.[0] || { lat: 23.8103, lng: 90.4125 };
+                const latlng = Array.isArray(view) ? view : [view.lat, view.lng];
+                map = L.map(mapEl, { preferCanvas: true }).setView(latlng, 13);
+                scheduleMaps[scheduleId] = map;
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+            }
+
+            let marker = scheduleMarkers[scheduleId];
+            if (!marker) {
+                const c = map.getCenter();
+                const icon = busIcon(scheduleHeadings[scheduleId] || 0);
+                marker = icon
+                    ? L.marker([c.lat, c.lng], { icon }).addTo(map)
+                    : L.marker([c.lat, c.lng]).addTo(map);
+                scheduleMarkers[scheduleId] = marker;
+            }
+
+            if (loadingEl) loadingEl.style.display = 'none';
+            requestAnimationFrame(() => {
+                if (map.invalidateSize) map.invalidateSize();
+            });
+
+            return { map, marker };
+        }
+
+        function resetPollInterval(scheduleId, busId) {
+            if (schedulePollTimers[scheduleId]) {
+                clearInterval(schedulePollTimers[scheduleId]);
+            }
+            const ms = scheduleStreamActive[scheduleId] ? ETA_POLL_MS : POLL_MS;
+            schedulePollTimers[scheduleId] = setInterval(
+                () => fetchLiveLocation(scheduleId, busId),
+                ms
+            );
+        }
+
+        function disconnectLiveStream(scheduleId) {
+            if (scheduleEventSources[scheduleId]) {
+                scheduleEventSources[scheduleId].close();
+                delete scheduleEventSources[scheduleId];
+            }
+            scheduleStreamActive[scheduleId] = false;
+        }
+
+        function connectLiveStream(scheduleId, busId, enabled) {
+            disconnectLiveStream(scheduleId);
+
+            if (!enabled || !busId || Number.isNaN(Number(busId)) || typeof EventSource === 'undefined') {
                 return;
             }
-            
-            if (typeof L === 'undefined') {
-                dbg({ h: 'H1', loc: `leaflet-missing-${scheduleId}`, msg: 'window.L undefined' });
+
+            const es = new EventSource(`/api/bus/stream/${busId}`);
+            scheduleEventSources[scheduleId] = es;
+
+            es.addEventListener('location', (ev) => {
+                try {
+                    applyStreamGps(scheduleId, JSON.parse(ev.data));
+                } catch (e) {
+                    /* ignore malformed payloads */
+                }
+            });
+
+            es.onopen = () => {
+                scheduleStreamActive[scheduleId] = true;
+                resetPollInterval(scheduleId, busId);
+            };
+
+            es.onerror = () => {
+                scheduleStreamActive[scheduleId] = false;
+                es.close();
+                delete scheduleEventSources[scheduleId];
+                resetPollInterval(scheduleId, busId);
+                setTimeout(() => connectLiveStream(scheduleId, busId, enabled), STREAM_RECONNECT_MS);
+            };
+        }
+
+        function applyStreamGps(scheduleId, data) {
+            if (manualOverride[scheduleId]) return;
+
+            const lat = data.lat != null ? parseFloat(data.lat) : null;
+            const lng = data.lng != null ? parseFloat(data.lng) : null;
+            if (lat == null || lng == null || Number.isNaN(lat) || Number.isNaN(lng)) return;
+
+            const heading = data.heading != null ? Number(data.heading) : null;
+            const speed = data.speed_kmh != null ? Number(data.speed_kmh) : null;
+            const age = data.gps_age_seconds != null ? Number(data.gps_age_seconds) : 0;
+
+            updateGpsBadge(scheduleId, {
+                has_gps: true,
+                gps_fresh: true,
+                gps_stale: false,
+                gps_age_seconds: age,
+                stream: true,
+            });
+            updateMotionBadge(scheduleId, {
+                heading,
+                speed_kmh: speed,
+                has_gps: true,
+                source: 'live',
+            });
+
+            const statusBadge = document.getElementById(`status-badge-${scheduleId}`);
+            const etaTime = document.getElementById(`eta-time-${scheduleId}`);
+            const etaText = etaTime ? etaTime.textContent : '—';
+            const statusMsg = statusBadge ? statusBadge.textContent : 'On Time';
+            const isDelayed = statusMsg.toLowerCase().includes('delay');
+
+            updateMarker(
+                scheduleId,
+                lat,
+                lng,
+                isDelayed ? 'delayed' : 'on_time',
+                etaText,
+                null,
+                statusMsg,
+                isDelayed,
+                0,
+                heading,
+                speed
+            );
+        }
+
+        function initMap(scheduleId, center, busId, streamEnabled) {
+            scheduleBusIds[scheduleId] = busId;
+            const linkEl = document.getElementById(`bus-link-${scheduleId}`);
+            if (linkEl) {
+                if (busId && streamEnabled) {
+                    linkEl.textContent = 'Linked driver bus #' + busId + ' · live GPS stream + ETA poll';
+                } else if (busId) {
+                    linkEl.textContent = 'Linked bus #' + busId + ' · ETA poll (demo path if no GPS)';
+                } else {
+                    linkEl.textContent = 'Demo route · simulated path until a bus is linked';
+                }
+            }
+
+            const ready = ensureMap(scheduleId, center);
+            if (!ready) {
+                const loadingEl = document.getElementById(`map-loading-${scheduleId}`);
                 if (loadingEl) loadingEl.textContent = 'Error: Map library failed to load.';
                 return;
             }
-            
-            try {
-                const map = L.map(`map-${scheduleId}`).setView(center, 13);
-                scheduleMaps[scheduleId] = map;
-                
-                const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '&copy; OpenStreetMap contributors'
-                });
-                osm.on('tileerror', (e) => {
-                    dbg({ h: 'H1', loc: `tile-error-${scheduleId}`, msg: 'tile load error', data: { scheduleId } });
-                });
-                osm.on('load', () => {
-                    dbg({ h: 'H1', loc: `tile-loaded-${scheduleId}`, msg: 'tiles loaded', data: { scheduleId } });
-                    if (loadingEl) loadingEl.style.display = 'none';
-                });
-                osm.addTo(map);
-                
-                const marker = L.marker(center, { icon: busIcon(0), rotationOrigin: 'center center' }).addTo(map);
-                scheduleMarkers[scheduleId] = marker;
-                scheduleHeadings[scheduleId] = 0;
-                
-                dbg({ h: 'H1', loc: `map-init-${scheduleId}`, msg: 'map initialized', data: { scheduleId } });
-                
-                // Hide loading after delay
-                setTimeout(() => {
-                    if (loadingEl) loadingEl.style.display = 'none';
-                }, 1000);
-                
-                // Near real-time: poll every 1s + smooth marker between fixes
-                setInterval(() => fetchLiveLocation(scheduleId, busId), POLL_MS);
-                fetchLiveLocation(scheduleId, busId);
-            } catch (error) {
-                dbg({ h: 'H1', loc: `map-init-error-${scheduleId}`, msg: 'map init failed', data: { error: error.message, scheduleId } });
-                if (loadingEl) loadingEl.textContent = 'Error: ' + error.message;
-            }
+
+            connectLiveStream(scheduleId, busId, !!streamEnabled);
+            resetPollInterval(scheduleId, busId);
+            fetchLiveLocation(scheduleId, busId);
         }
 
         async function fetchLiveLocation(scheduleId, busId) {
+            if (manualOverride[scheduleId]) return;
+
             try {
-                const res = await fetch(`/api/bus/get-location/${busId}`);
+                const res = await fetch(`/api/bus/get-location/${busId}`, {
+                    headers: { 'Accept': 'application/json' },
+                    cache: 'no-store',
+                });
                 if (!res.ok) throw new Error('Network response was not ok');
                 const data = await res.json();
 
@@ -304,11 +338,18 @@
                     has_gps, gps_fresh, gps_stale, gps_age_seconds, heading, speed_kmh
                 } = data;
 
-                updateGpsBadge(scheduleId, { has_gps, gps_fresh, gps_stale, gps_age_seconds });
-                updateMotionBadge(scheduleId, { heading, speed_kmh, has_gps });
+                const ageOk = gps_age_seconds == null || gps_age_seconds <= LIVE_GPS_MAX_AGE;
+                const useLive = !!has_gps && ageOk && lat != null && lng != null
+                    && !Number.isNaN(parseFloat(lat)) && !Number.isNaN(parseFloat(lng));
 
-                // Prefer real driver GPS when we have coordinates
-                if (has_gps && lat != null && lng != null && !Number.isNaN(parseFloat(lat))) {
+                if (useLive) {
+                    updateGpsBadge(scheduleId, { has_gps: true, gps_fresh, gps_stale, gps_age_seconds });
+                    updateMotionBadge(scheduleId, {
+                        heading: heading != null ? Number(heading) : null,
+                        speed_kmh: speed_kmh != null ? Number(speed_kmh) : null,
+                        has_gps: true,
+                        source: gps_fresh ? 'live' : 'recent',
+                    });
                     updateMarker(
                         scheduleId,
                         parseFloat(lat),
@@ -319,47 +360,61 @@
                         status_msg,
                         is_delayed,
                         delay_minutes,
-                        heading,
-                        speed_kmh
+                        heading != null ? Number(heading) : null,
+                        speed_kmh != null ? Number(speed_kmh) : null
                     );
                     return;
                 }
 
-                // No driver fix yet — fall through to path simulation for demos
+                updateGpsBadge(scheduleId, {
+                    has_gps: !!has_gps,
+                    gps_fresh: false,
+                    gps_stale: !!has_gps,
+                    gps_age_seconds: gps_age_seconds,
+                    offline: !has_gps,
+                });
                 runSimulatedPath(scheduleId);
             } catch (error) {
-                updateGpsBadge(scheduleId, { has_gps: false, gps_fresh: false, gps_stale: false, gps_age_seconds: null, offline: true });
-                updateMotionBadge(scheduleId, { heading: null, speed_kmh: null, has_gps: false });
+                if (manualOverride[scheduleId]) return;
+                updateGpsBadge(scheduleId, {
+                    has_gps: false,
+                    gps_fresh: false,
+                    gps_stale: false,
+                    gps_age_seconds: null,
+                    offline: true,
+                });
                 runSimulatedPath(scheduleId);
             }
         }
 
         function compassLabel(deg) {
-            if (deg == null || Number.isNaN(deg)) return '—';
+            if (deg == null || Number.isNaN(Number(deg))) return '—';
+            const n = Number(deg);
             const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-            const i = Math.round((((deg % 360) + 360) % 360) / 45) % 8;
-            return dirs[i] + ' ' + Math.round(deg) + '°';
+            const i = Math.round((((n % 360) + 360) % 360) / 45) % 8;
+            return dirs[i] + ' ' + Math.round(n) + '°';
         }
 
         function updateMotionBadge(scheduleId, info) {
             const el = document.getElementById(`motion-badge-${scheduleId}`);
             if (!el) return;
-            if (!info.has_gps) {
+
+            const heading = info.heading != null && !Number.isNaN(Number(info.heading))
+                ? Number(info.heading) : null;
+            const speed = info.speed_kmh != null && !Number.isNaN(Number(info.speed_kmh))
+                ? Number(info.speed_kmh) : null;
+
+            el.classList.remove('is-live', 'is-demo', 'is-idle');
+
+            if (heading == null && speed == null) {
+                el.classList.add('is-idle');
                 el.textContent = 'Heading — · Speed —';
                 return;
             }
-            const speed = info.speed_kmh != null ? Number(info.speed_kmh).toFixed(0) + ' km/h' : '—';
-            el.textContent = 'Heading ' + compassLabel(info.heading) + ' · Speed ' + speed;
-        }
 
-        function busIcon(headingDeg) {
-            const rot = headingDeg != null && !Number.isNaN(headingDeg) ? headingDeg : 0;
-            return L.divIcon({
-                className: 'bus-marker-wrap',
-                html: `<div class="bus-marker" style="transform:rotate(${rot}deg)" title="Heading ${Math.round(rot)}°"><span class="bus-marker__arrow"></span></div>`,
-                iconSize: [28, 28],
-                iconAnchor: [14, 14],
-            });
+            el.classList.add(info.source === 'live' || info.has_gps ? 'is-live' : 'is-demo');
+            const speedLabel = speed != null ? speed.toFixed(0) + ' km/h' : '—';
+            el.textContent = 'Heading ' + compassLabel(heading) + ' · Speed ' + speedLabel;
         }
 
         function setMarkerHeading(scheduleId, heading) {
@@ -367,7 +422,10 @@
             if (!marker) return;
             if (heading == null || Number.isNaN(heading)) return;
             scheduleHeadings[scheduleId] = heading;
-            marker.setIcon(busIcon(heading));
+            const icon = busIcon(heading);
+            if (icon && typeof marker.setIcon === 'function') {
+                marker.setIcon(icon);
+            }
         }
 
         function updateGpsBadge(scheduleId, info) {
@@ -382,7 +440,9 @@
             }
             if (info.gps_fresh) {
                 el.classList.add('gps-live-badge--live');
-                el.textContent = 'GPS: live · ' + (info.gps_age_seconds ?? 0) + 's ago';
+                el.textContent = info.stream
+                    ? 'GPS: live stream · ' + (info.gps_age_seconds ?? 0) + 's ago'
+                    : 'GPS: live · ' + (info.gps_age_seconds ?? 0) + 's ago';
                 return;
             }
             if (info.gps_stale || info.has_gps) {
@@ -396,41 +456,54 @@
         }
 
         function runSimulatedPath(scheduleId) {
-                const path = schedulePaths[scheduleId] || schedulePaths[1];
-                const timeMs = Date.now();
-                const cycleTime = 8000;
-                const progress = (timeMs % cycleTime) / cycleTime;
-                const segmentIndex = Math.floor(progress * (path.length - 1));
-                const segmentProgress = (progress * (path.length - 1)) % 1;
+            ensureMap(scheduleId);
+            const path = schedulePaths[scheduleId] || schedulePaths[1];
+            const timeMs = Date.now();
+            const cycleTime = 8000;
+            const progress = (timeMs % cycleTime) / cycleTime;
+            const segmentIndex = Math.floor(progress * (path.length - 1));
+            const segmentProgress = (progress * (path.length - 1)) % 1;
 
-                const currentPoint = path[segmentIndex];
-                const nextPoint = path[Math.min(segmentIndex + 1, path.length - 1)];
-                const lat = currentPoint.lat + (nextPoint.lat - currentPoint.lat) * segmentProgress;
-                const lng = currentPoint.lng + (nextPoint.lng - currentPoint.lng) * segmentProgress;
+            const currentPoint = path[segmentIndex];
+            const nextPoint = path[Math.min(segmentIndex + 1, path.length - 1)];
+            const lat = currentPoint.lat + (nextPoint.lat - currentPoint.lat) * segmentProgress;
+            const lng = currentPoint.lng + (nextPoint.lng - currentPoint.lng) * segmentProgress;
 
-                const etas = { 1: [10, 8, 6, 4], 2: [15, 12, 9, 6], 3: [8, 6, 4, 2] };
-                const etaValues = etas[scheduleId] || [10, 8, 6, 4];
-                const etaIndex = Math.floor(progress * (etaValues.length - 1));
-                const eta = Math.max(0, Math.ceil(etaValues[etaIndex] * (1 - segmentProgress)));
+            const etas = { 1: [10, 8, 6, 4], 2: [15, 12, 9, 6], 3: [8, 6, 4, 2] };
+            const etaValues = etas[scheduleId] || [10, 8, 6, 4];
+            const etaIndex = Math.floor(progress * (etaValues.length - 1));
+            const eta = Math.max(0, Math.ceil(etaValues[etaIndex] * (1 - segmentProgress)));
 
-                const isDelayed = segmentProgress > 0.6 && segmentIndex === path.length - 1;
-                const simulatedDelayMinutes = isDelayed ? Math.floor(5 + segmentProgress * 10) : 0;
+            const isDelayed = segmentProgress > 0.6 && segmentIndex === path.length - 1;
+            const simulatedDelayMinutes = isDelayed ? Math.floor(5 + segmentProgress * 10) : 0;
 
-                const dLat = nextPoint.lat - currentPoint.lat;
-                const dLng = nextPoint.lng - currentPoint.lng;
-                const simHeading = (Math.atan2(dLng, dLat) * 180 / Math.PI + 360) % 360;
-                const simSpeed = 28 + segmentProgress * 8;
+            const dLat = nextPoint.lat - currentPoint.lat;
+            const dLng = nextPoint.lng - currentPoint.lng;
+            const simHeading = (Math.atan2(dLng, dLat) * 180 / Math.PI + 360) % 360;
+            const simSpeed = 28 + segmentProgress * 8;
 
-                updateMotionBadge(scheduleId, { heading: simHeading, speed_kmh: simSpeed, has_gps: true });
-                updateMarker(scheduleId, lat, lng, isDelayed ? 'delayed' : 'on_time', `${eta} mins`, isDelayed ? `Simulated delay: ${simulatedDelayMinutes} minutes` : null, isDelayed ? 'Delayed' : 'On Time', isDelayed, simulatedDelayMinutes, simHeading, simSpeed);
+            updateMotionBadge(scheduleId, {
+                heading: simHeading,
+                speed_kmh: simSpeed,
+                has_gps: false,
+                source: 'demo',
+            });
+            updateMarker(
+                scheduleId, lat, lng,
+                isDelayed ? 'delayed' : 'on_time',
+                `${eta} mins`,
+                isDelayed ? `Simulated delay: ${simulatedDelayMinutes} minutes` : null,
+                isDelayed ? 'Delayed' : 'On Time',
+                isDelayed, simulatedDelayMinutes, simHeading, simSpeed
+            );
         }
 
         function easeInOutCubic(t) {
             return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
         }
 
-        /** Animate marker toward new GPS like Uber/Pathao (no hard jumps). */
         function animateMarkerTo(scheduleId, lat, lng) {
+            ensureMap(scheduleId);
             const map = scheduleMaps[scheduleId];
             const marker = scheduleMarkers[scheduleId];
             if (!map || !marker) return;
@@ -452,7 +525,6 @@
             const start = performance.now();
             const fromLat = from.lat;
             const fromLng = from.lng;
-            // Pan only on meaningful moves (~40m+) so the map doesn't jitter every tick
             const shouldPan = dLat > 0.00035 || dLng > 0.00035;
 
             function step(now) {
@@ -477,25 +549,16 @@
         }
 
         function updateMarker(scheduleId, lat, lng, status, etaText, delayMsg, statusMsg, isDelayedFlag, delayMinutes = 0, heading = null, speedKmh = null) {
+            ensureMap(scheduleId, [lat, lng]);
             const map = scheduleMaps[scheduleId];
             const marker = scheduleMarkers[scheduleId];
-            if (!map || !marker) {
-                dbg({ h: 'H3', loc: `marker-update-fail-${scheduleId}`, msg: 'map or marker missing', data: { scheduleId, hasMap: !!map, hasMarker: !!marker } });
-                return;
-            }
-            
-            const currentPos = marker.getLatLng();
+            if (!map || !marker) return;
+
             const lastPos = scheduleLastPositions[scheduleId];
             const lastDelay = scheduleLastDelays[scheduleId];
-            
-            const positionChanged = !lastPos || 
-                Math.abs(currentPos.lat - lat) > 0.0001 || 
-                Math.abs(currentPos.lng - lng) > 0.0001;
-            
-            const delayChanged = lastDelay !== isDelayedFlag || 
+            const delayChanged = lastDelay !== isDelayedFlag ||
                 (isDelayedFlag && lastDelay && Math.abs((lastDelay.delayMinutes || 0) - delayMinutes) >= 1);
 
-            // Derive heading from movement if API didn't send one
             let h = heading != null && !Number.isNaN(Number(heading)) ? Number(heading) : null;
             if (h == null && lastPos) {
                 const moved = Math.abs(lastPos.lat - lat) > 0.00002 || Math.abs(lastPos.lng - lng) > 0.00002;
@@ -504,32 +567,11 @@
                 }
             }
             if (h != null) setMarkerHeading(scheduleId, h);
-            
+
             animateMarkerTo(scheduleId, lat, lng);
-            
+
             scheduleLastPositions[scheduleId] = { lat, lng };
             scheduleLastDelays[scheduleId] = { isDelayed: isDelayedFlag, delayMinutes };
-            
-            dbg({ 
-                h: 'H3', 
-                loc: `marker-update-${scheduleId}`, 
-                msg: positionChanged ? 'marker position changed' : 'marker position same', 
-                data: { 
-                    scheduleId, 
-                    newLat: lat, 
-                    newLng: lng,
-                    oldLat: lastPos?.lat || currentPos.lat,
-                    oldLng: lastPos?.lng || currentPos.lng,
-                    positionChanged,
-                    delayChanged,
-                    status,
-                    isDelayed: isDelayedFlag,
-                    delayMinutes,
-                    heading: h,
-                    speed_kmh: speedKmh,
-                    timestamp: Date.now()
-                } 
-            });
 
             const statusBadge = document.getElementById(`status-badge-${scheduleId}`);
             const etaTime = document.getElementById(`eta-time-${scheduleId}`);
@@ -544,134 +586,110 @@
                 etaTime.textContent = delay ? `${delayMinutes} min delay` : (etaText || '10 mins');
             }
 
-            // DYNAMIC NOTIFICATION: Show notification when delay is detected or changes
             const toast = document.getElementById('toast-notification');
             const toastMsgEl = document.getElementById('toast-msg');
-            
-            // Show notification if delayed (even if delayMsg is empty, generate one)
+
             if (delay) {
                 const displayMsg = delayMsg || `Schedule ${scheduleId} is delayed by ${delayMinutes} minute${delayMinutes !== 1 ? 's' : ''}.`;
-                // Clear existing timeout for this schedule
                 if (scheduleNotificationTimeouts[scheduleId]) {
                     clearTimeout(scheduleNotificationTimeouts[scheduleId]);
                 }
-                
-                // Show notification
-                if (toast) {
-                    // Force visibility
-                    toast.style.display = 'block';
-                    toast.style.visibility = 'visible';
-                    toast.style.opacity = '1';
-                    
-                    if (toastMsgEl) {
-                        toastMsgEl.textContent = displayMsg;
-                    }
-                    
-                    // Verify toast is actually visible
-                    const rect = toast.getBoundingClientRect();
-                    const isVisible = toast.offsetWidth > 0 && toast.offsetHeight > 0 && 
-                                     window.getComputedStyle(toast).display !== 'none';
-                    
-                    dbg({ 
-                        h: 'H4', 
-                        loc: `notification-shown-${scheduleId}`, 
-                        msg: 'delay notification displayed', 
-                        data: { 
-                            scheduleId, 
-                            delayMinutes, 
-                            delayMsg: displayMsg,
-                            delayChanged,
-                            isNewDelay: !lastDelay || !lastDelay.isDelayed,
-                            toastFound: !!toast,
-                            toastDisplay: toast.style.display,
-                            toastVisible: isVisible,
-                            toastRect: { width: rect.width, height: rect.height, top: rect.top, left: rect.left },
-                            computedDisplay: window.getComputedStyle(toast).display
-                        } 
-                    });
-                    
-                    // Auto-hide after 8 seconds (longer for important delays)
-                    scheduleNotificationTimeouts[scheduleId] = setTimeout(() => {
-                        toast.style.display = 'none';
-                        delete scheduleNotificationTimeouts[scheduleId];
-                    }, delayMinutes >= 10 ? 10000 : 8000);
-                } else {
-                    dbg({ 
-                        h: 'H4', 
-                        loc: `notification-failed-${scheduleId}`, 
-                        msg: 'toast element not found', 
-                        data: { scheduleId, delayMinutes, delayMsg: displayMsg } 
-                    });
-                }
-            } else if (!delay && lastDelay && lastDelay.isDelayed) {
-                // Delay cleared - show recovery notification
                 if (toast) {
                     toast.style.display = 'block';
                     toast.style.visibility = 'visible';
                     toast.style.opacity = '1';
-                    toast.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
-                    
-                    if (toastMsgEl) {
-                        toastMsgEl.textContent = `Schedule ${scheduleId}: Bus is back on schedule!`;
-                    }
-                    
-                    setTimeout(() => {
-                        toast.style.display = 'none';
-                        // Reset background color
-                        toast.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
-                    }, 5000);
+                    if (toastMsgEl) toastMsgEl.textContent = displayMsg;
                 }
+                scheduleNotificationTimeouts[scheduleId] = setTimeout(() => {
+                    if (toast) toast.style.display = 'none';
+                }, 5000);
+            } else if (delayChanged && toast) {
+                toast.style.display = 'none';
             }
         }
 
         function startSimulation(scheduleId) {
-            const map = scheduleMaps[scheduleId];
-            const marker = scheduleMarkers[scheduleId];
-            if (!map || !marker) return;
-            
+            const ready = ensureMap(scheduleId);
+            if (!ready) {
+                alert('Map library failed to load. Hard-refresh the page (Cmd+Shift+R).');
+                return;
+            }
+            const { map, marker } = ready;
+
+            manualOverride[scheduleId] = true;
+            if (scheduleSimTimers[scheduleId]) {
+                clearInterval(scheduleSimTimers[scheduleId]);
+                scheduleSimTimers[scheduleId] = null;
+            }
+
             const path = schedulePaths[scheduleId] || schedulePaths[1];
             const statusBadge = document.getElementById(`status-badge-${scheduleId}`);
             const etaTime = document.getElementById(`eta-time-${scheduleId}`);
             const etas = { 1: [10, 8, 6, 4], 2: [15, 12, 9, 6], 3: [8, 6, 4, 2] };
             const etaValues = etas[scheduleId] || [10, 8, 6, 4];
-            
+
             let idx = 0;
-            const timer = setInterval(() => {
+            const tick = () => {
                 if (idx >= path.length) {
-                    clearInterval(timer);
+                    clearInterval(scheduleSimTimers[scheduleId]);
+                    scheduleSimTimers[scheduleId] = null;
                     if (statusBadge) {
                         statusBadge.textContent = 'Arrived';
                         statusBadge.style.background = '#e0f2fe';
                         statusBadge.style.color = '#0f172a';
                     }
                     if (etaTime) etaTime.textContent = '0 mins';
+                    updateMotionBadge(scheduleId, { heading: null, speed_kmh: 0, source: 'demo' });
+                    setTimeout(() => { manualOverride[scheduleId] = false; }, 1500);
                     return;
                 }
+
                 const pos = path[idx];
+                const next = path[Math.min(idx + 1, path.length - 1)];
+                const heading = (Math.atan2(next.lng - pos.lng, next.lat - pos.lat) * 180 / Math.PI + 360) % 360;
+                const speed = 30 + idx * 2;
+
+                updateMotionBadge(scheduleId, { heading, speed_kmh: speed, source: 'demo' });
+                updateGpsBadge(scheduleId, {
+                    has_gps: false, gps_fresh: false, gps_stale: false,
+                    gps_age_seconds: null, offline: true,
+                });
+                setMarkerHeading(scheduleId, heading);
                 marker.setLatLng([pos.lat, pos.lng]);
                 map.panTo([pos.lat, pos.lng]);
                 if (etaTime) etaTime.textContent = `${etaValues[idx] || 0} mins`;
+                if (statusBadge) {
+                    statusBadge.textContent = 'Simulating';
+                    statusBadge.style.background = '#e0f2fe';
+                    statusBadge.style.color = '#0f172a';
+                }
                 idx++;
-            }, 2000);
+            };
+
+            tick();
+            scheduleSimTimers[scheduleId] = setInterval(tick, 1200);
         }
 
         function triggerDelay(scheduleId) {
-            const marker = scheduleMarkers[scheduleId];
-            if (!marker) return;
+            const ready = ensureMap(scheduleId);
+            if (!ready) {
+                alert('Map library failed to load. Hard-refresh the page (Cmd+Shift+R).');
+                return;
+            }
+            const { marker } = ready;
+
+            manualOverride[scheduleId] = true;
             const pos = marker.getLatLng();
-            // Simulate a 5-minute delay with explicit notification
             const delayMsg = `Traffic congestion detected on Schedule ${scheduleId}. Bus delayed by 5 minutes.`;
-            updateMarker(scheduleId, pos.lat, pos.lng, 'delayed', 'Delayed', delayMsg, 'Delayed by 5 min', true, 5);
-            
-            dbg({ 
-                h: 'H5', 
-                loc: `triggerDelay-${scheduleId}`, 
-                msg: 'manual delay triggered', 
-                data: { scheduleId, delayMinutes: 5 } 
+            updateMotionBadge(scheduleId, {
+                heading: scheduleHeadings[scheduleId] ?? 0,
+                speed_kmh: 8,
+                source: 'demo',
             });
+            updateMarker(scheduleId, pos.lat, pos.lng, 'delayed', 'Delayed', delayMsg, 'Delayed by 5 min', true, 5);
+            setTimeout(() => { manualOverride[scheduleId] = false; }, 8000);
         }
-        
-        // Test function to verify notification visibility
+
         function testNotification() {
             const toast = document.getElementById('toast-notification');
             const toastMsg = document.getElementById('toast-msg');
@@ -680,18 +698,16 @@
                 toast.style.display = 'block';
                 toast.style.visibility = 'visible';
                 toast.style.opacity = '1';
-                setTimeout(() => {
-                    toast.style.display = 'none';
-                }, 5000);
-                dbg({ h: 'H5', loc: 'testNotification', msg: 'test notification shown', data: { toastFound: !!toast } });
-            } else {
-                dbg({ h: 'H5', loc: 'testNotification', msg: 'test notification failed', data: { toastFound: !!toast, toastMsgFound: !!toastMsg } });
+                setTimeout(() => { toast.style.display = 'none'; }, 5000);
             }
         }
 
-        // Initialize maps with real bus IDs from the database (driver GPS keys off these)
-        document.addEventListener('DOMContentLoaded', () => {
-            const buses = @json($buses->values());
+        window.startSimulation = startSimulation;
+        window.triggerDelay = triggerDelay;
+        window.testNotification = testNotification;
+
+        function bootLiveMaps() {
+            const buses = @json($scheduleCards->values());
             const defaults = [
                 [23.8103, 90.4125],
                 [23.8150, 90.4100],
@@ -700,12 +716,37 @@
 
             buses.slice(0, 3).forEach((bus, index) => {
                 const scheduleId = index + 1;
+                const routeEl = document.getElementById(`route-name-${scheduleId}`);
+                if (routeEl && bus.route_name) routeEl.textContent = bus.route_name;
+
                 const center = (bus.current_lat && bus.current_lng)
                     ? [parseFloat(bus.current_lat), parseFloat(bus.current_lng)]
                     : defaults[index];
-                initMap(scheduleId, center, bus.id);
+                setTimeout(
+                    () => initMap(scheduleId, center, bus.id, !!bus.live_stream),
+                    index * 80
+                );
             });
-        });
+
+            initDayTabs();
+
+            window.addEventListener('resize', () => {
+                Object.values(scheduleMaps).forEach((m) => m && m.invalidateSize && m.invalidateSize());
+            });
+
+            window.addEventListener('beforeunload', () => {
+                Object.keys(schedulePollTimers).forEach((id) => {
+                    if (schedulePollTimers[id]) clearInterval(schedulePollTimers[id]);
+                });
+                Object.keys(scheduleEventSources).forEach((id) => disconnectLiveStream(id));
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bootLiveMaps);
+        } else {
+            bootLiveMaps();
+        }
     </script>
     @endpush
 </x-app-layout>

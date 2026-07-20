@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0b6e6a">
+    <title>Offline · StudentMove</title>
+    <style>
+        :root { color-scheme: light; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            padding-top: calc(1.5rem + env(safe-area-inset-top));
+            padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+            font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+            background: linear-gradient(160deg, #edf2f1 0%, #e4f0ee 100%);
+            color: #1e2630;
+        }
+        .card {
+            max-width: 420px;
+            width: 100%;
+            background: #fff;
+            border: 1px solid rgba(18, 22, 28, 0.08);
+            border-radius: 1rem;
+            padding: 1.75rem 1.5rem;
+            box-shadow: 0 18px 40px rgba(18, 22, 28, 0.08);
+            text-align: center;
+        }
+        .icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 1rem;
+        }
+        h1 {
+            margin: 0 0 0.5rem;
+            font-size: 1.35rem;
+        }
+        p {
+            margin: 0 0 1.25rem;
+            color: #5b6572;
+            line-height: 1.5;
+        }
+        button {
+            background: #0b6e6a;
+            color: #fff;
+            border: 0;
+            border-radius: 0.45rem;
+            padding: 0.75rem 1.2rem;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        button:hover { filter: brightness(1.05); }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <img class="icon" src="/icons/icon.svg" alt="">
+        <h1>You’re offline</h1>
+        <p>StudentMove needs a connection for live buses and bookings. Cached pages may still open — try again when you’re back online.</p>
+        <button type="button" onclick="location.reload()">Try again</button>
+    </div>
+</body>
+</html>

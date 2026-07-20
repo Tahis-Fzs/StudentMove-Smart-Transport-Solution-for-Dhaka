@@ -44,7 +44,11 @@ class NotificationController extends Controller
         $announcement = Notification::create($data);
 
         if ($announcement->is_active) {
-            $this->inbox->fanOutAnnouncement($announcement);
+            try {
+                $this->inbox->fanOutAnnouncement($announcement);
+            } catch (\Throwable $e) {
+                report($e);
+            }
         }
 
         return redirect()->route('admin.notifications.index')->with('success', 'Announcement created successfully!');
@@ -90,12 +94,14 @@ class NotificationController extends Controller
             'icon_color' => ['nullable', 'string', 'max:50'],
             'type' => ['nullable', 'string', 'in:info,success,warning,error'],
             'audience' => ['required', 'in:all,university,department,route'],
-            'target_value' => ['nullable', 'string', 'max:255'],
+            'target_value' => ['nullable', 'string', 'max:255', 'required_unless:audience,all'],
             'is_active' => ['boolean'],
             'sort_order' => ['nullable', 'integer'],
             'published_at' => ['nullable', 'date'],
             'expires_at' => ['nullable', 'date'],
             'offer_id' => ['nullable', 'exists:offers,id'],
+        ], [
+            'target_value.required_unless' => 'Enter a target value for this audience (university, department, or route).',
         ]);
 
         $audience = $data['audience'];
@@ -114,6 +120,14 @@ class NotificationController extends Controller
             ]);
         }
 
+        // Non-ALL audiences always keep a non-empty target; ALL clears it.
+        $targetValue = $audience === Notification::AUDIENCE_ALL ? null : $target;
+        if ($audience !== Notification::AUDIENCE_ALL && ($targetValue === null || $targetValue === '')) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'target_value' => 'Enter a target value for this audience (university, department, or route).',
+            ]);
+        }
+
         return [
             'title' => $data['title'] ?? null,
             'message' => $data['message'],
@@ -121,7 +135,7 @@ class NotificationController extends Controller
             'icon_color' => $data['icon_color'] ?? 'blue',
             'type' => $data['type'] ?? 'info',
             'audience' => $audience,
-            'target_value' => $audience === Notification::AUDIENCE_ALL ? null : $target,
+            'target_value' => $targetValue,
             'is_active' => $request->has('is_active'),
             'sort_order' => $data['sort_order'] ?? 0,
             'published_at' => $data['published_at'] ?? null,

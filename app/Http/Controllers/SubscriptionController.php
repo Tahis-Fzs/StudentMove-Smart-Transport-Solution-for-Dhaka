@@ -22,32 +22,10 @@ class SubscriptionController extends Controller
     {
     }
 
-    /** Canonical plan catalog (keys kept for DB compatibility). */
+    /** Canonical plan catalog — keys match names and durations. */
     public static function planCatalog(): array
     {
-        return [
-            'monthly' => [
-                'name' => 'Weekly Pass',
-                'price' => 350,
-                'days' => 7,
-                'desc' => 'Unlimited rides for 7 days',
-                'tag' => 'Most Popular',
-            ],
-            '6months' => [
-                'name' => 'Monthly Pass',
-                'price' => 1200,
-                'days' => 30,
-                'desc' => 'Best for regular commuters',
-                'tag' => 'Best Value',
-            ],
-            'yearly' => [
-                'name' => 'Single Ride',
-                'price' => 30,
-                'days' => 1,
-                'desc' => 'Pay as you go',
-                'tag' => null,
-            ],
-        ];
+        return Subscription::planCatalog();
     }
 
     public function index()
@@ -67,8 +45,9 @@ class SubscriptionController extends Controller
             : null;
 
         $sslEnabled = $this->sslCommerz->isConfigured();
+        $sslSandbox = $sslEnabled && $this->sslCommerz->isSandbox();
 
-        return view('subscription', compact('plans', 'activeSubscription', 'sslEnabled'));
+        return view('subscription', compact('plans', 'activeSubscription', 'sslEnabled', 'sslSandbox'));
     }
 
     /**
@@ -78,7 +57,7 @@ class SubscriptionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'plan_type' => 'required|in:monthly,6months,yearly',
+            'plan_type' => 'required|in:weekly,monthly,single',
             'payment_method' => 'nullable|in:sslcommerz,card,mobile_banking',
             'payment_provider' => 'required_if:payment_method,mobile_banking|nullable|in:bkash,nagad,rocket',
             'transaction_id' => 'required_if:payment_method,mobile_banking|nullable|string|max:255',

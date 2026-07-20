@@ -174,14 +174,12 @@
         <tbody>
             <tr>
                 <td>{{ $subscription->plan_name }}</td>
-                <td>{{ ucfirst($subscription->plan_type) }}</td>
+                <td>{{ $subscription->plan_name }}</td>
                 <td>
-                    @if($subscription->plan_type === 'monthly')
-                        1 Month
-                    @elseif($subscription->plan_type === '6months')
-                        6 Months
+                    @if($subscription->plan_duration === 1)
+                        1 Day
                     @else
-                        1 Year
+                        {{ $subscription->plan_duration }} Days
                     @endif
                 </td>
                 <td style="text-align: right;">৳{{ number_format($invoice->amount, 2) }}</td>

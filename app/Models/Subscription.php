@@ -43,6 +43,34 @@ class Subscription extends Model
         return $this->belongsTo(User::class);
     }
 
+    /** Canonical plan catalog — keys match names and durations. */
+    public static function planCatalog(): array
+    {
+        return [
+            'weekly' => [
+                'name' => 'Weekly Pass',
+                'price' => 350,
+                'days' => 7,
+                'desc' => 'Unlimited rides for 7 days',
+                'tag' => 'Most Popular',
+            ],
+            'monthly' => [
+                'name' => 'Monthly Pass',
+                'price' => 1200,
+                'days' => 30,
+                'desc' => 'Best for regular commuters',
+                'tag' => 'Best Value',
+            ],
+            'single' => [
+                'name' => 'Single Ride',
+                'price' => 30,
+                'days' => 1,
+                'desc' => 'Pay as you go',
+                'tag' => null,
+            ],
+        ];
+    }
+
     public function isActive()
     {
         return $this->status === 'completed' 
@@ -51,20 +79,29 @@ class Subscription extends Model
 
     public function getPlanNameAttribute()
     {
+        $catalog = self::planCatalog();
+        if (isset($catalog[$this->plan_type]['name'])) {
+            return $catalog[$this->plan_type]['name'];
+        }
+
+        // Legacy keys (pre-rename) — keep readable if any row was not migrated
         return match ($this->plan_type) {
-            'monthly' => 'Weekly Pass',
-            '6months' => 'Monthly Pass',
-            'yearly' => 'Single Ride',
+            '6months' => $catalog['monthly']['name'] ?? 'Monthly Pass',
+            'yearly' => $catalog['single']['name'] ?? 'Single Ride',
             default => 'Unknown Plan',
         };
     }
 
     public function getPlanDurationAttribute()
     {
+        $catalog = self::planCatalog();
+        if (isset($catalog[$this->plan_type]['days'])) {
+            return (int) $catalog[$this->plan_type]['days'];
+        }
+
         return match ($this->plan_type) {
-            'monthly' => 7,
-            '6months' => 30,
-            'yearly' => 1,
+            '6months' => (int) ($catalog['monthly']['days'] ?? 30),
+            'yearly' => (int) ($catalog['single']['days'] ?? 1),
             default => 0,
         };
     }

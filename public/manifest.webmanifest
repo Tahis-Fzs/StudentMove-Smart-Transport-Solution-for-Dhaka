@@ -1,0 +1,49 @@
+{
+  "name": "StudentMove",
+  "short_name": "StudentMove",
+  "description": "Smart transport for Dhaka students — live buses, routes, bookings, and passes.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#edf2f1",
+  "theme_color": "#0b6e6a",
+  "categories": ["travel", "navigation", "education"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Live map",
+      "short_name": "Live map",
+      "description": "Track buses and ETAs",
+      "url": "/next-bus-arrival",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Book a ride",
+      "short_name": "Book",
+      "description": "Reserve seats",
+      "url": "/bookings",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Chat",
+      "short_name": "Chat",
+      "description": "AI assistant and support",
+      "url": "/chat",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "96x96" }]
+    }
+  ]
+}
