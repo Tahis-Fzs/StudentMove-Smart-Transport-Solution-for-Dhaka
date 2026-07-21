@@ -87,7 +87,7 @@ Then visit `/subscription` and checkout via the sandbox gateway.
 | Role | URL | Notes |
 |------|-----|-------|
 | **Student** | `/register` or Google sign-in | Create an account or use Google |
-| **Admin** | `/admin/login` | Set `ADMIN_PASSWORD` in Render **Environment** |
+| **Admin** | `/admin/login` | Set `ADMIN_PASSWORD` in Render **Environment** (Blueprint may auto-generate on first deploy — copy from Dashboard) |
 | **Driver** | `/driver/login` | Demo password is in app code · Bus: **BUS-001** |
 | **Payments** | `/subscription` | Set `SSLCOMMERZ_*` in Render **Environment** (local sandbox: `.env.example`) |
 

@@ -64,6 +64,14 @@ if [ ! -f public/build/manifest.json ]; then
   echo "WARNING: Vite manifest missing (public/build/manifest.json). Frontend pages will 500 until assets are built."
 fi
 
+if [ -z "${ADMIN_PASSWORD:-}" ]; then
+  echo "WARNING: ADMIN_PASSWORD is not set. Admin login (/admin/login) is disabled until you add it in Render Environment."
+fi
+
+if [ -z "${SSLCOMMERZ_STORE_ID:-}" ] || [ -z "${SSLCOMMERZ_STORE_PASSWORD:-}" ]; then
+  echo "WARNING: SSLCommerz store credentials missing. /subscription will use demo/simulated checkout."
+fi
+
 # Migrations + demo seed data (universities, faculties, departments, sample bus).
 (
   sleep 2

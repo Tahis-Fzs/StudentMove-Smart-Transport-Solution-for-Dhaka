@@ -33,12 +33,15 @@ services:
         value: file
       - key: QUEUE_CONNECTION
         value: sync
+      # Render generates on first Blueprint create; copy from Dashboard → Environment afterward.
       - key: ADMIN_PASSWORD
-        sync: false
+        generateValue: true
+      # Public SSLCommerz sandbox credentials (official docs) — safe defaults for Render demo checkout.
       - key: SSLCOMMERZ_STORE_ID
-        sync: false
+        value: testbox
       - key: SSLCOMMERZ_STORE_PASSWORD
-        sync: false
+        value: qwerty
+      # Demo hosted on Render uses sandbox; set false + live store creds for real payments.
       - key: SSLCOMMERZ_SANDBOX
         value: "true"
       - key: SSLCOMMERZ_CURRENCY
