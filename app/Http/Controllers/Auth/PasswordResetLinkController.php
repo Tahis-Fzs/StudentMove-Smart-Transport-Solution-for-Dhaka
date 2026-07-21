@@ -31,36 +31,12 @@ class PasswordResetLinkController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        try {
-            // #region agent log
-            $dbg = function($payload) {
-                $line = json_encode([
-                    'sessionId' => 'debug-session',
-                    'runId' => 'password-reset',
-                    'hypothesisId' => $payload['h'] ?? 'PR1',
-                    'location' => $payload['loc'] ?? 'PasswordResetLinkController',
-                    'message' => $payload['msg'] ?? '',
-                    'data' => $payload['data'] ?? [],
-                    'timestamp' => round(microtime(true) * 1000),
-                ]);
-                @file_put_contents(base_path('.cursor/debug.log'), $line . PHP_EOL, FILE_APPEND | LOCK_EX);
-            };
-            // #endregion
-            
+        try {            
             $mailDriver = config('mail.default');
             $mailUsername = config('mail.mailers.smtp.username');
             $mailPassword = config('mail.mailers.smtp.password');
-            
-            $dbg(['h' => 'PR1', 'loc' => 'store.start', 'msg' => 'password reset requested', 'data' => [
-                'email' => $request->email, 
-                'mail_driver' => $mailDriver,
-                'mail_username' => $mailUsername,
-                'mail_password_set' => !empty($mailPassword) && $mailPassword !== 'null'
-            ]]);
-            
-            // AUTOMATIC EMAIL CONFIGURATION: Ensure email is ready before sending reset link
+// AUTOMATIC EMAIL CONFIGURATION: Ensure email is ready before sending reset link
             $emailStatus = EmailHelper::ensureEmailConfigured();
-            $dbg(['h' => 'PR1a', 'loc' => 'email-check', 'msg' => 'email configuration check', 'data' => $emailStatus]);
             
             if (!$emailStatus['ready']) {
                 $errorMsg = '❌ ' . $emailStatus['message'];
@@ -75,7 +51,6 @@ class PasswordResetLinkController extends Controller
             
             // SECURITY: Always send via email - never show links on page
             $mailHost = config('mail.mailers.smtp.host');
-            $dbg(['h' => 'PR2', 'loc' => 'sending-email', 'msg' => 'sending password reset email', 'data' => ['mail_driver' => $mailDriver, 'mail_host' => $mailHost]]);
             
             // We will send the password reset link to this user via email ONLY
             // This ensures security and privacy - the link is never exposed on the page
@@ -83,21 +58,12 @@ class PasswordResetLinkController extends Controller
                 $request->only('email')
             );
             
-            $dbg(['h' => 'PR2', 'loc' => 'sendResetLink.result', 'msg' => 'password reset link sent', 'data' => ['status' => $status, 'email' => $request->email]]);
 
             if ($status == Password::RESET_LINK_SENT) {
                 $mailDriver = config('mail.default');
                 $mailHost = config('mail.mailers.smtp.host');
                 $isMailpit = ($mailHost === '127.0.0.1' || $mailHost === 'localhost') && config('mail.mailers.smtp.port') == 1025;
-                
-                $dbg(['h' => 'PR3', 'loc' => 'email-sent', 'msg' => 'password reset email sent successfully', 'data' => [
-                    'mail_driver' => $mailDriver, 
-                    'mail_host' => $mailHost, 
-                    'is_mailpit' => $isMailpit,
-                    'email_sent_to' => $request->email
-                ]]);
-                
-                // SECURITY: Never show the reset link - it's only in the email
+// SECURITY: Never show the reset link - it's only in the email
                 if ($isMailpit) {
                     $message = '✅ <strong>Password reset email sent!</strong>';
                     $message .= '<br><br>Check your email in Mailpit: <a href="http://127.0.0.1:8025" target="_blank" style="color: #007bff; font-weight: bold;">http://127.0.0.1:8025</a>';
@@ -125,15 +91,7 @@ class PasswordResetLinkController extends Controller
             // Mail server connection error - show user-friendly message
             $errorMsg = $e->getMessage();
             \Log::error('Password reset email failed: ' . $errorMsg);
-            
-            $dbg(['h' => 'PR4', 'loc' => 'transport-exception', 'msg' => 'email transport failed', 'data' => [
-                'error' => $errorMsg,
-                'mail_driver' => config('mail.default'),
-                'mail_host' => config('mail.mailers.smtp.host'),
-                'mail_username' => config('mail.mailers.smtp.username')
-            ]]);
-            
-            // Check if it's a credentials/authentication issue
+// Check if it's a credentials/authentication issue
             if (strpos($errorMsg, 'authentication') !== false || strpos($errorMsg, 'login') !== false || strpos($errorMsg, '535') !== false) {
                 $message = '❌ Email authentication failed! Please check your Gmail credentials in .env file.';
                 $message .= '<br><br>Make sure:';
@@ -169,7 +127,6 @@ class PasswordResetLinkController extends Controller
             \Log::error('Password reset error: ' . $errorMsg);
             
             $mailHost = config('mail.mailers.smtp.host'); // Define here to avoid undefined variable
-            $dbg(['h' => 'PR5', 'loc' => 'general-exception', 'msg' => 'unexpected error', 'data' => ['error' => $errorMsg, 'mail_host' => $mailHost]]);
             
             return back()->withInput($request->only('email'))
                 ->withErrors(['email' => 'An error occurred: ' . $errorMsg]);

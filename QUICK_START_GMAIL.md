@@ -68,6 +68,6 @@ Should show: `smtp.gmail.com`
 - Check your spam folder
 - Make sure 2-Step Verification is enabled
 - Verify the App Password is correct
-- Check debug logs: `tail -50 .cursor/debug.log | grep REG`
+- Check Laravel logs: `tail -50 storage/logs/laravel.log | grep -i mail`
 
 

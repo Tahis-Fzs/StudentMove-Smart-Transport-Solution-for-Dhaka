@@ -1,7 +1,8 @@
 {
     "name": "laravel/laravel",
     "type": "project",
-    "description": "The Laravel Framework.",
+    "description": "StudentMove — smart transport for Dhaka students. Live at https://studentmove-app-d866.onrender.com",
+    "homepage": "https://studentmove-app-d866.onrender.com",
     "keywords": ["framework", "laravel"],
     "license": "MIT",
     "require": {

@@ -1,4 +1,7 @@
 {
+    "name": "studentmove",
+    "description": "StudentMove — smart transport for Dhaka students. Live at https://studentmove-app-d866.onrender.com",
+    "homepage": "https://studentmove-app-d866.onrender.com",
     "private": true,
     "scripts": {
         "dev": "vite",

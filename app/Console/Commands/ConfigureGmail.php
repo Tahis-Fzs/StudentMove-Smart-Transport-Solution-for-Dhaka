@@ -12,34 +12,15 @@ class ConfigureGmail extends Command
 
     public function handle()
     {
-        // #region agent log
-        $dbg = function($payload) {
-            $line = json_encode([
-                'sessionId' => 'debug-session',
-                'runId' => 'configure-gmail',
-                'hypothesisId' => $payload['h'] ?? 'CG1',
-                'location' => $payload['loc'] ?? 'ConfigureGmail',
-                'message' => $payload['msg'] ?? '',
-                'data' => $payload['data'] ?? [],
-                'timestamp' => round(microtime(true) * 1000),
-            ]);
-            @file_put_contents(base_path('.cursor/debug.log'), $line . PHP_EOL, FILE_APPEND | LOCK_EX);
-        };
-        // #endregion
-
         $email = $this->argument('email');
         $password = $this->argument('password');
 
-        $dbg(['h' => 'CG1', 'loc' => 'handle.start', 'msg' => 'command started', 'data' => ['email' => $email, 'password_length' => strlen($password)]]);
-
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $dbg(['h' => 'CG2', 'loc' => 'validation-failed', 'msg' => 'invalid email', 'data' => ['email' => $email]]);
             $this->error('Invalid email address!');
             return 1;
         }
 
         if (strlen($password) < 16) {
-            $dbg(['h' => 'CG3', 'loc' => 'validation-failed', 'msg' => 'password too short', 'data' => ['password_length' => strlen($password)]]);
             $this->error('App Password must be at least 16 characters!');
             return 1;
         }
@@ -47,19 +28,16 @@ class ConfigureGmail extends Command
         $envPath = base_path('.env');
         
         if (!File::exists($envPath)) {
-            $dbg(['h' => 'CG4', 'loc' => 'env-not-found', 'msg' => '.env file missing']);
             $this->error('.env file not found!');
             return 1;
         }
 
         // Read .env
         $envContent = File::get($envPath);
-        $dbg(['h' => 'CG5', 'loc' => 'env-read', 'msg' => 'read .env file', 'data' => ['file_size' => strlen($envContent), 'has_mail_host' => strpos($envContent, 'MAIL_HOST') !== false, 'has_mail_username' => strpos($envContent, 'MAIL_USERNAME') !== false]]);
         
         // Backup
         $backupPath = $envPath . '.backup.' . time();
         File::put($backupPath, $envContent);
-        $dbg(['h' => 'CG6', 'loc' => 'backup-created', 'msg' => 'created .env backup', 'data' => ['backup_path' => $backupPath]]);
         $this->info('✓ Created .env backup');
 
         // Update settings - IMPORTANT: Also set MAIL_MAILER to smtp
@@ -78,8 +56,6 @@ class ConfigureGmail extends Command
         $newLines = [];
         $updated = [];
 
-        $dbg(['h' => 'CG7', 'loc' => 'processing-lines', 'msg' => 'processing .env lines', 'data' => ['total_lines' => count($lines)]]);
-
         foreach ($lines as $line) {
             $lineUpdated = false;
             foreach ($updates as $key => $value) {
@@ -87,7 +63,6 @@ class ConfigureGmail extends Command
                     $newLines[] = "{$key}={$value}";
                     $updated[] = $key;
                     $lineUpdated = true;
-                    $dbg(['h' => 'CG8', 'loc' => 'line-updated', 'msg' => 'updated existing line', 'data' => ['key' => $key, 'old_line' => trim($line), 'new_value' => $value]]);
                     break;
                 }
             }
@@ -100,25 +75,17 @@ class ConfigureGmail extends Command
         foreach ($updates as $key => $value) {
             if (!in_array($key, $updated)) {
                 $newLines[] = "{$key}={$value}";
-                $dbg(['h' => 'CG9', 'loc' => 'key-added', 'msg' => 'added missing key', 'data' => ['key' => $key, 'value' => $value]]);
             }
         }
 
         // Save
         $newContent = implode("\n", $newLines);
         $writeResult = File::put($envPath, $newContent);
-        $dbg(['h' => 'CG10', 'loc' => 'env-saved', 'msg' => 'saved .env file', 'data' => [
-            'write_result' => $writeResult,
-            'new_content_size' => strlen($newContent),
-            'keys_updated' => $updated,
-            'keys_added' => array_diff(array_keys($updates), $updated)
-        ]]);
-        $this->info('✓ Updated .env file');
+$this->info('✓ Updated .env file');
 
         // Clear ALL caches to ensure fresh config load
         $this->call('config:clear');
         $this->call('cache:clear');
-        $dbg(['h' => 'CG11', 'loc' => 'cache-cleared', 'msg' => 'all caches cleared']);
         $this->info('✓ Cleared config cache');
 
         // Test email sending with a simple connection test
@@ -126,13 +93,7 @@ class ConfigureGmail extends Command
         try {
             $testMailer = \Illuminate\Support\Facades\Mail::mailer('smtp');
             // Just verify the configuration is valid - don't actually send
-            $dbg(['h' => 'CG11a', 'loc' => 'connection-test', 'msg' => 'testing Gmail connection', 'data' => [
-                'host' => config('mail.mailers.smtp.host'),
-                'port' => config('mail.mailers.smtp.port'),
-                'username' => config('mail.mailers.smtp.username')
-            ]]);
-        } catch (\Exception $e) {
-            $dbg(['h' => 'CG11b', 'loc' => 'connection-test-failed', 'msg' => 'connection test error', 'data' => ['error' => $e->getMessage()]]);
+} catch (\Exception $e) {
             // Don't fail - credentials will be tested when actually sending
         }
 
@@ -165,21 +126,7 @@ class ConfigureGmail extends Command
         $configMailer = config('mail.default');
         
         $hasPassword = !empty($verifyPassword);
-        
-        $dbg(['h' => 'CG12', 'loc' => 'verification', 'msg' => 'verifying configuration', 'data' => [
-            'file_mailer' => $verifyMailer,
-            'file_host' => $verifyHost,
-            'file_username' => $verifyUsername,
-            'file_has_password' => $hasPassword,
-            'config_mailer' => $configMailer,
-            'config_host' => $configHost,
-            'config_username' => $configUsername,
-            'config_has_password' => !empty($configPassword),
-            'expected_host' => 'smtp.gmail.com',
-            'expected_username' => $email
-        ]]);
-        
-        // Verify .env file was written correctly (primary check)
+// Verify .env file was written correctly (primary check)
         $fileCorrect = ($verifyHost === 'smtp.gmail.com' && $verifyUsername === $email && $hasPassword);
         
         // Config might still show old values in same process, but that's OK - it will reload on next request
@@ -191,7 +138,6 @@ class ConfigureGmail extends Command
             $this->info('   Port: 587');
             $this->info('');
             $this->info('Now register a new account and emails will go to your Gmail inbox!');
-            $dbg(['h' => 'CG13', 'loc' => 'success', 'msg' => 'Gmail configuration successful']);
             return 0;
         } else {
             $this->error('Configuration verification failed!');
@@ -201,14 +147,7 @@ class ConfigureGmail extends Command
             $this->warn('');
             $this->warn('The .env file may not have been updated correctly.');
             $this->warn('Please check the .env file manually.');
-            $dbg(['h' => 'CG14', 'loc' => 'verification-failed', 'msg' => 'configuration verification failed', 'data' => [
-                'file_host' => $verifyHost,
-                'file_username' => $verifyUsername,
-                'file_has_password' => $hasPassword,
-                'config_host' => $configHost,
-                'config_username' => $configUsername
-            ]]);
-            return 1;
+return 1;
         }
     }
 }

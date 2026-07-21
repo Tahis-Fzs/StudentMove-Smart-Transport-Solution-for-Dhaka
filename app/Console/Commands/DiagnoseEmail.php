@@ -12,22 +12,6 @@ class DiagnoseEmail extends Command
 
     public function handle()
     {
-        // #region agent log
-        $dbg = function($payload) {
-            $line = json_encode([
-                'sessionId' => 'debug-session',
-                'runId' => 'email-diagnose',
-                'hypothesisId' => $payload['h'] ?? 'ED1',
-                'location' => $payload['loc'] ?? 'DiagnoseEmail',
-                'message' => $payload['msg'] ?? '',
-                'data' => $payload['data'] ?? [],
-                'timestamp' => round(microtime(true) * 1000),
-            ]);
-            @file_put_contents(base_path('.cursor/debug.log'), $line . PHP_EOL, FILE_APPEND | LOCK_EX);
-        };
-        // #endregion
-
-        $dbg(['h' => 'ED1', 'loc' => 'handle.start', 'msg' => 'diagnostic started']);
 
         $this->info('🔍 Email Configuration Diagnostics');
         $this->info('================================');
@@ -40,21 +24,7 @@ class DiagnoseEmail extends Command
         $password = config('mail.mailers.smtp.password');
         $fromAddress = config('mail.from.address');
         $mailer = config('mail.default');
-
-        $dbg(['h' => 'ED2', 'loc' => 'config-read', 'msg' => 'read mail configuration', 'data' => [
-            'mailer' => $mailer,
-            'host' => $host,
-            'port' => $port,
-            'username' => $username,
-            'password_length' => strlen($password ?? ''),
-            'password_first_char' => !empty($password) ? substr($password, 0, 1) : null,
-            'password_last_char' => !empty($password) ? substr($password, -1) : null,
-            'password_has_spaces' => !empty($password) && strpos($password, ' ') !== false,
-            'password_has_quotes' => !empty($password) && (strpos($password, '"') !== false || strpos($password, "'") !== false),
-            'from_address' => $fromAddress
-        ]]);
-
-        $this->info('Configuration:');
+$this->info('Configuration:');
         $this->line("  Mailer: {$mailer}");
         $this->line("  Host: {$host}");
         $this->line("  Port: {$port}");
@@ -84,33 +54,17 @@ class DiagnoseEmail extends Command
 
         // Test connection
         $this->info('Testing Gmail connection...');
-        $dbg(['h' => 'ED3', 'loc' => 'before-mail-send', 'msg' => 'about to send test email', 'data' => [
-            'username' => $username,
-            'host' => $host,
-            'port' => $port
-        ]]);
-
-        try {
-            Mail::raw('Diagnostic test email', function ($message) use ($username, $dbg) {
-                $dbg(['h' => 'ED4', 'loc' => 'mail-callback', 'msg' => 'inside mail callback', 'data' => ['to' => $username]]);
+try {
+            Mail::raw('Diagnostic test email', function ($message) use ($username) {
                 $message->to($username)
                         ->subject('Email Diagnostic Test');
             });
-            $dbg(['h' => 'ED5', 'loc' => 'mail-sent', 'msg' => 'email sent successfully']);
             $this->info('✅ Email sent successfully!');
             $this->info("   Check your inbox: {$username}");
             return 0;
         } catch (\Symfony\Component\Mailer\Exception\TransportException $e) {
             $error = $e->getMessage();
-            $dbg(['h' => 'ED6', 'loc' => 'transport-exception', 'msg' => 'email transport failed', 'data' => [
-                'error_message' => $error,
-                'error_code' => $e->getCode(),
-                'error_class' => get_class($e),
-                'has_535' => strpos($error, '535') !== false,
-                'has_bad_credentials' => strpos($error, 'BadCredentials') !== false,
-                'has_authentication' => strpos($error, 'authentication') !== false
-            ]]);
-            $this->error('❌ Email sending failed!');
+$this->error('❌ Email sending failed!');
             $this->error('');
             $this->error('Error: ' . substr($error, 0, 200));
             $this->error('');
@@ -133,13 +87,7 @@ class DiagnoseEmail extends Command
 
             return 1;
         } catch (\Exception $e) {
-            $dbg(['h' => 'ED7', 'loc' => 'general-exception', 'msg' => 'unexpected error', 'data' => [
-                'error_message' => $e->getMessage(),
-                'error_class' => get_class($e),
-                'error_file' => $e->getFile(),
-                'error_line' => $e->getLine()
-            ]]);
-            $this->error('❌ Unexpected error: ' . $e->getMessage());
+$this->error('❌ Unexpected error: ' . $e->getMessage());
             return 1;
         }
     }

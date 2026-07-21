@@ -67,7 +67,7 @@ This means your App Password is incorrect or expired. To fix:
 Check logs if emails aren't working:
 ```bash
 # Check debug logs
-tail -50 .cursor/debug.log | grep -E "REG[0-9]|CG[0-9]"
+tail -50 storage/logs/laravel.log | grep -E "REG|CG|verification"
 
 # Check Laravel logs
 tail -50 storage/logs/laravel.log | grep -i "error\|mail\|email"
