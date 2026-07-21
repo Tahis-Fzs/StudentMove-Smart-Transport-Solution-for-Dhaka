@@ -27,7 +27,8 @@
                             <i class="bi bi-geo-alt"></i> Destination
                         </label>
                         <input type="text" id="destination" name="destination" 
-                               placeholder="Where do you want to go? (e.g., DSC, DU, BUET)" required>
+                               placeholder="Where do you want to go? (e.g., DSC, DU, BUET)" 
+                               value="{{ $destination ?? old('destination') }}" required>
                     </div>
                 </div>
 

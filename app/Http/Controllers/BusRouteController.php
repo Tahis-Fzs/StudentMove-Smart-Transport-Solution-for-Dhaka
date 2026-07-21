@@ -25,7 +25,7 @@ class BusRouteController extends Controller
     {
         $demos = collect([
             (object) [
-                'id' => 1,
+                'id' => null,
                 'route_name' => 'Uttara to DSC',
                 'bus_number' => 'Demo-1',
                 'departure_time' => '07:00',
@@ -38,7 +38,7 @@ class BusRouteController extends Controller
                 'university_tags' => ['DIU', 'DSC'],
             ],
             (object) [
-                'id' => 2,
+                'id' => null,
                 'route_name' => 'Rajlakshmi to Mirpur',
                 'bus_number' => 'Demo-2',
                 'departure_time' => '09:00',
@@ -51,7 +51,7 @@ class BusRouteController extends Controller
                 'university_tags' => ['DIU', 'BUET'],
             ],
             (object) [
-                'id' => 3,
+                'id' => null,
                 'route_name' => 'Rajlakshmi to Gulshan',
                 'bus_number' => 'Demo-3',
                 'departure_time' => '12:00',
@@ -212,26 +212,34 @@ class BusRouteController extends Controller
     // 🚀 FR-11: DRIVER SIDE - Updates the location (by bus_id)
     public function updateLocation(Request $request)
     {
-        $bus = BusSchedule::where('id', $request->bus_id)->first();
-        
-        if ($bus) {
-            $bus->update([
-                'current_lat' => $request->lat,
-                'current_lng' => $request->lng,
-                'location_updated_at' => now(),
-            ]);
+        $data = $request->validate([
+            'bus_id' => ['required', 'integer', 'exists:bus_schedules,id'],
+            'lat' => ['required', 'numeric', 'between:-90,90'],
+            'lng' => ['required', 'numeric', 'between:-180,180'],
+        ]);
 
-            BusLiveStream::publishGps((int) $bus->id, [
-                'lat' => (float) $request->lat,
-                'lng' => (float) $request->lng,
-                'heading' => $bus->heading !== null && $bus->heading !== '' ? (float) $bus->heading : null,
-                'speed_kmh' => $bus->speed_kmh !== null ? (float) $bus->speed_kmh : null,
-                'location_updated_at' => now()->toIso8601String(),
-            ]);
-
-            return response()->json(['status' => 'success']);
+        $sessionBusId = (int) $request->session()->get('bus_id');
+        if ($sessionBusId !== (int) $data['bus_id']) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized bus'], 403);
         }
-        return response()->json(['status' => 'error'], 404);
+
+        $bus = BusSchedule::findOrFail($data['bus_id']);
+        
+        $bus->update([
+            'current_lat' => $data['lat'],
+            'current_lng' => $data['lng'],
+            'location_updated_at' => now(),
+        ]);
+
+        BusLiveStream::publishGps((int) $bus->id, [
+            'lat' => (float) $data['lat'],
+            'lng' => (float) $data['lng'],
+            'heading' => $bus->heading !== null && $bus->heading !== '' ? (float) $bus->heading : null,
+            'speed_kmh' => $bus->speed_kmh !== null ? (float) $bus->speed_kmh : null,
+            'location_updated_at' => now()->toIso8601String(),
+        ]);
+
+        return response()->json(['status' => 'success']);
     }
 
     // 🚀 FR-12 & FR-15: Fetch Location AND Calculate Delay AND Send ETA

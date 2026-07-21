@@ -28,6 +28,16 @@ class DriverAuth
                 ]);
         }
 
+        if (!$request->session()->get('bus_id')) {
+            return redirect()->route('driver.login')
+                ->with('error', 'Please select a bus to start your shift.')
+                ->withHeaders([
+                    'Cache-Control' => 'no-cache, no-store, must-revalidate, max-age=0',
+                    'Pragma' => 'no-cache',
+                    'Expires' => '0'
+                ]);
+        }
+
         // Add no-cache headers to driver pages to prevent browser caching
         $response = $next($request);
         

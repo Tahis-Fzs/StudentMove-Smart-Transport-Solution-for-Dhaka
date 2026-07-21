@@ -324,6 +324,10 @@
 
         async function fetchLiveLocation(scheduleId, busId) {
             if (manualOverride[scheduleId]) return;
+            if (!busId) {
+                startSimulation(scheduleId);
+                return;
+            }
 
             try {
                 const res = await fetch(`/api/bus/get-location/${busId}`, {

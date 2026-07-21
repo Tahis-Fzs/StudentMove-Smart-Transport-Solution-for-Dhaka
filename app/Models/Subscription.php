@@ -77,6 +77,13 @@ class Subscription extends Model
             && now()->between($this->starts_at, $this->ends_at);
     }
 
+    /** Paid subscriptions that are still within their validity window. */
+    public function scopeCurrentlyActive($query)
+    {
+        return $query->where('status', 'completed')
+            ->where('ends_at', '>', now());
+    }
+
     public function getPlanNameAttribute()
     {
         $catalog = self::planCatalog();

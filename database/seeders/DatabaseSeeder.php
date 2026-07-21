@@ -45,7 +45,10 @@ class DatabaseSeeder extends Seeder
         if (!User::where('email', 'test@example.com')->exists()) {
             User::create([
                 'name' => 'Test User',
+                'first_name' => 'Test',
+                'last_name' => 'User',
                 'email' => 'test@example.com',
+                'phone' => '01700000000',
                 'email_verified_at' => now(),
                 'password' => Hash::make('password'),
             ]);

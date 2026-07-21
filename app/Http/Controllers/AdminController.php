@@ -38,7 +38,10 @@ class AdminController extends Controller
      */
     public function users(): View
     {
-        $users = User::latest()->paginate(15);
+        $users = User::with(['subscriptions' => fn ($q) => $q->currentlyActive()->latest()->limit(1)])
+            ->latest()
+            ->paginate(15);
+
         return view('admin.users', compact('users'));
     }
 
@@ -143,9 +146,9 @@ class AdminController extends Controller
     public function cancelSubscription($userId): RedirectResponse
     {
         // Find active subscription for this user
-        $subscription = \App\Models\Subscription::where('user_id', $userId)
-                                              ->where('status', 'active')
-                                              ->first();
+        $subscription = Subscription::where('user_id', $userId)
+            ->currentlyActive()
+            ->first();
 
         if ($subscription) {
             $subscription->update(['status' => 'cancelled']);

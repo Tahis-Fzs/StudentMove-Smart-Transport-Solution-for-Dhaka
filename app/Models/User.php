@@ -39,6 +39,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'preferred_language',
         'profile_image',
         'is_admin',
+        'is_banned',
         'bus_delay_notifications',
         'route_change_alerts',
         'promotional_offers',
@@ -67,6 +68,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_banned' => 'boolean',
             'bus_delay_notifications' => 'boolean',
             'route_change_alerts' => 'boolean',
             'promotional_offers' => 'boolean',

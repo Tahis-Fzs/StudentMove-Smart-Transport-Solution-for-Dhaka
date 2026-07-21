@@ -25,11 +25,19 @@ class DriverController extends Controller
     public function updateStatus(Request $request)
     {
         $busId = Session::get('bus_id');
+        if (!$busId) {
+            return redirect()->route('driver.login')->with('error', 'Please select a bus to start your shift.');
+        }
+
+        $data = $request->validate([
+            'status' => ['required', 'in:on_time,delayed,stopped'],
+        ]);
+
         $bus = BusSchedule::findOrFail($busId);
 
-        $bus->update(['status' => $request->status]);
+        $bus->update(['status' => $data['status']]);
 
-        return back()->with('success', 'Status updated to: ' . ucfirst($request->status));
+        return back()->with('success', 'Status updated to: ' . ucfirst(str_replace('_', ' ', $data['status'])));
     }
 
     /** FR-43: GPS pings from driver phone (lat/lng + heading + speed). */

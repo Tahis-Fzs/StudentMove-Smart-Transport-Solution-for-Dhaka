@@ -77,6 +77,25 @@
 
 <div class="card" style="margin-top: 20px;">
         <h2 class="mb-2">Checkout</h2>
+
+        @if($activeSubscription ?? null)
+            <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:0.75rem;padding:1rem 1.25rem;margin-bottom:1rem;">
+                <strong style="color:#047857;">Active plan:</strong>
+                {{ $activeSubscription->plan_name }}
+                until {{ $activeSubscription->ends_at?->format('j M Y') }}.
+                <a href="{{ route('subscription.history') }}" style="margin-left:0.5rem;">View history</a>
+            </div>
+        @endif
+
+        @guest
+            <p style="color:#5b6572;margin-bottom:1rem;">
+                <a href="{{ route('login') }}" style="color:#0b6e6a;font-weight:600;">Sign in</a>
+                or <a href="{{ route('register') }}" style="color:#0b6e6a;font-weight:600;">create an account</a>
+                to purchase a pass.
+            </p>
+        @endguest
+
+        @auth
         <form method="POST" action="{{ route('subscription.store') }}" class="checkout-form" id="checkout-form">
             @csrf
             <input type="hidden" name="plan_type" id="plan_type" value="weekly">
@@ -165,6 +184,7 @@
             </button>
             <div id="checkout-hint" style="margin-top:8px; font-size:13px; color:#b42318; display:none;">Please complete all required fields.</div>
         </form>
+        @endauth
     </div>
 </div>
 
@@ -178,9 +198,12 @@
     document.querySelectorAll('.choose-plan').forEach(btn => {
         btn.addEventListener('click', () => {
             const plan = btn.dataset.plan;
-            document.getElementById('plan_type').value = plan;
-            document.getElementById('selected-plan-label').textContent = planMap[plan] || plan;
-            document.getElementById('checkout-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const planInput = document.getElementById('plan_type');
+            const planLabel = document.getElementById('selected-plan-label');
+            const checkoutForm = document.getElementById('checkout-form');
+            if (planInput) planInput.value = plan;
+            if (planLabel) planLabel.textContent = planMap[plan] || plan;
+            if (checkoutForm) checkoutForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     });
 
@@ -203,9 +226,12 @@
     }
 
     const validateForm = () => {
+        const planInput = document.getElementById('plan_type');
+        if (!planInput) return;
+
         let ok = true;
 
-        if (!document.getElementById('plan_type').value) ok = false;
+        if (!planInput.value) ok = false;
 
         if (!sslEnabled && paymentMethod) {
             const method = paymentMethod.value;
@@ -243,7 +269,9 @@
         el.addEventListener('change', validateForm);
     });
 
-    validateForm();
+    if (document.getElementById('checkout-form')) {
+        validateForm();
+    }
 
     const form = document.getElementById('checkout-form');
     if (form) {

@@ -44,10 +44,8 @@ class AuthController extends Controller
         $adminPassword = env('ADMIN_PASSWORD');
         
         Log::info('Admin login attempt', [
-            'provided_password' => $request->password,
-            'expected_password' => $adminPassword,
-            'match' => $request->password === $adminPassword,
-            'session_id' => session()->getId()
+            'session_id' => session()->getId(),
+            'success' => $request->password === $adminPassword,
         ]);
         
         if (empty($adminPassword)) {
@@ -88,10 +86,7 @@ class AuthController extends Controller
      */
     public function logout(Request $request): RedirectResponse
     {
-        // Clear all session data
         $request->session()->forget('admin_logged_in');
-        $request->session()->flush();
-        $request->session()->invalidate();
         $request->session()->regenerateToken();
         
         Log::info('Admin logout successful', [

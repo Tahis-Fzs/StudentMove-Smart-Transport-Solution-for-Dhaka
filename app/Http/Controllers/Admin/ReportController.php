@@ -13,14 +13,16 @@ class ReportController extends Controller
     public function index()
     {
         // 1. Calculate Income (From Subscriptions)
-        $totalIncome = Subscription::where('status', 'active')->sum('amount');
-        $monthlyIncome = Subscription::where('created_at', '>=', Carbon::now()->subMonth())->where('status', 'active')->sum('amount');
+        $totalIncome = Subscription::where('status', 'completed')->sum('amount');
+        $monthlyIncome = Subscription::where('status', 'completed')
+            ->where('created_at', '>=', Carbon::now()->subMonth())
+            ->sum('amount');
 
         // 2. Calculate User Growth
         $newUsers = User::where('created_at', '>=', Carbon::now()->subWeek())->count();
 
         // 3. Subscription Stats
-        $activeSubs = Subscription::where('status', 'active')->count();
+        $activeSubs = Subscription::currentlyActive()->count();
 
         return view('admin.reports.index', compact('totalIncome', 'monthlyIncome', 'newUsers', 'activeSubs'));
     }

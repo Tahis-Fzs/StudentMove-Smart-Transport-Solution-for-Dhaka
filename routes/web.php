@@ -80,7 +80,9 @@ Route::middleware('auth')->group(function () {
 // Public bus routes and APIs (no auth required for map)
 Route::get('/next-bus-arrival', [BusRouteController::class, 'index'])->name('next-bus-arrival');
 Route::get('/route-suggestion', [BusRouteController::class, 'suggest'])->name('route-suggestion');
-Route::post('/api/bus/update-location', [BusRouteController::class, 'updateLocation'])->name('api.bus.update');
+Route::post('/api/bus/update-location', [BusRouteController::class, 'updateLocation'])
+    ->middleware('driver.auth')
+    ->name('api.bus.update');
 Route::get('/api/bus/get-location/{id}', [BusRouteController::class, 'getBusLocation'])->name('api.bus.get');
 Route::get('/api/bus/stream/{id}', [\App\Http\Controllers\Api\BusStreamController::class, 'stream'])->name('api.bus.stream');
 

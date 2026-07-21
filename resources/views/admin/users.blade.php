@@ -219,7 +219,7 @@
                         @endif
                     </td>
                     <td style="padding: 15px; word-wrap: break-word;">
-                        @php $sub = \App\Models\Subscription::where('user_id', $user->id)->where('status', 'active')->first(); @endphp
+                        @php $sub = $user->subscriptions->first(); @endphp
                         @if($sub)
                             <span style="color: green; display: block; margin-bottom: 5px;">{{ $sub->plan_name }}</span>
                             <form method="POST" action="{{ route('admin.users.cancel_sub', $user->id) }}" style="display:inline;">
