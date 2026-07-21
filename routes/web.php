@@ -24,19 +24,19 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified', 'profile.complete'])->name('dashboard');
 
 // Use controller-based subscription routes (removed duplicate closure-based route)
-Route::get('/subscription', [SubscriptionController::class, 'index'])->name('subscription');
-Route::post('/subscription', [SubscriptionController::class, 'store'])->middleware('auth')->name('subscription.store');
-Route::get('/subscription/history', [SubscriptionController::class, 'history'])->middleware('auth')->name('subscription.history');
-Route::get('/subscription/invoice/{invoice}/download', [SubscriptionController::class, 'downloadInvoice'])->middleware('auth')->name('subscription.invoice.download');
+Route::get('/subscription', [SubscriptionController::class, 'index'])->middleware('profile.complete')->name('subscription');
+Route::post('/subscription', [SubscriptionController::class, 'store'])->middleware(['auth', 'profile.complete'])->name('subscription.store');
+Route::get('/subscription/history', [SubscriptionController::class, 'history'])->middleware(['auth', 'profile.complete'])->name('subscription.history');
+Route::get('/subscription/invoice/{invoice}/download', [SubscriptionController::class, 'downloadInvoice'])->middleware(['auth', 'profile.complete'])->name('subscription.invoice.download');
 
 Route::get('/offers', function () {
     $offers = Offer::active()->orderBy('sort_order')->orderByDesc('discount_percentage')->get();
 
     return view('offers', compact('offers'));
-})->middleware(['auth', 'verified'])->name('offers');
+})->middleware(['auth', 'verified', 'profile.complete'])->name('offers');
 
 // SSLCommerz callbacks (CSRF-exempt — gateway POSTs here)
 Route::match(['get', 'post'], '/subscription/sslcommerz/success', [SubscriptionController::class, 'sslSuccess'])->name('subscription.ssl.success');
@@ -44,19 +44,13 @@ Route::match(['get', 'post'], '/subscription/sslcommerz/fail', [SubscriptionCont
 Route::match(['get', 'post'], '/subscription/sslcommerz/cancel', [SubscriptionController::class, 'sslCancel'])->name('subscription.ssl.cancel');
 Route::post('/subscription/sslcommerz/ipn', [SubscriptionController::class, 'sslIpn'])->name('subscription.ssl.ipn');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'profile.complete'])->group(function () {
     Route::get('/notifications', [UserNotificationController::class, 'index'])->name('notifications');
     Route::post('/notifications/inbox/{inboxMessage}/read', [UserNotificationController::class, 'markRead'])->name('notifications.inbox.read');
     Route::post('/notifications/inbox/read-all', [UserNotificationController::class, 'markAllRead'])->name('notifications.inbox.readAll');
     Route::delete('/notifications/inbox/{inboxMessage}', [UserNotificationController::class, 'destroy'])->name('notifications.inbox.destroy');
     Route::get('/notifications/settings', [UserNotificationController::class, 'settings'])->name('notifications.settings');
     Route::post('/notifications/settings', [UserNotificationController::class, 'updateSettings'])->name('notifications.update');
-});
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::post('/ai/generate', [AiController::class, 'generate'])
         ->middleware('throttle:30,1')
@@ -77,6 +71,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/bookings/{booking}/cancel', [\App\Http\Controllers\BookingController::class, 'cancel'])->name('bookings.cancel');
 });
 
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
 // Public bus routes and APIs (no auth required for map)
 Route::get('/next-bus-arrival', [BusRouteController::class, 'index'])->name('next-bus-arrival');
 Route::get('/route-suggestion', [BusRouteController::class, 'suggest'])->name('route-suggestion');
@@ -86,7 +86,7 @@ Route::post('/api/bus/update-location', [BusRouteController::class, 'updateLocat
 Route::get('/api/bus/get-location/{id}', [BusRouteController::class, 'getBusLocation'])->name('api.bus.get');
 Route::get('/api/bus/stream/{id}', [\App\Http\Controllers\Api\BusStreamController::class, 'stream'])->name('api.bus.stream');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'profile.complete'])->group(function () {
     Route::post('/save-route', [BusRouteController::class, 'saveFavorite'])->name('route.save');
     Route::delete('/saved-routes/{savedRoute}', [BusRouteController::class, 'destroyFavorite'])->name('route.favorite.destroy');
 });

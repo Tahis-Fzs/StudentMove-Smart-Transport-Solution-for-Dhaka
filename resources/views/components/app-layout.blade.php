@@ -20,6 +20,9 @@
                     <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
                     <a href="{{ route('next-bus-arrival') }}" class="nav-link {{ request()->routeIs('next-bus-arrival') ? 'active' : '' }}">Live map</a>
                     @auth
+                        @if (auth()->user()->needsProfileCompletion())
+                            <a href="{{ route('profile.edit', ['complete' => 1]) }}" class="nav-link active">Complete profile</a>
+                        @else
                         <a href="{{ route('route-suggestion') }}" class="nav-link {{ request()->routeIs('route-suggestion') ? 'active' : '' }}">Routes</a>
                         <a href="{{ route('bookings.index') }}" class="nav-link {{ request()->routeIs('bookings.*') ? 'active' : '' }}">Book</a>
                         <a href="{{ route('subscription') }}" class="nav-link {{ request()->routeIs('subscription*') ? 'active' : '' }}">Plans</a>
@@ -34,6 +37,7 @@
                         <a href="{{ route('chat.index') }}" class="nav-link {{ request()->routeIs('chat.*') ? 'active' : '' }}">Chat</a>
                         <a href="{{ route('profile.edit') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">Profile</a>
                         <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a>
+                        @endif
                     @endauth
                 </div>
                 <div class="nav-cta">
@@ -44,7 +48,7 @@
                         </form>
                     @else
                         <a href="{{ route('login') }}" class="nav-button">Sign in</a>
-                        <a href="{{ route('register') }}" class="nav-button ghost">Register</a>
+                        <a href="{{ route('register') }}" class="nav-button ghost">Email signup</a>
                         <a href="{{ route('driver.login') }}" class="nav-button ghost">Driver</a>
                         <a href="{{ route('admin.login') }}" class="nav-button ghost">Admin</a>
                     @endauth

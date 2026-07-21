@@ -125,7 +125,11 @@ async function finishSignIn(user, intent) {
     const idToken = await user.getIdToken();
     const data = await syncWithLaravel(idToken, intent);
     setStatus('Synced to StudentMove. Redirecting…');
-    window.location.href = data.redirect || '/dashboard';
+    if (!data.redirect) {
+        throw new Error('Server did not return a redirect URL.');
+    }
+
+    window.location.href = data.redirect;
 }
 
 async function socialSignIn(providerName, intent) {

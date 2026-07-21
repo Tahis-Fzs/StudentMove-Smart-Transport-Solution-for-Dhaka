@@ -66,6 +66,51 @@ class User extends Authenticatable implements MustVerifyEmail
         'promotional_offers' => 'boolean',
     ];
 
+    /** Google/social first-time users still need student details. */
+    public function needsProfileCompletion(): bool
+    {
+        return blank($this->phone)
+            || blank($this->student_id)
+            || blank($this->university);
+    }
+
+    /** Where to send the user immediately after any successful login. */
+    public function postAuthRedirect(): string
+    {
+        if ($this->needsProfileCompletion()) {
+            return route('profile.edit', ['complete' => 1]);
+        }
+
+        if (!$this->hasVerifiedEmail()) {
+            return route('verification.notice');
+        }
+
+        return url(\App\Providers\RouteServiceProvider::HOME);
+    }
+
+    /** Redirect after login/verification — never honor "intended" URL until profile is complete. */
+    public function redirectAfterAuth(array $query = []): \Illuminate\Http\RedirectResponse
+    {
+        $fallback = $this->postAuthRedirect();
+
+        if ($this->needsProfileCompletion()) {
+            $url = $fallback;
+            if ($query !== []) {
+                $url .= (str_contains($url, '?') ? '&' : '?') . http_build_query($query);
+            }
+
+            return redirect($url);
+        }
+
+        $target = session()->pull('url.intended', $fallback);
+
+        if ($query !== []) {
+            $target .= (str_contains($target, '?') ? '&' : '?') . http_build_query($query);
+        }
+
+        return redirect($target);
+    }
+
     
     public function subscriptions()
     {

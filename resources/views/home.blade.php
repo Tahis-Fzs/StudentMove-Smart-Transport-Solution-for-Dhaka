@@ -12,7 +12,7 @@
                     </form>
                 @else
                     <a class="l-nav__link" href="{{ route('login') }}">Sign in</a>
-                    <a class="l-nav__link l-nav__link--solid" href="{{ route('register') }}">Create account</a>
+                    <a class="l-nav__link l-nav__link--solid" href="{{ route('login') }}">Get started</a>
                 @endauth
             </div>
         </div>
@@ -42,7 +42,7 @@
                     <a class="l-btn l-btn--primary" href="{{ route('dashboard') }}">Open dashboard</a>
                     <a class="l-btn l-btn--ghost" href="{{ route('next-bus-arrival') }}">Track live</a>
                 @else
-                    <a class="l-btn l-btn--primary" href="{{ route('register') }}">Start free</a>
+                    <a class="l-btn l-btn--primary" href="{{ route('login') }}">Sign in or create account</a>
                     <a class="l-btn l-btn--ghost" href="{{ route('next-bus-arrival') }}">Track live</a>
                 @endauth
             </div>
@@ -84,7 +84,7 @@
             </div>
             <div class="l-strip__actions" data-reveal>
                 @guest
-                    <a class="l-btn l-btn--primary" href="{{ route('register') }}">Join StudentMove</a>
+                    <a class="l-btn l-btn--primary" href="{{ route('login') }}">Get started</a>
                     <a class="l-btn l-btn--ghost" href="{{ route('driver.login') }}">Driver access</a>
                 @else
                     <a class="l-btn l-btn--primary" href="{{ route('subscription') }}">View plans</a>

@@ -65,6 +65,7 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'admin.auth' => \App\Http\Middleware\AdminAuth::class,
         'driver.auth' => \App\Http\Middleware\DriverAuth::class,
+        'profile.complete' => \App\Http\Middleware\EnsureStudentProfileComplete::class,
     ];
 }
 

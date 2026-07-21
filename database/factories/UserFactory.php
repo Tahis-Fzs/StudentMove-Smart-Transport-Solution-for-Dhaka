@@ -23,13 +23,31 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $first = fake()->firstName();
+        $last = fake()->lastName();
+
         return [
-            'name' => fake()->name(),
+            'name' => $first . ' ' . $last,
+            'first_name' => $first,
+            'last_name' => $last,
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'phone' => '01' . fake()->numerify('#########'),
+            'student_id' => strtoupper(fake()->unique()->bothify('STU-####')),
+            'university' => 'University of Dhaka',
         ];
+    }
+
+    /** Mimics a Google-first account before student details are filled in. */
+    public function incompleteProfile(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'phone' => null,
+            'student_id' => null,
+            'university' => null,
+        ]);
     }
 
     /**

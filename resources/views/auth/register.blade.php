@@ -15,9 +15,13 @@
         </aside>
 
         <section class="auth-panel auth-panel--wide sm-reveal">
-            <p class="auth-kicker">Create account</p>
-            <h1 class="auth-title">Join StudentMove</h1>
-            <p class="auth-sub">We verify your email domain, block duplicates, and require a unique student ID.</p>
+            <p class="auth-kicker">Email signup</p>
+            <h1 class="auth-title">Register with student verification</h1>
+            <p class="auth-sub">
+                Use this path if you want a password and verified campus email upfront.
+                Faster? <a class="auth-link" href="{{ route('login') }}">Continue with Google on sign in</a>.
+                Already registered? <a class="auth-link" href="{{ route('login') }}">Sign in</a>.
+            </p>
 
             @if ($errors->any())
                 <div class="auth-alert auth-alert--err">

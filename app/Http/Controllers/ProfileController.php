@@ -26,6 +26,7 @@ class ProfileController extends Controller
     {
         return view('profile.edit', [
             'user' => $request->user(),
+            'completingProfile' => $request->user()->needsProfileCompletion() || $request->boolean('complete'),
             'universities' => University::orderBy('name')->get(['id', 'name', 'short_name', 'calendar_type']),
             'faculties' => Faculty::orderBy('name')->pluck('name'),
             'departments' => Department::orderBy('name')->pluck('name'),
@@ -37,6 +38,9 @@ class ProfileController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
+        $user = $request->user();
+        $completingProfile = $user->needsProfileCompletion();
+
         $validationRules = [
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
@@ -54,7 +58,7 @@ class ProfileController extends Controller
             'department_select' => ['nullable', 'string', 'max:255'],
             'department_other' => ['nullable', 'string', 'max:255'],
             'student_id' => [
-                'nullable',
+                $completingProfile ? 'required' : 'nullable',
                 'string',
                 'max:50',
                 'unique:users,student_id,' . $request->user()->id,
@@ -92,6 +96,13 @@ class ProfileController extends Controller
         }
 
         $user = $request->user();
+
+        if ($completingProfile && blank($this->academicCatalog->resolveUniversity(
+            $request->university_select,
+            $request->university_other
+        )) && blank($user->university)) {
+            return back()->withErrors(['university_select' => 'Please select your university.'])->withInput();
+        }
 
         if ($request->hasFile('profile_image')) {
             try {
@@ -181,6 +192,12 @@ class ProfileController extends Controller
 
         $user->save();
         $user->refresh();
+
+        if ($completingProfile && !$user->needsProfileCompletion()) {
+            return Redirect::route('dashboard')
+                ->with('status', 'profile-updated')
+                ->with('success', 'Profile complete — welcome to StudentMove!');
+        }
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated')->with('user', $user);
     }

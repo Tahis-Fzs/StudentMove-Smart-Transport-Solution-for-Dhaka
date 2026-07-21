@@ -35,7 +35,7 @@
             </div>
             <div class="nav-cta">
                 <a href="{{ route('login') }}" class="nav-button">Sign in</a>
-                <a href="{{ route('register') }}" class="nav-button ghost">Register</a>
+                <a href="{{ route('register') }}" class="nav-button ghost">Email signup</a>
                 <a href="{{ route('driver.login') }}" class="nav-button ghost">Driver</a>
                 <a href="{{ route('admin.login') }}" class="nav-button ghost">Admin</a>
             </div>

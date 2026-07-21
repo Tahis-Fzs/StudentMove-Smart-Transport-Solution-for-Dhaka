@@ -7,7 +7,26 @@
     <div class="profile-container">
         <div class="profile-header">
             <h1 class="profile-title"><i class="bi bi-person-circle"></i> Profile Settings</h1>
-            <p class="profile-subtitle">Update your personal information and preferences</p>
+            <p class="profile-subtitle">
+                @if($completingProfile ?? false)
+                    Finish your student profile to unlock bookings, chat, and your dashboard.
+                @else
+                    Update your personal information and preferences
+                @endif
+            </p>
+
+            @if($completingProfile ?? false)
+                <div class="alert alert-success" style="background:#ecfdf5;color:#047857;padding:15px;border-radius:8px;margin-bottom:20px;border:1px solid #a7f3d0;">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Almost there.</strong> Add your student ID, Bangladesh mobile number, and university to complete your account.
+                </div>
+            @endif
+
+            @if(session('info'))
+                <div class="alert alert-success" style="background:#ecfdf5;color:#047857;padding:15px;border-radius:8px;margin-bottom:20px;border:1px solid #a7f3d0;">
+                    {{ session('info') }}
+                </div>
+            @endif
             
             @if(session('status') == 'profile-updated')
                 <div class="alert alert-success" style="background: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
@@ -255,11 +274,18 @@
 
             <!-- Action Buttons -->
             <button type="submit" class="save-btn">
-                <i class="bi bi-check-circle"></i> Save Changes
+                <i class="bi bi-check-circle"></i>
+                @if($completingProfile ?? false)
+                    Complete profile &amp; continue
+                @else
+                    Save Changes
+                @endif
             </button>
+            @unless($completingProfile ?? false)
             <button type="button" class="cancel-btn" onclick="window.location.href='{{ route('dashboard') }}'">
                 <i class="bi bi-arrow-left"></i> Back to Dashboard
             </button>
+            @endunless
         </form>
     </div>
 

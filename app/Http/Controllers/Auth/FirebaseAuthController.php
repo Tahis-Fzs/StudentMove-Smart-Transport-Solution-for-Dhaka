@@ -93,19 +93,14 @@ class FirebaseAuthController extends Controller
         Auth::login($user, true);
         $request->session()->regenerate();
 
-        $redirect = $user->hasVerifiedEmail()
-            ? url(RouteServiceProvider::HOME)
-            : route('verification.notice');
-
-        // If social email is verified by provider, mark verified locally
         if ($firebase['email_verified'] && ! $user->hasVerifiedEmail()) {
             $user->forceFill(['email_verified_at' => now()])->save();
-            $redirect = url(RouteServiceProvider::HOME);
+            $user->refresh();
         }
 
         return response()->json([
             'ok' => true,
-            'redirect' => $redirect,
+            'redirect' => $user->postAuthRedirect(),
             'user' => [
                 'id' => $user->id,
                 'email' => $user->email,

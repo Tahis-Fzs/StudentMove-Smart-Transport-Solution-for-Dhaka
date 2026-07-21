@@ -9,8 +9,16 @@ class HomeController extends Controller
 {
     public function index(): View|RedirectResponse
     {
-        return auth()->check()
-            ? redirect()->route('dashboard')
-            : view('home');
+        if (! auth()->check()) {
+            return view('home');
+        }
+
+        $user = auth()->user();
+
+        if ($user->needsProfileCompletion()) {
+            return redirect()->route('profile.edit', ['complete' => 1]);
+        }
+
+        return redirect()->route('dashboard');
     }
 }
