@@ -38,8 +38,7 @@ class SubscriptionController extends Controller
 
         $activeSubscription = Auth::check()
             ? Subscription::where('user_id', Auth::id())
-                ->where('status', 'completed')
-                ->where('ends_at', '>', now())
+                ->currentlyActive()
                 ->latest()
                 ->first()
             : null;

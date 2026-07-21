@@ -47,6 +47,7 @@ class DriverAuthController extends Controller
     public function logout(Request $request)
     {
         $request->session()->forget(['driver_logged_in', 'bus_id']);
+        $request->session()->invalidate();
         $request->session()->regenerateToken();
         
         // Redirect with no-cache headers

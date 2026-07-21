@@ -80,8 +80,11 @@ class Subscription extends Model
     /** Paid subscriptions that are still within their validity window. */
     public function scopeCurrentlyActive($query)
     {
+        $now = now();
+
         return $query->where('status', 'completed')
-            ->where('ends_at', '>', now());
+            ->where('starts_at', '<=', $now)
+            ->where('ends_at', '>', $now);
     }
 
     public function getPlanNameAttribute()

@@ -82,10 +82,15 @@ class ChatController extends Controller
         } catch (\Throwable $e) {
             report($e);
 
-            return response()->json([
-                'error' => 'AI request failed. Please try again later.',
-                'messages' => [$this->serializeMessage($userMessage)],
-            ], 500);
+            $reply = trim($this->aiService->localFallback($aiMessages));
+            if ($reply === '') {
+                return response()->json([
+                    'error' => 'AI request failed. Please try again later.',
+                    'messages' => [$this->serializeMessage($userMessage)],
+                ], 500);
+            }
+
+            $offline = true;
         }
 
         $assistantMessage = $thread->messages()->create([

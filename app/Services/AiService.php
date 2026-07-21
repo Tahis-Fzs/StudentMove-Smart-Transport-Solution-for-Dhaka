@@ -124,6 +124,11 @@ class AiService
             return 'Ask me about routes, bus timing, fares, or campuses in Dhaka.';
         }
 
+        if (preg_match('/^(hi|hello|hey|salam|assalamu alaikum)\b/u', $prompt)) {
+            return "Hello! I'm the StudentMove assistant for Dhaka student transport.\n"
+                . "Ask about routes (e.g. Uttara → DSC), bus timing, fares, or subscription plans.";
+        }
+
         if (str_contains($prompt, 'best route') || str_contains($prompt, 'route')) {
             return "For a solid student commute in Dhaka:\n"
                 . "1) Open Routes and enter your current area + campus (e.g. Uttara → DSC).\n"

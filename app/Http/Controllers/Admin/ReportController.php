@@ -12,9 +12,9 @@ class ReportController extends Controller
     // FR-39: Generate Reports
     public function index()
     {
-        // 1. Calculate Income (From Subscriptions)
-        $totalIncome = Subscription::where('status', 'completed')->sum('amount');
-        $monthlyIncome = Subscription::where('status', 'completed')
+        // 1. Calculate Income (currently valid subscriptions only — aligned with activeSubs)
+        $totalIncome = Subscription::currentlyActive()->sum('amount');
+        $monthlyIncome = Subscription::currentlyActive()
             ->where('created_at', '>=', Carbon::now()->subMonth())
             ->sum('amount');
 
