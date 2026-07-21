@@ -23,13 +23,10 @@ class ChatThread extends Model
         'admin_read_at',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'last_message_at' => 'datetime',
-            'admin_read_at' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'last_message_at' => 'datetime',
+        'admin_read_at' => 'datetime',
+    ];
 
     public function user(): BelongsTo
     {

@@ -58,22 +58,13 @@ class User extends Authenticatable implements MustVerifyEmail
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'is_banned' => 'boolean',
-            'bus_delay_notifications' => 'boolean',
-            'route_change_alerts' => 'boolean',
-            'promotional_offers' => 'boolean',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'is_banned' => 'boolean',
+        'bus_delay_notifications' => 'boolean',
+        'route_change_alerts' => 'boolean',
+        'promotional_offers' => 'boolean',
+    ];
 
     
     public function subscriptions()

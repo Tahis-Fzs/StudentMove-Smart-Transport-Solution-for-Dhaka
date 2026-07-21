@@ -18,12 +18,9 @@ class ChatMessage extends Model
         'meta',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'meta' => 'array',
-        ];
-    }
+    protected $casts = [
+        'meta' => 'array',
+    ];
 
     public function thread(): BelongsTo
     {
