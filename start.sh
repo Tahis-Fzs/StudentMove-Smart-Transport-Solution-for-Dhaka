@@ -72,13 +72,14 @@ if [ -z "${SSLCOMMERZ_STORE_ID:-}" ] || [ -z "${SSLCOMMERZ_STORE_PASSWORD:-}" ];
   echo "WARNING: SSLCommerz store credentials missing. /subscription will use demo/simulated checkout."
 fi
 
-# Migrations + demo seed data (universities, faculties, departments, sample bus).
-(
-  sleep 2
-  php artisan migrate --force || true
-  php artisan db:seed --force || true
-  php artisan storage:link || true
-) &
+# Migrations + demo seed must finish before traffic (driver bus list, profile universities, live map).
+echo "Running database migrations..."
+php artisan migrate --force
+
+echo "Seeding demo data (universities, offers, BUS-001)..."
+php artisan db:seed --force
+
+php artisan storage:link || true
 
 echo "Starting Apache on ${PORT}..."
 exec apache2-foreground

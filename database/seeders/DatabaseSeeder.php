@@ -2,10 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use App\Models\BusSchedule;
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -20,15 +21,6 @@ class DatabaseSeeder extends Seeder
             AcademicCatalogSeeder::class,
             DemoContentSeeder::class,
         ]);
-
-        // User::factory(10)->create();
-
-        if (!User::where('email', 'test@example.com')->exists()) {
-            User::factory()->create([
-                'name' => 'Test User',
-                'email' => 'test@example.com',
-            ]);
-        }
 
         if (!BusSchedule::where('bus_number', 'BUS-001')->exists()) {
             BusSchedule::create([
@@ -46,6 +38,16 @@ class DatabaseSeeder extends Seeder
                 'current_lng' => 90.4125,
                 'status' => 'on_time',
                 'delay_minutes' => 0,
+            ]);
+        }
+
+        // No Faker in production (composer --no-dev); use explicit attributes.
+        if (!User::where('email', 'test@example.com')->exists()) {
+            User::create([
+                'name' => 'Test User',
+                'email' => 'test@example.com',
+                'email_verified_at' => now(),
+                'password' => Hash::make('password'),
             ]);
         }
     }
