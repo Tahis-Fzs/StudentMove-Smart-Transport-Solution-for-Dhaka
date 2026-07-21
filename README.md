@@ -82,6 +82,17 @@ Then visit `/subscription` and checkout via the sandbox gateway.
 
 **[https://studentmove-app-d866.onrender.com](https://studentmove-app-d866.onrender.com)** — permanent Render URL (free tier may cold-start ~30s after idle).
 
+#### Live demo credentials (Render)
+
+| Role | URL | Credentials |
+|------|-----|-------------|
+| **Student** | `/register` or Google sign-in | Create an account or use Google |
+| **Admin** | `/admin/login` | Password: `StudentMove@Admin2026` |
+| **Driver** | `/driver/login` | Password: `driver123` · Bus: **BUS-001** |
+| **Payments** | `/subscription` | SSLCommerz sandbox (`testbox` / `qwerty`) |
+
+> Add these on Render **Environment** if not already set: `ADMIN_PASSWORD`, `SSLCOMMERZ_*`, and your Firebase `FIREBASE_*` keys.
+
 > Use a Cloudflare tunnel only for **local dev demos** — `trycloudflare.com` URLs change when the tunnel restarts.
 
 ---
