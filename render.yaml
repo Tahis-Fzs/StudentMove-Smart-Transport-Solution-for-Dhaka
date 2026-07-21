@@ -35,6 +35,14 @@ services:
         value: sync
       - key: ADMIN_PASSWORD
         value: StudentMove@Admin2026
+      - key: SSLCOMMERZ_STORE_ID
+        value: testbox
+      - key: SSLCOMMERZ_STORE_PASSWORD
+        value: qwerty
+      - key: SSLCOMMERZ_SANDBOX
+        value: "true"
+      - key: SSLCOMMERZ_CURRENCY
+        value: BDT
       - key: FIREBASE_API_KEY
         sync: false
       - key: FIREBASE_AUTH_DOMAIN
