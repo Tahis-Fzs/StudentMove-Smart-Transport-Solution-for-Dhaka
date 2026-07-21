@@ -34,11 +34,11 @@ services:
       - key: QUEUE_CONNECTION
         value: sync
       - key: ADMIN_PASSWORD
-        value: StudentMove@Admin2026
+        sync: false
       - key: SSLCOMMERZ_STORE_ID
-        value: testbox
+        sync: false
       - key: SSLCOMMERZ_STORE_PASSWORD
-        value: qwerty
+        sync: false
       - key: SSLCOMMERZ_SANDBOX
         value: "true"
       - key: SSLCOMMERZ_CURRENCY

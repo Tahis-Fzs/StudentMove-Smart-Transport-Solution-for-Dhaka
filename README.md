@@ -84,14 +84,14 @@ Then visit `/subscription` and checkout via the sandbox gateway.
 
 #### Live demo credentials (Render)
 
-| Role | URL | Credentials |
-|------|-----|-------------|
+| Role | URL | Notes |
+|------|-----|-------|
 | **Student** | `/register` or Google sign-in | Create an account or use Google |
-| **Admin** | `/admin/login` | Password: `StudentMove@Admin2026` |
-| **Driver** | `/driver/login` | Password: `driver123` · Bus: **BUS-001** |
-| **Payments** | `/subscription` | SSLCommerz sandbox (`testbox` / `qwerty`) |
+| **Admin** | `/admin/login` | Set `ADMIN_PASSWORD` in Render **Environment** |
+| **Driver** | `/driver/login` | Demo password is in app code · Bus: **BUS-001** |
+| **Payments** | `/subscription` | Set `SSLCOMMERZ_*` in Render **Environment** (local sandbox: `.env.example`) |
 
-> Add these on Render **Environment** if not already set: `ADMIN_PASSWORD`, `SSLCOMMERZ_*`, and your Firebase `FIREBASE_*` keys.
+> Never commit real `ADMIN_PASSWORD` or payment credentials. Configure secrets only in Render **Environment** (or your host's secret store).
 
 > Use a Cloudflare tunnel only for **local dev demos** — `trycloudflare.com` URLs change when the tunnel restarts.
 
