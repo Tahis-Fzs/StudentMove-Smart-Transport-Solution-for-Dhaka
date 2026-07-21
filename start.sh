@@ -64,10 +64,11 @@ if [ ! -f public/build/manifest.json ]; then
   echo "WARNING: Vite manifest missing (public/build/manifest.json). Frontend pages will 500 until assets are built."
 fi
 
-# Migrations only — avoid config/route/view cache on Render (env vars + SQLite boot order).
+# Migrations + demo seed data (universities, faculties, departments, sample bus).
 (
   sleep 2
   php artisan migrate --force || true
+  php artisan db:seed --force || true
   php artisan storage:link || true
 ) &
 
